@@ -225,6 +225,58 @@ class MediaSettings
     }
 
     /**
+     * MIME types for the given extensions (Filament FileUpload acceptedFileTypes).
+     *
+     * @param  list<string>|null  $extensions
+     * @return list<string>
+     */
+    public function acceptedMimeTypes(?array $extensions = null): array
+    {
+        $extensions ??= $this->allowedFileTypes();
+        $map = self::extensionMimeMap();
+        $mimes = [];
+
+        foreach ($extensions as $extension) {
+            $extension = strtolower(ltrim($extension, '.'));
+            $mapped = $map[$extension] ?? [];
+
+            foreach ($mapped as $mime) {
+                $mimes[$mime] = true;
+            }
+        }
+
+        return array_keys($mimes);
+    }
+
+    /**
+     * Max upload size in kilobytes for Filament/Laravel file rules.
+     */
+    public function uploadMaxFileSizeKb(): int
+    {
+        return max(1, (int) ceil($this->uploadMaxFileSizeBytes() / 1024));
+    }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    public static function extensionMimeMap(): array
+    {
+        return [
+            'jpg' => ['image/jpeg'],
+            'jpeg' => ['image/jpeg'],
+            'png' => ['image/png'],
+            'gif' => ['image/gif'],
+            'webp' => ['image/webp'],
+            'svg' => ['image/svg+xml'],
+            'pdf' => ['application/pdf'],
+            'doc' => ['application/msword'],
+            'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+            'txt' => ['text/plain'],
+            'zip' => ['application/zip', 'application/x-zip-compressed'],
+        ];
+    }
+
+    /**
      * @return array<int, string>
      */
     public static function folderOptions(): array

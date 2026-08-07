@@ -6,11 +6,13 @@ use App\Enums\UserStatus;
 use App\Models\Category;
 use App\Models\CustomTaxonomy;
 use App\Models\CustomTaxonomyTerm;
+use App\Models\MediaAsset;
 use App\Models\Tag;
 use App\Models\User;
 use App\Policies\CategoryPolicy;
 use App\Policies\CustomTaxonomyPolicy;
 use App\Policies\CustomTaxonomyTermPolicy;
+use App\Policies\MediaAssetPolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
 use App\Support\Settings\EmailSettings;
@@ -50,6 +52,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Tag::class, TagPolicy::class);
         Gate::policy(CustomTaxonomy::class, CustomTaxonomyPolicy::class);
         Gate::policy(CustomTaxonomyTerm::class, CustomTaxonomyTermPolicy::class);
+        Gate::policy(MediaAsset::class, MediaAssetPolicy::class);
 
         try {
             $this->app->make(GeneralSettings::class)->applyRuntimeConfiguration();
