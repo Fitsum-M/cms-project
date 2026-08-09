@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\Pages\Pages;
 
 use App\Enums\ContentStatus;
+use App\Filament\Concerns\HasDraftAutosave;
 use App\Filament\Resources\Pages\PageResource;
 use App\Models\Page;
 use App\Services\ContentLifecycleService;
+use App\Services\ContentSeoService;
 use App\Services\PageService;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
@@ -18,6 +20,8 @@ use Illuminate\Validation\ValidationException;
 
 class EditPage extends EditRecord
 {
+    use HasDraftAutosave;
+
     protected static string $resource = PageResource::class;
 
     protected function getHeaderActions(): array
@@ -98,7 +102,7 @@ class EditPage extends EditRecord
         $record = $this->getRecord();
 
         $data['template'] = $record->resolvedTemplate();
-        $data['seo'] = app(\App\Services\ContentSeoService::class)->formState($record);
+        $data['seo'] = app(ContentSeoService::class)->formState($record);
 
         return $data;
     }

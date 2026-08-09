@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Enums\UserStatus;
+use App\Listeners\Audit\LogAuthenticationEvents;
 use App\Models\Category;
 use App\Models\CustomTaxonomy;
 use App\Models\CustomTaxonomyTerm;
@@ -23,7 +24,6 @@ use App\Policies\PostPolicy;
 use App\Policies\PostTypePolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
-use App\Listeners\Audit\LogAuthenticationEvents;
 use App\Services\MediaReferences\ContentSeoOgImageMediaReferenceProvider;
 use App\Services\MediaReferences\PostFeaturedImageMediaReferenceProvider;
 use App\Services\MediaReferences\SeoDefaultsMediaReferenceProvider;

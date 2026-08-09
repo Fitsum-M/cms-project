@@ -4,11 +4,14 @@ namespace App\Services;
 
 use App\Enums\ContentSlugScope;
 use App\Enums\ContentStatus;
+use App\Enums\Permission;
 use App\Enums\PostVisibility;
 use App\Models\Post;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
+use App\Support\Media\MediaImageOptions;
 use App\Support\PostTypeRegistry;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -101,6 +104,39 @@ class PostService
         $this->audit->contentChanged('created', $post, $actor);
 
         return $post;
+    }
+
+    /**
+     * Incremental draft save — title required only (SRS 12.5.2 autosave).
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function autosaveDraft(Post $post, array $data, User $actor): Post
+    {
+        if ($post->trashed()) {
+            throw ValidationException::withMessages([
+                'status' => 'Trashed posts cannot be auto-saved.',
+            ]);
+        }
+
+        if ($post->contentStatus() !== ContentStatus::Draft) {
+            throw ValidationException::withMessages([
+                'status' => 'Auto-save only applies to Draft posts.',
+            ]);
+        }
+
+        $title = trim((string) ($data['title'] ?? ''));
+
+        if ($title === '') {
+            throw ValidationException::withMessages([
+                'title' => 'A title is required to auto-save a draft.',
+            ]);
+        }
+
+        unset($data['status'], $data['confirm_slug_change']);
+        $data['accept_conflict_resolution'] = true;
+
+        return $this->update($post, $data, $actor);
     }
 
     /**
@@ -275,8 +311,8 @@ class PostService
             ]);
         }
 
-        if (! $actor->can(\App\Enums\Permission::PostsDuplicate->value)
-            || ! $actor->can(\App\Enums\Permission::PostsCreate->value)) {
+        if (! $actor->can(Permission::PostsDuplicate->value)
+            || ! $actor->can(Permission::PostsCreate->value)) {
             throw ValidationException::withMessages([
                 'status' => 'You do not have permission to duplicate this post.',
             ]);
@@ -399,7 +435,7 @@ class PostService
      */
     public function bulkChangeAuthor(iterable $posts, int $authorId, User $actor): array
     {
-        if (! $actor->can(\App\Enums\Permission::PostsEditOthers->value)) {
+        if (! $actor->can(Permission::PostsEditOthers->value)) {
             throw ValidationException::withMessages([
                 'author_id' => 'Only Editors and Administrators may bulk-change authors.',
             ]);
@@ -596,7 +632,7 @@ class PostService
             ? $status
             : (ContentStatus::tryFrom((string) $status) ?? ContentStatus::Draft);
 
-        if ($resolved === ContentStatus::Published && ! $actor->can(\App\Enums\Permission::PostsPublish->value)) {
+        if ($resolved === ContentStatus::Published && ! $actor->can(Permission::PostsPublish->value)) {
             return ContentStatus::PendingReview;
         }
 
@@ -605,7 +641,7 @@ class PostService
 
     private function resolveAuthorId(mixed $authorId, User $actor, bool $isCreate, ?Post $post = null): int
     {
-        $canReassign = $actor->can(\App\Enums\Permission::PostsEditOthers->value);
+        $canReassign = $actor->can(Permission::PostsEditOthers->value);
 
         if ($isCreate) {
             if ($authorId === null || $authorId === '' || ! $canReassign) {
@@ -693,19 +729,19 @@ class PostService
         return $postType;
     }
 
-    private function resolvePublishedAt(mixed $value, bool $isCreate, mixed $fallback = null): ?\Illuminate\Support\Carbon
+    private function resolvePublishedAt(mixed $value, bool $isCreate, mixed $fallback = null): ?Carbon
     {
         if ($value === null || $value === '') {
             if ($isCreate) {
                 return now();
             }
 
-            return $fallback instanceof \Illuminate\Support\Carbon
+            return $fallback instanceof Carbon
                 ? $fallback
-                : ($fallback !== null ? \Illuminate\Support\Carbon::parse($fallback) : null);
+                : ($fallback !== null ? Carbon::parse($fallback) : null);
         }
 
-        return \Illuminate\Support\Carbon::parse($value);
+        return Carbon::parse($value);
     }
 
     private function resolveExcerpt(mixed $excerpt, ?string $body): ?string
@@ -787,7 +823,7 @@ class PostService
             return null;
         }
 
-        return \App\Support\Media\MediaImageOptions::assertAssignableImage((int) $value);
+        return MediaImageOptions::assertAssignableImage((int) $value);
     }
 
     private function nullableId(mixed $value): ?int

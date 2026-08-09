@@ -5,10 +5,13 @@ namespace App\Services;
 use App\Enums\ContentSlugScope;
 use App\Enums\ContentStatus;
 use App\Enums\Permission;
+use App\Filament\Resources\Pages\PageResource;
 use App\Models\Page;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
 use App\Support\PageTemplateRegistry;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -89,6 +92,39 @@ class PageService
         $this->audit->contentChanged('created', $page, $actor);
 
         return $page;
+    }
+
+    /**
+     * Incremental draft save — title required only (SRS 12.5.2 autosave).
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function autosaveDraft(Page $page, array $data, User $actor): Page
+    {
+        if ($page->trashed()) {
+            throw ValidationException::withMessages([
+                'status' => 'Trashed pages cannot be auto-saved.',
+            ]);
+        }
+
+        if ($page->contentStatus() !== ContentStatus::Draft) {
+            throw ValidationException::withMessages([
+                'status' => 'Auto-save only applies to Draft pages.',
+            ]);
+        }
+
+        $title = trim((string) ($data['title'] ?? ''));
+
+        if ($title === '') {
+            throw ValidationException::withMessages([
+                'title' => 'A title is required to auto-save a draft.',
+            ]);
+        }
+
+        unset($data['status'], $data['confirm_slug_change']);
+        $data['accept_conflict_resolution'] = true;
+
+        return $this->update($page, $data, $actor);
     }
 
     /**
@@ -208,7 +244,7 @@ class PageService
 
         $pages = $query->get();
 
-        /** @var array<string, \Illuminate\Support\Collection<int, Page>> $byParent */
+        /** @var array<string, Collection<int, Page>> $byParent */
         $byParent = $pages->groupBy(fn (Page $page): string => (string) ($page->parent_id ?? 'root'));
 
         $build = function (string $parentKey) use (&$build, $byParent): array {
@@ -230,7 +266,7 @@ class PageService
                     'template_label' => $page->templateLabel(),
                     'template_icon' => $page->templateIcon(),
                     'show_in_navigation' => $page->isNavigationReady(),
-                    'edit_url' => \App\Filament\Resources\Pages\PageResource::getUrl('edit', ['record' => $page]),
+                    'edit_url' => PageResource::getUrl('edit', ['record' => $page]),
                     'children' => $build((string) $page->id),
                 ];
             }
@@ -255,7 +291,7 @@ class PageService
             ->orderBy('title')
             ->get();
 
-        /** @var array<string, \Illuminate\Support\Collection<int, Page>> $byParent */
+        /** @var array<string, Collection<int, Page>> $byParent */
         $byParent = $pages->groupBy(fn (Page $page): string => (string) ($page->parent_id ?? 'root'));
 
         $build = function (string $parentKey) use (&$build, $byParent): array {
@@ -571,19 +607,19 @@ class PageService
         return $authorId;
     }
 
-    private function resolvePublishedAt(mixed $value, bool $isCreate, mixed $fallback = null): ?\Illuminate\Support\Carbon
+    private function resolvePublishedAt(mixed $value, bool $isCreate, mixed $fallback = null): ?Carbon
     {
         if ($value === null || $value === '') {
             if ($isCreate) {
                 return now();
             }
 
-            return $fallback instanceof \Illuminate\Support\Carbon
+            return $fallback instanceof Carbon
                 ? $fallback
-                : ($fallback !== null ? \Illuminate\Support\Carbon::parse($fallback) : null);
+                : ($fallback !== null ? Carbon::parse($fallback) : null);
         }
 
-        return \Illuminate\Support\Carbon::parse($value);
+        return Carbon::parse($value);
     }
 
     private function resolveTemplate(mixed $template): ?string

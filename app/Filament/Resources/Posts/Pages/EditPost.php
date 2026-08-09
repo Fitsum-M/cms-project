@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\Posts\Pages;
 
 use App\Enums\ContentStatus;
+use App\Filament\Concerns\HasDraftAutosave;
 use App\Filament\Resources\Posts\PostResource;
 use App\Models\Post;
 use App\Services\ContentLifecycleService;
+use App\Services\ContentSeoService;
 use App\Services\PostService;
 use App\Support\PostTypeRegistry;
 use Filament\Actions\Action;
@@ -14,14 +16,17 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
 
 class EditPost extends EditRecord
 {
+    use HasDraftAutosave;
+
     protected static string $resource = PostResource::class;
 
-    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    public function getTitle(): string|Htmlable
     {
         /** @var Post $record */
         $record = $this->getRecord();
@@ -141,7 +146,7 @@ class EditPost extends EditRecord
         $data['category_ids'] = $record->categories()->pluck('categories.id')->all();
         $data['tag_ids'] = $record->tags()->pluck('tags.id')->all();
         $data['custom_term_ids'] = $record->customTaxonomyTerms()->pluck('custom_taxonomy_terms.id')->all();
-        $data['seo'] = app(\App\Services\ContentSeoService::class)->formState($record);
+        $data['seo'] = app(ContentSeoService::class)->formState($record);
 
         return $data;
     }
