@@ -1,0 +1,69 @@
+<?php
+
+namespace App\Services;
+
+use App\Enums\UserRole;
+use App\Models\User;
+use App\Support\Audit\AuditLogger;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+
+/**
+ * Admin panel user profile updates (invite/suspend/delete stay on UserLifecycleService).
+ */
+class UserAdminService
+{
+    public function __construct(
+        private readonly RoleAssignmentService $roles,
+        private readonly AuditLogger $audit,
+    ) {}
+
+    /**
+     * @param  array{name: string, username: string, email: string, bio?: ?string, role?: string}  $data
+     *
+     * @throws AuthorizationException
+     * @throws ValidationException
+     */
+    public function update(User $actor, User $target, array $data): User
+    {
+        Gate::forUser($actor)->authorize('update', $target);
+
+        $validated = validator($data, [
+            'name' => ['required', 'string', 'max:255'],
+            'username' => [
+                'required',
+                'string',
+                'max:255',
+                'alpha_dash',
+                Rule::unique('users', 'username')->ignore($target->id),
+            ],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($target->id),
+            ],
+            'bio' => ['nullable', 'string', 'max:1000'],
+            'role' => ['nullable', 'string', Rule::enum(UserRole::class)],
+        ])->validate();
+
+        $target->forceFill([
+            'name' => $validated['name'],
+            'username' => $validated['username'],
+            'email' => $validated['email'],
+            'bio' => $validated['bio'] ?? null,
+        ])->save();
+
+        $this->audit->userEvent('updated', $target->fresh() ?? $target, $actor, [
+            'fields' => ['name', 'username', 'email', 'bio'],
+        ]);
+
+        if (array_key_exists('role', $validated) && filled($validated['role'])) {
+            $this->roles->assign($actor, $target, UserRole::from($validated['role']));
+        }
+
+        return $target->refresh();
+    }
+}

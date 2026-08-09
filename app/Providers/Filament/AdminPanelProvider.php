@@ -2,7 +2,16 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Auth\Login;
+use App\Filament\Auth\RequestPasswordReset;
+use App\Filament\Auth\ResetPassword;
+use App\Filament\Widgets\DraftSummaryWidget;
+use App\Filament\Widgets\OverviewStatsWidget;
+use App\Filament\Widgets\QuickActionsWidget;
+use App\Filament\Widgets\RecentContentWidget;
+use App\Support\Auth\CmsPassword;
 use App\Support\Settings\GeneralSettings;
+use Filament\Forms\Components\FileUpload;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -11,10 +20,6 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use App\Filament\Widgets\DraftSummaryWidget;
-use App\Filament\Widgets\OverviewStatsWidget;
-use App\Filament\Widgets\QuickActionsWidget;
-use App\Filament\Widgets\RecentContentWidget;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -32,7 +37,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->login(Login::class)
+            ->passwordReset(RequestPasswordReset::class, ResetPassword::class)
             ->brandName(fn (): string => $this->resolveBrandName())
             ->colors([
                 'primary' => Color::Blue,
@@ -61,9 +67,17 @@ class AdminPanelProvider extends PanelProvider
                     ->myProfile(
                         shouldRegisterUserMenu: true,
                         shouldRegisterNavigation: false,
-                        hasAvatars: false,
+                        hasAvatars: true,
                         slug: 'my-profile',
                     )
+                    ->avatarUploadComponent(fn (FileUpload $fileUpload): FileUpload => $fileUpload
+                        ->disk('public')
+                        ->directory('avatars')
+                        ->visibility('public')
+                        ->image()
+                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+                        ->maxSize(2048))
+                    ->passwordUpdateRules(CmsPassword::rules())
                     ->enableTwoFactorAuthentication()
                     ->enableBrowserSessions(),
             ])

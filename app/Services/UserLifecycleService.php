@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\User;
 use App\Notifications\UserInvitationNotification;
+use App\Support\Audit\AuditLogger;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
@@ -15,6 +16,8 @@ use InvalidArgumentException;
 class UserLifecycleService
 {
     public const INVITATION_TTL_DAYS = 7;
+
+    public function __construct(private readonly AuditLogger $audit) {}
 
     /**
      * Invitation stage: create a pending user with a role and send the activation link.
@@ -52,6 +55,10 @@ class UserLifecycleService
         if ($sendNotification) {
             $user->notify(new UserInvitationNotification($plainToken));
         }
+
+        $this->audit->userEvent('invited', $user, $invitedBy, [
+            'role' => $role->value,
+        ]);
 
         return $user;
     }
@@ -103,10 +110,16 @@ class UserLifecycleService
             'email_verified_at' => $user->email_verified_at ?? now(),
         ])->save();
 
-        return $user->refresh();
+        $activated = $user->refresh();
+
+        $this->audit->userEvent('activated', $activated, null, [
+            'status' => UserStatus::Active->value,
+        ]);
+
+        return $activated;
     }
 
-    public function suspend(User $user): User
+    public function suspend(User $user, ?User $actor = null): User
     {
         if ($user->trashed()) {
             throw new InvalidArgumentException('Deleted users cannot be suspended.');
@@ -121,7 +134,13 @@ class UserLifecycleService
             'suspended_at' => now(),
         ])->save();
 
-        return $user->refresh();
+        $suspended = $user->refresh();
+
+        $this->audit->userEvent('suspended', $suspended, $actor, [
+            'status' => UserStatus::Suspended->value,
+        ]);
+
+        return $suspended;
     }
 
     /**
@@ -131,10 +150,10 @@ class UserLifecycleService
     {
         Gate::forUser($actor)->authorize('suspend', $target);
 
-        return $this->suspend($target);
+        return $this->suspend($target, $actor);
     }
 
-    public function reactivate(User $user): User
+    public function reactivate(User $user, ?User $actor = null): User
     {
         if ($user->trashed()) {
             throw new InvalidArgumentException('Restore the user before reactivating.');
@@ -149,19 +168,29 @@ class UserLifecycleService
             'suspended_at' => null,
         ])->save();
 
-        return $user->refresh();
+        $reactivated = $user->refresh();
+
+        $this->audit->userEvent('reactivated', $reactivated, $actor, [
+            'status' => UserStatus::Active->value,
+        ]);
+
+        return $reactivated;
     }
 
     /**
      * Soft-delete while preserving attribution (SRS 15.1 / 15.7).
      */
-    public function softDelete(User $user): void
+    public function softDelete(User $user, ?User $actor = null): void
     {
         $user->forceFill([
             'invitation_token' => null,
         ])->save();
 
         $user->delete();
+
+        $this->audit->userEvent('deleted', $user, $actor, [
+            'soft_deleted' => true,
+        ]);
     }
 
     /**
@@ -171,10 +200,10 @@ class UserLifecycleService
     {
         Gate::forUser($actor)->authorize('delete', $target);
 
-        $this->softDelete($target);
+        $this->softDelete($target, $actor);
     }
 
-    public function restore(User $user): User
+    public function restore(User $user, ?User $actor = null): User
     {
         if (! $user->trashed()) {
             return $user;
@@ -189,7 +218,13 @@ class UserLifecycleService
             ])->save();
         }
 
-        return $user->refresh();
+        $restored = $user->refresh();
+
+        $this->audit->userEvent('restored', $restored, $actor, [
+            'status' => $restored->status?->value,
+        ]);
+
+        return $restored;
     }
 
     public function findPendingByInvitationToken(string $plainToken): ?User

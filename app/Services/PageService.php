@@ -7,6 +7,7 @@ use App\Enums\ContentStatus;
 use App\Enums\Permission;
 use App\Models\Page;
 use App\Models\User;
+use App\Support\Audit\AuditLogger;
 use App\Support\PageTemplateRegistry;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -20,6 +21,7 @@ class PageService
         private readonly ContentSlugService $slugs,
         private readonly ContentLifecycleService $lifecycle,
         private readonly ContentSeoService $seo,
+        private readonly AuditLogger $audit,
     ) {}
 
     /**
@@ -38,7 +40,7 @@ class PageService
      */
     public function create(array $data, User $actor): Page
     {
-        return DB::transaction(function () use ($data, $actor): Page {
+        $page = DB::transaction(function () use ($data, $actor): Page {
             $title = trim((string) $data['title']);
             if ($title === '') {
                 throw ValidationException::withMessages([
@@ -83,6 +85,10 @@ class PageService
 
             return $page->fresh(['author', 'parent', 'seo']) ?? $page;
         });
+
+        $this->audit->contentChanged('created', $page, $actor);
+
+        return $page;
     }
 
     /**
@@ -101,7 +107,7 @@ class PageService
      */
     public function update(Page $page, array $data, User $actor): Page
     {
-        return DB::transaction(function () use ($page, $data, $actor): Page {
+        $updated = DB::transaction(function () use ($page, $data, $actor): Page {
             if ($page->trashed()) {
                 throw ValidationException::withMessages([
                     'status' => 'Trashed pages cannot be edited. Restore the page first.',
@@ -179,6 +185,10 @@ class PageService
 
             return $page->fresh(['author', 'parent', 'children', 'seo']) ?? $page;
         });
+
+        $this->audit->contentChanged('updated', $updated, $actor);
+
+        return $updated;
     }
 
     /**

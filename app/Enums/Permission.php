@@ -68,4 +68,78 @@ enum Permission: string
     case SeoConfigureContent = 'seo.configure_content';
     case SeoDefaultsView = 'seo.defaults.view';
     case SeoDefaultsEdit = 'seo.defaults.edit';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::DashboardView => 'View Dashboard',
+            self::DashboardViewAllDrafts => 'View All Drafts',
+            self::DashboardViewRecentAll => 'View Recent Content (all)',
+            self::PostsViewAll => 'View All Posts',
+            self::PostsViewOwn => 'View Own Posts',
+            self::PostsCreate => 'Create Post',
+            self::PostsEditOwn => 'Edit Own Post',
+            self::PostsEditOthers => 'Edit Others\' Posts',
+            self::PostsPublish => 'Publish Post',
+            self::PostsDeleteOwn => 'Delete Own Post',
+            self::PostsDeleteOthers => 'Delete Others\' Posts',
+            self::PostsRestore => 'Restore Post',
+            self::PostsForceDelete => 'Hard Delete Post',
+            self::PostsDuplicate => 'Duplicate Post',
+            self::PagesViewAll => 'View All Pages',
+            self::PagesViewOwn => 'View Own Pages',
+            self::PagesCreate => 'Create Page',
+            self::PagesEditOwn => 'Edit Own Page',
+            self::PagesEditOthers => 'Edit Others\' Pages',
+            self::PagesPublish => 'Publish Page',
+            self::PagesDeleteOwn => 'Delete Own Page',
+            self::PagesDeleteOthers => 'Delete Others\' Pages',
+            self::PagesRestore => 'Restore Page',
+            self::PagesForceDelete => 'Hard Delete Page',
+            self::CustomPostTypesManage => 'Manage Custom Post Types',
+            self::TaxonomiesView => 'View Taxonomies',
+            self::TaxonomiesCreate => 'Create Taxonomy Term',
+            self::TaxonomiesEdit => 'Edit Taxonomy Term',
+            self::TaxonomiesDelete => 'Delete Taxonomy Term',
+            self::MediaView => 'View Library',
+            self::MediaUpload => 'Upload Media',
+            self::MediaEditOwn => 'Edit Own Media',
+            self::MediaEditOthers => 'Edit Others\' Media',
+            self::MediaDelete => 'Delete Media',
+            self::MediaForceDelete => 'Force Delete Media',
+            self::UsersViewAll => 'View All Users',
+            self::UsersCreate => 'Create User',
+            self::UsersEditOwn => 'Edit Own Profile',
+            self::UsersEditOthers => 'Edit User',
+            self::UsersEditRole => 'Edit User Role',
+            self::UsersDelete => 'Delete User',
+            self::UsersSuspend => 'Suspend User',
+            self::SettingsView => 'View Settings',
+            self::SettingsEdit => 'Edit Settings',
+            self::SeoConfigureContent => 'Configure SEO on Content',
+            self::SeoDefaultsView => 'View SEO Defaults',
+            self::SeoDefaultsEdit => 'Edit SEO Defaults',
+        };
+    }
+
+    public function group(): string
+    {
+        return match ($this) {
+            self::DashboardView, self::DashboardViewAllDrafts, self::DashboardViewRecentAll => 'Dashboard',
+            self::PostsViewAll, self::PostsViewOwn, self::PostsCreate, self::PostsEditOwn, self::PostsEditOthers,
+            self::PostsPublish, self::PostsDeleteOwn, self::PostsDeleteOthers, self::PostsRestore,
+            self::PostsForceDelete, self::PostsDuplicate => 'Posts',
+            self::PagesViewAll, self::PagesViewOwn, self::PagesCreate, self::PagesEditOwn, self::PagesEditOthers,
+            self::PagesPublish, self::PagesDeleteOwn, self::PagesDeleteOthers, self::PagesRestore,
+            self::PagesForceDelete => 'Pages',
+            self::CustomPostTypesManage => 'Custom Post Types',
+            self::TaxonomiesView, self::TaxonomiesCreate, self::TaxonomiesEdit, self::TaxonomiesDelete => 'Taxonomies',
+            self::MediaView, self::MediaUpload, self::MediaEditOwn, self::MediaEditOthers, self::MediaDelete,
+            self::MediaForceDelete => 'Digital Asset Management',
+            self::UsersViewAll, self::UsersCreate, self::UsersEditOwn, self::UsersEditOthers, self::UsersEditRole,
+            self::UsersDelete, self::UsersSuspend => 'Identity & Access Management',
+            self::SettingsView, self::SettingsEdit => 'System Configuration',
+            self::SeoConfigureContent, self::SeoDefaultsView, self::SeoDefaultsEdit => 'SEO & Metadata',
+        };
+    }
 }

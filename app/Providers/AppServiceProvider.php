@@ -23,20 +23,26 @@ use App\Policies\PostPolicy;
 use App\Policies\PostTypePolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
-use App\Services\MediaReferenceService;
+use App\Listeners\Audit\LogAuthenticationEvents;
 use App\Services\MediaReferences\ContentSeoOgImageMediaReferenceProvider;
 use App\Services\MediaReferences\PostFeaturedImageMediaReferenceProvider;
 use App\Services\MediaReferences\SeoDefaultsMediaReferenceProvider;
+use App\Services\MediaReferenceService;
+use App\Support\Audit\AuditLogger;
+use App\Support\Auth\CmsPassword;
 use App\Support\Settings\EmailSettings;
 use App\Support\Settings\GeneralSettings;
 use App\Support\Settings\MediaSettings;
 use App\Support\Settings\PermalinkSettings;
 use App\Support\Settings\ReadingSettings;
 use App\Support\Settings\SeoDefaultsSettings;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Validated;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 
 class AppServiceProvider extends ServiceProvider
@@ -62,6 +68,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(MediaReferenceService::class, function ($app): MediaReferenceService {
             return new MediaReferenceService($app->tagged('media.reference_providers'));
         });
+
+        $this->app->singleton(AuditLogger::class);
     }
 
     /**
@@ -69,6 +77,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Password::defaults(fn (): Password => CmsPassword::rules());
+
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Category::class, CategoryPolicy::class);
         Gate::policy(Tag::class, TagPolicy::class);
@@ -86,6 +96,9 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Throwable) {
             // Settings table may not exist yet during install/migrate.
         }
+
+        Event::listen(Login::class, [LogAuthenticationEvents::class, 'handleLogin']);
+        Event::listen(Failed::class, [LogAuthenticationEvents::class, 'handleFailed']);
 
         Event::listen(function (Validated $event): void {
             $user = $event->user;

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Contracts\HasContentLifecycle;
 use App\Enums\ContentStatus;
 use App\Models\User;
+use App\Support\Audit\AuditLogger;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -15,6 +16,7 @@ class ContentLifecycleService
 {
     public function __construct(
         private readonly ContentSlugService $slugs,
+        private readonly AuditLogger $audit,
     ) {}
 
     public function canEdit(HasContentLifecycle $content): bool
@@ -82,6 +84,8 @@ class ContentLifecycleService
         $content->setContentStatus(ContentStatus::Draft);
         $content->save();
 
+        $this->audit->contentChanged('drafted', $content);
+
         return $content;
     }
 
@@ -98,6 +102,8 @@ class ContentLifecycleService
 
         $content->setContentStatus(ContentStatus::PendingReview);
         $content->save();
+
+        $this->audit->contentChanged('submitted_for_review', $content);
 
         return $content;
     }
@@ -120,6 +126,8 @@ class ContentLifecycleService
         $content->setContentStatus(ContentStatus::Published);
         $content->markPublishedAt();
         $content->save();
+
+        $this->audit->contentChanged('published', $content, $actor);
 
         return $content;
     }
@@ -144,6 +152,10 @@ class ContentLifecycleService
         $content->setContentStatus($target);
         $content->save();
 
+        $this->audit->contentChanged('unpublished', $content, null, [
+            'target_status' => $target->value,
+        ]);
+
         return $content;
     }
 
@@ -158,6 +170,8 @@ class ContentLifecycleService
         $content->setContentStatus(ContentStatus::Archived);
         $content->save();
 
+        $this->audit->contentChanged('archived', $content);
+
         return $content;
     }
 
@@ -171,6 +185,8 @@ class ContentLifecycleService
         }
 
         $content->trash();
+
+        $this->audit->contentChanged('trashed', $content);
 
         return $content;
     }
@@ -197,11 +213,16 @@ class ContentLifecycleService
                 $this->deny('Restoring from trash defaults to Draft status.');
             }
 
-            return DB::transaction(function () use ($content): HasContentLifecycle {
+            return DB::transaction(function () use ($content, $actor): HasContentLifecycle {
                 $content->restoreFromTrash();
                 $this->ensureUniqueSlugAfterRestore($content);
                 $content->setContentStatus(ContentStatus::Draft);
                 $content->save();
+
+                $this->audit->contentChanged('restored', $content, $actor, [
+                    'from' => 'trash',
+                    'target_status' => ContentStatus::Draft->value,
+                ]);
 
                 return $content;
             });
@@ -224,6 +245,11 @@ class ContentLifecycleService
 
         $content->save();
 
+        $this->audit->contentChanged('restored', $content, $actor, [
+            'from' => 'archived',
+            'target_status' => $target->value,
+        ]);
+
         return $content;
     }
 
@@ -239,6 +265,8 @@ class ContentLifecycleService
         if (! $actor->can($content->forceDeletePermission()->value)) {
             $this->deny('You do not have permission to permanently delete this content.');
         }
+
+        $this->audit->contentChanged('force_deleted', $content, $actor);
 
         $content->permanentlyDelete();
     }

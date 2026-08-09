@@ -8,9 +8,12 @@ use App\Enums\UserStatus;
 use App\Filament\Pages\Content\PagesGroup;
 use App\Filament\Pages\Content\PostsGroup;
 use App\Filament\Pages\Content\TaxonomiesGroup;
+use App\Filament\Pages\Iam\AddNewUser;
+use App\Filament\Pages\Iam\AllUsers;
 use App\Filament\Resources\Categories\CategoryResource;
 use App\Filament\Resources\Pages\PageResource;
 use App\Filament\Resources\Posts\PostResource;
+use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -53,6 +56,17 @@ class NavigationHubRedirectTest extends TestCase
 
         Livewire::test(TaxonomiesGroup::class)
             ->assertRedirect(CategoryResource::getUrl('index'));
+    }
+
+    public function test_iam_user_hubs_redirect_to_user_resource(): void
+    {
+        $this->actingAs($this->makeUser(UserRole::Administrator));
+
+        Livewire::test(AllUsers::class)
+            ->assertRedirect(UserResource::getUrl('index'));
+
+        Livewire::test(AddNewUser::class)
+            ->assertRedirect(UserResource::getUrl('create'));
     }
 
     private function makeUser(UserRole $role): User

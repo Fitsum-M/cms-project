@@ -7,6 +7,7 @@ use App\Enums\ContentStatus;
 use App\Enums\PostVisibility;
 use App\Models\Post;
 use App\Models\User;
+use App\Support\Audit\AuditLogger;
 use App\Support\PostTypeRegistry;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -20,6 +21,7 @@ class PostService
         private readonly ContentLifecycleService $lifecycle,
         private readonly TaxonomyAssignmentService $taxonomies,
         private readonly ContentSeoService $seo,
+        private readonly AuditLogger $audit,
     ) {}
 
     /**
@@ -44,7 +46,7 @@ class PostService
      */
     public function create(array $data, User $actor): Post
     {
-        return DB::transaction(function () use ($data, $actor): Post {
+        $post = DB::transaction(function () use ($data, $actor): Post {
             $title = trim((string) $data['title']);
             if ($title === '') {
                 throw ValidationException::withMessages([
@@ -95,6 +97,10 @@ class PostService
 
             return $post->fresh(['author', 'featuredImage', 'categories', 'tags', 'customTaxonomyTerms', 'seo']) ?? $post;
         });
+
+        $this->audit->contentChanged('created', $post, $actor);
+
+        return $post;
     }
 
     /**
@@ -119,7 +125,7 @@ class PostService
      */
     public function update(Post $post, array $data, User $actor): Post
     {
-        return DB::transaction(function () use ($post, $data, $actor): Post {
+        $updated = DB::transaction(function () use ($post, $data, $actor): Post {
             if ($post->trashed()) {
                 throw ValidationException::withMessages([
                     'status' => 'Trashed posts cannot be edited. Restore the post first.',
@@ -218,6 +224,10 @@ class PostService
 
             return $post->fresh(['author', 'featuredImage', 'categories', 'tags', 'customTaxonomyTerms', 'seo']) ?? $post;
         });
+
+        $this->audit->contentChanged('updated', $updated, $actor);
+
+        return $updated;
     }
 
     public function effectiveExcerpt(Post $post): string

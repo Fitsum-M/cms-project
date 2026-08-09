@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Services\UserLifecycleService;
+use App\Support\Auth\CmsPassword;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 class ActivateAccountController extends Controller
@@ -44,11 +44,7 @@ class ActivateAccountController extends Controller
             'password' => [
                 'required',
                 'confirmed',
-                Password::min(12)
-                    ->letters()
-                    ->mixedCase()
-                    ->numbers()
-                    ->symbols(),
+                CmsPassword::rules(),
             ],
         ]);
 

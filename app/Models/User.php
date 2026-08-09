@@ -7,6 +7,7 @@ use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
 use Jeffgreco13\FilamentBreezy\Traits\TwoFactorAuthenticatable;
 use Spatie\MediaLibrary\HasMedia;
@@ -28,6 +30,7 @@ use Spatie\Permission\Traits\HasRoles;
     'username',
     'password',
     'bio',
+    'avatar_url',
     'status',
     'invitation_token',
     'invitation_sent_at',
@@ -36,15 +39,26 @@ use Spatie\Permission\Traits\HasRoles;
     'suspended_at',
 ])]
 #[Hidden(['password', 'remember_token', 'invitation_token'])]
-class User extends Authenticatable implements FilamentUser, HasMedia
+class User extends Authenticatable implements FilamentUser, HasAvatar, HasMedia
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, InteractsWithMedia, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
+    protected static function booted(): void
+    {
+        static::saved(function (User $user): void {
+            if (! $user->wasChanged('avatar_url')) {
+                return;
+            }
+
+            $user->syncAvatarMediaFromProfileUpload();
+        });
+    }
+
     /**
      * Get the attributes that should be cast.
      *
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     protected function casts(): array
     {
@@ -62,6 +76,15 @@ class User extends Authenticatable implements FilamentUser, HasMedia
     public function canAccessPanel(Panel $panel): bool
     {
         return $this->isActive();
+    }
+
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->getFirstMediaUrl('avatar', 'thumb')
+            ?: $this->getFirstMediaUrl('avatar')
+            ?: (filled($this->attributes['avatar_url'] ?? null)
+                ? Storage::disk('public')->url($this->attributes['avatar_url'])
+                : null);
     }
 
     public function isActive(): bool
@@ -122,8 +145,27 @@ class User extends Authenticatable implements FilamentUser, HasMedia
             ->performOnCollections('avatar');
     }
 
-    public function getAvatarUrlAttribute(): ?string
+    /**
+     * Keep the Spatie `avatar` collection in sync with Breezy profile uploads (SRS 15.2).
+     */
+    public function syncAvatarMediaFromProfileUpload(): void
     {
-        return $this->getFirstMediaUrl('avatar', 'thumb') ?: $this->getFirstMediaUrl('avatar') ?: null;
+        $path = $this->attributes['avatar_url'] ?? null;
+
+        if (! is_string($path) || $path === '') {
+            $this->clearMediaCollection('avatar');
+
+            return;
+        }
+
+        if (! Storage::disk('public')->exists($path)) {
+            return;
+        }
+
+        $this->clearMediaCollection('avatar');
+
+        $this->addMedia(Storage::disk('public')->path($path))
+            ->preservingOriginal()
+            ->toMediaCollection('avatar');
     }
 }
