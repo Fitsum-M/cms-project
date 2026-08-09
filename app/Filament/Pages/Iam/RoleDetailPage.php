@@ -88,12 +88,37 @@ abstract class RoleDetailPage extends Page
         $rows = [];
 
         foreach ($groups as $group => $capabilities) {
+            $grantedInGroup = count(array_filter($capabilities, static fn (array $capability): bool => $capability['granted']));
+
             $rows[] = [
                 'group' => $group,
                 'capabilities' => $capabilities,
+                'granted_count' => $grantedInGroup,
+                'total_count' => count($capabilities),
             ];
         }
 
         return $rows;
+    }
+
+    public function getGrantedCount(): int
+    {
+        return count(RolePermissionMatrix::permissionsFor(static::role()));
+    }
+
+    public function getTotalCount(): int
+    {
+        return count(Permission::cases());
+    }
+
+    public function getCoveragePercent(): int
+    {
+        $total = $this->getTotalCount();
+
+        if ($total === 0) {
+            return 0;
+        }
+
+        return (int) round(($this->getGrantedCount() / $total) * 100);
     }
 }

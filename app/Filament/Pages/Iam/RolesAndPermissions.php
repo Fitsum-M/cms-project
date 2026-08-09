@@ -82,4 +82,37 @@ class RolesAndPermissions extends Page
     {
         return array_map(fn (UserRole $role): string => $role->value, UserRole::cases());
     }
+
+    /**
+     * @return list<array{role: UserRole, url: string, granted_count: int, total_count: int, coverage_percent: int}>
+     */
+    public function getRoleCards(): array
+    {
+        $total = count(Permission::cases());
+        $cards = [];
+
+        foreach (UserRole::cases() as $role) {
+            $granted = count(RolePermissionMatrix::permissionsFor($role));
+
+            $cards[] = [
+                'role' => $role,
+                'url' => $this->roleDetailUrl($role),
+                'granted_count' => $granted,
+                'total_count' => $total,
+                'coverage_percent' => $total > 0 ? (int) round(($granted / $total) * 100) : 0,
+            ];
+        }
+
+        return $cards;
+    }
+
+    private function roleDetailUrl(UserRole $role): string
+    {
+        return match ($role) {
+            UserRole::Administrator => AdministratorRolePage::getUrl(),
+            UserRole::Editor => EditorRolePage::getUrl(),
+            UserRole::Author => AuthorRolePage::getUrl(),
+            UserRole::Contributor => ContributorRolePage::getUrl(),
+        };
+    }
 }

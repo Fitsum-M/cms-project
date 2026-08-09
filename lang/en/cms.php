@@ -79,4 +79,27 @@ return [
         'title' => 'Title',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Identity & Access Management — roles & permissions (SRS §10.1, §11.4)
+    |--------------------------------------------------------------------------
+    */
+    'iam' => [
+        'permissions' => [
+            'granted' => 'Granted',
+            'denied' => 'Denied',
+        ],
+        'roles' => [
+            'system_role' => 'System role',
+            'coverage' => 'Permission coverage',
+            'coverage_detail' => ':percent% of all capabilities',
+            'group_coverage' => ':granted of :total granted in this group',
+            'matrix_heading' => 'Role-based access',
+            'matrix_description' => 'Permissions are defined at the role level. Users inherit all capabilities of their single assigned role. Per-user overrides are not supported (SRS 11.2 / 15.6).',
+            'comparison_heading' => 'Capability comparison',
+            'capability' => 'Capability',
+            'permissions_count' => ':granted / :total permissions',
+            'view_details' => 'View role',
+        ],
+    ],
 ];

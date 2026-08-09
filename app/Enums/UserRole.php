@@ -18,4 +18,24 @@ enum UserRole: string
             self::Contributor => 'Most restricted role. Can create own draft posts only. Cannot upload media directly; may select from existing library. Cannot manage pages.',
         };
     }
+
+    public function color(): string
+    {
+        return match ($this) {
+            self::Administrator => 'danger',
+            self::Editor => 'warning',
+            self::Author => 'info',
+            self::Contributor => 'gray',
+        };
+    }
+
+    public function icon(): string
+    {
+        return match ($this) {
+            self::Administrator => 'heroicon-o-shield-check',
+            self::Editor => 'heroicon-o-pencil-square',
+            self::Author => 'heroicon-o-document-text',
+            self::Contributor => 'heroicon-o-pencil',
+        };
+    }
 }
