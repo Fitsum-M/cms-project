@@ -3,7 +3,7 @@
 namespace App\Filament\Pages\Content;
 
 use App\Enums\Permission;
-use App\Filament\Pages\PlaceholderPage;
+use App\Filament\Pages\NavigationHubPage;
 use App\Filament\Resources\Posts\PostResource;
 use BackedEnum;
 use Filament\Navigation\NavigationItem;
@@ -13,7 +13,7 @@ use UnitEnum;
 /**
  * Nav parent for Posts (SRS 10.1). Opens the All Posts listing.
  */
-class PostsGroup extends PlaceholderPage
+class PostsGroup extends NavigationHubPage
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedNewspaper;
 

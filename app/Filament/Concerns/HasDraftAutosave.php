@@ -7,6 +7,7 @@ use App\Models\Page;
 use App\Models\Post;
 use App\Services\PageService;
 use App\Services\PostService;
+use App\Support\Settings\GeneralSettings;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Contracts\View\View;
@@ -96,7 +97,7 @@ trait HasDraftAutosave
 
             Notification::make()
                 ->title('Draft auto-saved')
-                ->body('Saved at '.now()->timezone(config('app.timezone'))->format('H:i:s'))
+                ->body('Saved at '.(app(GeneralSettings::class)->formatTime(now()) ?? now()->format('H:i')))
                 ->success()
                 ->duration(2500)
                 ->send();

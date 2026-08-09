@@ -3,16 +3,16 @@
 namespace App\Filament\Pages\Iam;
 
 use App\Enums\Permission;
+use App\Filament\Pages\NavigationHubPage;
 use App\Filament\Resources\Users\UserResource;
 use BackedEnum;
-use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use UnitEnum;
 
 /**
  * Nav hub for All Users (SRS 10.1). Opens the Users listing.
  */
-class AllUsers extends Page
+class AllUsers extends NavigationHubPage
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
@@ -25,8 +25,6 @@ class AllUsers extends Page
     protected static ?string $title = 'All Users';
 
     protected static ?string $slug = 'iam/users-hub';
-
-    protected string $view = 'filament.pages.placeholder';
 
     public static function canAccess(): bool
     {

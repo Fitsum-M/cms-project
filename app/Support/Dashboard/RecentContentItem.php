@@ -7,6 +7,7 @@ use App\Filament\Resources\Pages\PageResource;
 use App\Filament\Resources\Posts\PostResource;
 use App\Models\Page;
 use App\Models\Post;
+use App\Support\Settings\GeneralSettings;
 use Carbon\CarbonInterface;
 
 /**
@@ -66,5 +67,10 @@ final readonly class RecentContentItem
     public function key(): string
     {
         return $this->type.':'.$this->id;
+    }
+
+    public function formattedUpdatedAt(): string
+    {
+        return app(GeneralSettings::class)->formatDateTime($this->updatedAt) ?? '—';
     }
 }

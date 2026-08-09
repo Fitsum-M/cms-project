@@ -2,6 +2,9 @@
 
 use App\Models\SeoMetadata;
 
+/**
+ * SEO package: ralphjsmit/laravel-seo (SRS §8.4 deviation — see docs/SEO-PACKAGE.md).
+ */
 return [
     /**
      * The SEO model. You can use this setting to override the model used by the package.

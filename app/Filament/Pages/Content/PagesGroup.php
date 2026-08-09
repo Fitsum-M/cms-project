@@ -3,7 +3,7 @@
 namespace App\Filament\Pages\Content;
 
 use App\Enums\Permission;
-use App\Filament\Pages\PlaceholderPage;
+use App\Filament\Pages\NavigationHubPage;
 use App\Filament\Resources\Pages\PageResource;
 use BackedEnum;
 use Filament\Navigation\NavigationItem;
@@ -13,7 +13,7 @@ use UnitEnum;
 /**
  * Nav parent for Pages (SRS 10.1). Opens the All Pages listing.
  */
-class PagesGroup extends PlaceholderPage
+class PagesGroup extends NavigationHubPage
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentDuplicate;
 

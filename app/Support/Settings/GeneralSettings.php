@@ -50,6 +50,11 @@ class GeneralSettings
         return (string) $this->store->get(SettingGroup::General, self::TIME_FORMAT, self::defaults()[self::TIME_FORMAT]);
     }
 
+    public function dateTimeFormat(): string
+    {
+        return $this->dateFormat().' '.$this->timeFormat();
+    }
+
     /**
      * @return array{
      *     site_title: string,
@@ -119,7 +124,7 @@ class GeneralSettings
 
         $carbon = $carbon->timezone($this->timezone());
 
-        return $carbon->format($this->dateFormat().' '.$this->timeFormat());
+        return $carbon->format($this->dateTimeFormat());
     }
 
     /**

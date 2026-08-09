@@ -3,7 +3,7 @@
 namespace App\Filament\Pages\Content;
 
 use App\Enums\Permission;
-use App\Filament\Pages\PlaceholderPage;
+use App\Filament\Pages\NavigationHubPage;
 use App\Filament\Resources\Posts\PostResource;
 use App\Filament\Resources\PostTypes\PostTypeResource;
 use App\Support\PostTypeRegistry;
@@ -15,7 +15,7 @@ use UnitEnum;
 /**
  * Navigation parent for Manage Types + registered CPT listings (SRS 10.1 / 12.4.1).
  */
-class CustomPostTypes extends PlaceholderPage
+class CustomPostTypes extends NavigationHubPage
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 

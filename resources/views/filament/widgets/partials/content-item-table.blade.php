@@ -40,8 +40,8 @@
                         <td class="px-2 py-2.5 text-gray-700 dark:text-gray-200">
                             {{ $item->authorName ?? '—' }}
                         </td>
-                        <td class="px-2 py-2.5 text-gray-700 dark:text-gray-200" title="{{ $item->updatedAt->toDateTimeString() }}">
-                            {{ $item->updatedAt->diffForHumans() }}
+                        <td class="px-2 py-2.5 text-gray-700 dark:text-gray-200" title="{{ $item->updatedAt->diffForHumans() }}">
+                            {{ $item->formattedUpdatedAt() }}
                         </td>
                     </tr>
                 @endforeach

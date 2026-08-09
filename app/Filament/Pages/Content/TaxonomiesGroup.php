@@ -3,7 +3,7 @@
 namespace App\Filament\Pages\Content;
 
 use App\Enums\Permission;
-use App\Filament\Pages\PlaceholderPage;
+use App\Filament\Pages\NavigationHubPage;
 use App\Filament\Resources\Categories\CategoryResource;
 use BackedEnum;
 use Filament\Support\Icons\Heroicon;
@@ -12,7 +12,7 @@ use UnitEnum;
 /**
  * Nav parent for Taxonomies (SRS 10.1). Opens Categories by default.
  */
-class TaxonomiesGroup extends PlaceholderPage
+class TaxonomiesGroup extends NavigationHubPage
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 

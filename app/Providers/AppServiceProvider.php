@@ -36,6 +36,9 @@ use App\Support\Settings\MediaSettings;
 use App\Support\Settings\PermalinkSettings;
 use App\Support\Settings\ReadingSettings;
 use App\Support\Settings\SeoDefaultsSettings;
+use Filament\Schemas\Schema;
+use Filament\Support\Facades\FilamentTimezone;
+use Filament\Tables\Table;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Validated;
@@ -96,6 +99,23 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Throwable) {
             // Settings table may not exist yet during install/migrate.
         }
+
+        // GAP.S.01 — admin tables/infolists use General Settings date/time formats (§16.2, §18.10).
+        FilamentTimezone::set(fn (): string => app(GeneralSettings::class)->timezone());
+
+        Table::configureUsing(function (Table $table): void {
+            $table
+                ->defaultDateDisplayFormat(fn (): string => app(GeneralSettings::class)->dateFormat())
+                ->defaultDateTimeDisplayFormat(fn (): string => app(GeneralSettings::class)->dateTimeFormat())
+                ->defaultTimeDisplayFormat(fn (): string => app(GeneralSettings::class)->timeFormat());
+        });
+
+        Schema::configureUsing(function (Schema $schema): void {
+            $schema
+                ->defaultDateDisplayFormat(fn (): string => app(GeneralSettings::class)->dateFormat())
+                ->defaultDateTimeDisplayFormat(fn (): string => app(GeneralSettings::class)->dateTimeFormat())
+                ->defaultTimeDisplayFormat(fn (): string => app(GeneralSettings::class)->timeFormat());
+        });
 
         Event::listen(Login::class, [LogAuthenticationEvents::class, 'handleLogin']);
         Event::listen(Failed::class, [LogAuthenticationEvents::class, 'handleFailed']);

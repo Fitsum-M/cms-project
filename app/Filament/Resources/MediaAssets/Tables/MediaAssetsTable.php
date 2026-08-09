@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MediaAssets\Tables;
 
+use App\Filament\Resources\MediaAssets\Pages\ListMediaAssets;
 use App\Models\MediaAsset;
 use App\Models\User;
 use App\Services\FolderService;
@@ -16,8 +17,11 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
+use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -29,52 +33,16 @@ class MediaAssetsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
-            ->columns([
-                ImageColumn::make('preview')
-                    ->label('Preview')
-                    ->getStateUsing(fn (MediaAsset $record): ?string => $record->isImage() ? $record->previewUrl() : null)
-                    ->square()
-                    ->extraImgAttributes(['alt' => '']),
-                TextColumn::make('title')
-                    ->label('Title')
-                    ->searchable(query: function (Builder $query, string $search): Builder {
-                        $term = '%'.$search.'%';
+        $livewire = $table->getLivewire();
+        $isGrid = $livewire instanceof ListMediaAssets && $livewire->isGridLayout();
 
-                        return $query->where(function (Builder $inner) use ($term): void {
-                            $inner
-                                ->where('title', 'like', $term)
-                                ->orWhere('original_file_name', 'like', $term)
-                                ->orWhere('alt_text', 'like', $term)
-                                ->orWhere('caption', 'like', $term)
-                                ->orWhere('description', 'like', $term);
-                        });
-                    })
-                    ->sortable()
-                    ->description(fn (MediaAsset $record): string => $record->original_file_name),
-                TextColumn::make('folder.name')
-                    ->label('Folder')
-                    ->placeholder('Unfiled')
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('mime_type')
-                    ->label('Type')
-                    ->badge()
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('size')
-                    ->label('Size')
-                    ->formatStateUsing(fn (MediaAsset $record): string => $record->humanSize())
-                    ->sortable(),
-                TextColumn::make('uploader.name')
-                    ->label('Uploader')
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('created_at')
-                    ->label('Uploaded')
-                    ->dateTime()
-                    ->sortable(),
-            ])
+        return $table
+            ->columns($isGrid ? static::gridColumns() : static::listColumns())
+            ->contentGrid($isGrid ? [
+                'md' => 2,
+                'xl' => 3,
+                '2xl' => 4,
+            ] : null)
             ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('folder_scope')
@@ -85,10 +53,17 @@ class MediaAssetsTable
                             ...app(FolderService::class)->options(),
                         ];
                     })
-                    ->query(function (Builder $query, array $data): Builder {
+                    ->query(function (Builder $query, array $data, HasTable $livewire): Builder {
                         $value = $data['value'] ?? null;
 
                         if ($value === null || $value === '') {
+                            return $query;
+                        }
+
+                        $searchAllFolders = (bool) ($livewire->getTableFilterState('search_all_folders')['isActive'] ?? false);
+
+                        // SRS 14.11: keep folder as current context, but expand search across folders when opted in.
+                        if ($searchAllFolders && $livewire->hasTableSearch()) {
                             return $query;
                         }
 
@@ -100,6 +75,10 @@ class MediaAssetsTable
                     })
                     ->searchable()
                     ->preload(),
+                Filter::make('search_all_folders')
+                    ->label('Search All Folders')
+                    ->toggle()
+                    ->indicator('Search All Folders'),
                 SelectFilter::make('file_type')
                     ->label('File type')
                     ->options([
@@ -279,5 +258,90 @@ class MediaAssetsTable
                         }),
                 ]),
             ]);
+    }
+
+    /**
+     * @return array<int, ImageColumn|TextColumn>
+     */
+    protected static function listColumns(): array
+    {
+        return [
+            ImageColumn::make('preview')
+                ->label('Preview')
+                ->getStateUsing(fn (MediaAsset $record): ?string => $record->isImage() ? $record->previewUrl() : null)
+                ->square()
+                ->extraImgAttributes(['alt' => '']),
+            TextColumn::make('title')
+                ->label('Title')
+                ->searchable(query: static::metadataSearchQuery())
+                ->sortable()
+                ->description(fn (MediaAsset $record): string => $record->original_file_name),
+            TextColumn::make('folder.name')
+                ->label('Folder')
+                ->placeholder('Unfiled')
+                ->sortable()
+                ->toggleable(),
+            TextColumn::make('mime_type')
+                ->label('Type')
+                ->badge()
+                ->sortable()
+                ->toggleable(),
+            TextColumn::make('size')
+                ->label('Size')
+                ->formatStateUsing(fn (MediaAsset $record): string => $record->humanSize())
+                ->sortable(),
+            TextColumn::make('uploader.name')
+                ->label('Uploader')
+                ->sortable()
+                ->toggleable(),
+            TextColumn::make('created_at')
+                ->label('Uploaded')
+                ->dateTime()
+                ->sortable(),
+        ];
+    }
+
+    /**
+     * @return array<int, Stack>
+     */
+    protected static function gridColumns(): array
+    {
+        return [
+            Stack::make([
+                ImageColumn::make('preview')
+                    ->label('Preview')
+                    ->getStateUsing(fn (MediaAsset $record): ?string => $record->isImage() ? $record->previewUrl() : null)
+                    ->height(140)
+                    ->extraImgAttributes(['alt' => '', 'class' => 'w-full object-cover rounded-lg']),
+                TextColumn::make('title')
+                    ->label('Title')
+                    ->weight(FontWeight::SemiBold)
+                    ->searchable(query: static::metadataSearchQuery())
+                    ->limit(40),
+                TextColumn::make('original_file_name')
+                    ->label('File')
+                    ->color('gray')
+                    ->limit(36),
+                TextColumn::make('mime_type')
+                    ->label('Type')
+                    ->badge(),
+            ])->space(2),
+        ];
+    }
+
+    protected static function metadataSearchQuery(): \Closure
+    {
+        return function (Builder $query, string $search): Builder {
+            $term = '%'.$search.'%';
+
+            return $query->where(function (Builder $inner) use ($term): void {
+                $inner
+                    ->where('title', 'like', $term)
+                    ->orWhere('original_file_name', 'like', $term)
+                    ->orWhere('alt_text', 'like', $term)
+                    ->orWhere('caption', 'like', $term)
+                    ->orWhere('description', 'like', $term);
+            });
+        };
     }
 }
