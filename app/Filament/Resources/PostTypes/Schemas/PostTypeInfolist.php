@@ -32,6 +32,16 @@ class PostTypeInfolist
                             ->state(fn (PostType $record): int => $record->postsCount()),
                     ])
                     ->columns(2),
+                Section::make('Supported fields')
+                    ->schema([
+                        IconEntry::make('supports_excerpt')
+                            ->label('Excerpt')
+                            ->boolean(),
+                        IconEntry::make('supports_featured_image')
+                            ->label('Featured Image')
+                            ->boolean(),
+                    ])
+                    ->columns(2),
                 Section::make('Taxonomies')
                     ->schema([
                         IconEntry::make('supports_categories')
@@ -58,6 +68,12 @@ class PostTypeInfolist
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
+                Section::make('SEO defaults')
+                    ->schema([
+                        TextEntry::make('default_schema_type')
+                            ->label('Default Schema Type')
+                            ->placeholder('Inherit site SEO Defaults'),
+                    ]),
             ]);
     }
 }

@@ -74,6 +74,19 @@ class PostTypeForm
                             ->helperText('Optional icon for the Content → Posts navigation submenu.'),
                     ])
                     ->columns(2),
+                Section::make('Supported fields')
+                    ->description('Standard post fields are inherited. Disable optional fields this type should not use (SRS 12.4.5). Core title, content, and publishing fields always remain.')
+                    ->schema([
+                        Toggle::make('supports_excerpt')
+                            ->label('Excerpt')
+                            ->helperText('Manual/auto excerpt field on the content editor.')
+                            ->default(true),
+                        Toggle::make('supports_featured_image')
+                            ->label('Featured Image')
+                            ->helperText('Featured image picker on the content editor.')
+                            ->default(true),
+                    ])
+                    ->columns(2),
                 Section::make('Taxonomies')
                     ->description('Only associated taxonomies appear in the editor for this post type (SRS 12.4.4).')
                     ->schema([
@@ -94,6 +107,24 @@ class PostTypeForm
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
+                Section::make('SEO defaults')
+                    ->description('When content-level schema type is empty, this type default is used before site SEO Defaults (SRS 12.4.7).')
+                    ->schema([
+                        Select::make('default_schema_type')
+                            ->label('Default Schema Type')
+                            ->options(\App\Support\Settings\SeoDefaultsSettings::schemaTypeOptions())
+                            ->nullable()
+                            ->placeholder('— Inherit site SEO Defaults —')
+                            ->live()
+                            ->helperText('Example: NewsArticle for a News type.'),
+                        TextInput::make('custom_schema_type')
+                            ->label('Custom Schema Type')
+                            ->maxLength(100)
+                            ->visible(fn (Get $get): bool => $get('default_schema_type') === 'Custom')
+                            ->required(fn (Get $get): bool => $get('default_schema_type') === 'Custom')
+                            ->helperText('Schema.org type name for advanced use.'),
+                    ])
+                    ->columns(1),
             ]);
     }
 

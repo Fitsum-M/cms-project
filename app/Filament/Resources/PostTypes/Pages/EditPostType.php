@@ -47,6 +47,14 @@ class EditPostType extends EditRecord
         $record = $this->getRecord();
         $data['custom_taxonomy_ids'] = $record->customTaxonomyIds();
 
+        $schema = $record->default_schema_type;
+        $known = array_keys(\App\Support\Settings\SeoDefaultsSettings::schemaTypeOptions());
+
+        if (filled($schema) && ! in_array($schema, $known, true)) {
+            $data['default_schema_type'] = 'Custom';
+            $data['custom_schema_type'] = $schema;
+        }
+
         return $data;
     }
 

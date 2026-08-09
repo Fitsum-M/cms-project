@@ -28,6 +28,9 @@ class PostTypeFactory extends Factory
             'icon' => 'heroicon-o-document-text',
             'supports_categories' => true,
             'supports_tags' => true,
+            'supports_excerpt' => true,
+            'supports_featured_image' => true,
+            'default_schema_type' => null,
             'sort_order' => 0,
         ];
     }

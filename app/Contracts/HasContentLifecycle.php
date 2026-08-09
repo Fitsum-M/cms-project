@@ -7,7 +7,7 @@ use App\Enums\ContentStatus;
 use App\Enums\Permission;
 
 /**
- * Posts, Pages, and (later) CPT content share the Section 12.5.2 lifecycle.
+ * Shared content lifecycle for Posts, Pages, and Custom Post Types (via Posts).
  */
 interface HasContentLifecycle
 {

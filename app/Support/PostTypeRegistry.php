@@ -69,6 +69,38 @@ final class PostTypeRegistry
         return (bool) (self::find($key)?->supports_tags ?? false);
     }
 
+    public static function supportsExcerpt(string $key): bool
+    {
+        if ($key === self::STANDARD_KEY) {
+            return true;
+        }
+
+        return (bool) (self::find($key)?->supports_excerpt ?? false);
+    }
+
+    public static function supportsFeaturedImage(string $key): bool
+    {
+        if ($key === self::STANDARD_KEY) {
+            return true;
+        }
+
+        return (bool) (self::find($key)?->supports_featured_image ?? false);
+    }
+
+    /**
+     * Per-type SEO schema default (SRS 12.4.7). Null → fall through to SEO Defaults.
+     */
+    public static function defaultSchemaType(string $key): ?string
+    {
+        if ($key === self::STANDARD_KEY) {
+            return null;
+        }
+
+        $value = self::find($key)?->default_schema_type;
+
+        return filled($value) ? (string) $value : null;
+    }
+
     /**
      * @return list<int>
      */

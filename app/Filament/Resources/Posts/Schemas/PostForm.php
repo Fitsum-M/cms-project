@@ -80,11 +80,19 @@ class PostForm
                             ->rows(3)
                             ->maxLength(500)
                             ->helperText('Optional. If empty, the first 160 characters of the content body are used.')
-                            ->columnSpanFull(),
-                        ...MediaLibraryImageSelect::make(
-                            name: 'featured_image_id',
-                            label: 'Featured Image',
-                            helperText: 'Primary image for this post. Selected from the media library. Used as Open Graph image when SEO OG image is empty.',
+                            ->columnSpanFull()
+                            ->visible(fn (Get $get): bool => PostTypeRegistry::supportsExcerpt((string) ($get('post_type') ?: 'post'))),
+                        ...array_map(
+                            function ($component) {
+                                return $component->visible(
+                                    fn (Get $get): bool => PostTypeRegistry::supportsFeaturedImage((string) ($get('post_type') ?: 'post')),
+                                );
+                            },
+                            MediaLibraryImageSelect::make(
+                                name: 'featured_image_id',
+                                label: 'Featured Image',
+                                helperText: 'Primary image for this post. Selected from the media library. Used as Open Graph image when SEO OG image is empty.',
+                            ),
                         ),
                     ])
                     ->columns(2),
@@ -96,6 +104,9 @@ class PostForm
                             ->required()
                             ->default('post')
                             ->live()
+                            ->disabled(fn (): bool => is_string(request()->query('post_type'))
+                                && PostTypeRegistry::isCustom((string) request()->query('post_type')))
+                            ->dehydrated()
                             ->afterStateUpdated(function (?string $state, Set $set, Get $get): void {
                                 $postType = (string) ($state ?: 'post');
 
@@ -105,6 +116,14 @@ class PostForm
 
                                 if (! PostTypeRegistry::supportsTags($postType)) {
                                     $set('tag_ids', []);
+                                }
+
+                                if (! PostTypeRegistry::supportsExcerpt($postType)) {
+                                    $set('excerpt', null);
+                                }
+
+                                if (! PostTypeRegistry::supportsFeaturedImage($postType)) {
+                                    $set('featured_image_id', null);
                                 }
 
                                 $allowed = array_map('intval', array_keys(self::customTermOptions($postType)));

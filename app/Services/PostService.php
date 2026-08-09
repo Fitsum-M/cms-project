@@ -69,7 +69,12 @@ class PostService
             ]);
 
             $body = $this->nullableString($data['body'] ?? null);
-            $excerpt = $this->resolveExcerpt($data['excerpt'] ?? null, $body);
+            $excerpt = PostTypeRegistry::supportsExcerpt($postType)
+                ? $this->resolveExcerpt($data['excerpt'] ?? null, $body)
+                : null;
+            $featuredImageId = PostTypeRegistry::supportsFeaturedImage($postType)
+                ? $this->resolveFeaturedImageId($data['featured_image_id'] ?? null)
+                : null;
 
             $post = Post::query()->create([
                 'title' => mb_substr($title, 0, 255),
@@ -77,7 +82,7 @@ class PostService
                 'body' => $body,
                 'excerpt' => $excerpt,
                 'author_id' => $authorId,
-                'featured_image_id' => $this->resolveFeaturedImageId($data['featured_image_id'] ?? null),
+                'featured_image_id' => $featuredImageId,
                 'post_type' => $postType,
                 'status' => $status,
                 'visibility' => $visibility,
@@ -171,9 +176,21 @@ class PostService
                 ? $this->nullableString($data['body'])
                 : $post->body;
 
-            $excerpt = array_key_exists('excerpt', $data)
-                ? $this->resolveExcerpt($data['excerpt'], $body)
-                : ($post->excerpt ?: $this->autoExcerpt($body));
+            if (! PostTypeRegistry::supportsExcerpt($postType)) {
+                $excerpt = null;
+            } elseif (array_key_exists('excerpt', $data)) {
+                $excerpt = $this->resolveExcerpt($data['excerpt'], $body);
+            } else {
+                $excerpt = $post->excerpt ?: $this->autoExcerpt($body);
+            }
+
+            if (! PostTypeRegistry::supportsFeaturedImage($postType)) {
+                $featuredImageId = null;
+            } elseif (array_key_exists('featured_image_id', $data)) {
+                $featuredImageId = $this->resolveFeaturedImageId($data['featured_image_id']);
+            } else {
+                $featuredImageId = $post->featured_image_id;
+            }
 
             $post->fill([
                 'title' => mb_substr($title, 0, 255),
@@ -181,9 +198,7 @@ class PostService
                 'body' => $body,
                 'excerpt' => $excerpt,
                 'author_id' => $authorId,
-                'featured_image_id' => array_key_exists('featured_image_id', $data)
-                    ? $this->resolveFeaturedImageId($data['featured_image_id'])
-                    : $post->featured_image_id,
+                'featured_image_id' => $featuredImageId,
                 'post_type' => $postType,
                 'visibility' => $visibility,
                 'password' => $password,

@@ -198,6 +198,7 @@ final class SeoPanel
                 'slug' => $get('slug'),
                 'featured_image_id' => $get('featured_image_id'),
                 'parent_id' => $get('parent_id'),
+                'post_type' => $get('post_type'),
             ],
             $record,
         );

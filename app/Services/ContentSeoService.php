@@ -19,7 +19,7 @@ use Illuminate\Validation\ValidationException;
 /**
  * Content-level SEO sync + inheritance (SRS 12.5.3).
  *
- * Priority: content value → SEO Defaults → dynamic fallback.
+ * Priority: content value → post-type default (schema) → SEO Defaults → dynamic fallback.
  */
 class ContentSeoService
 {
@@ -156,7 +156,9 @@ class ContentSeoService
         [$ogTitle, $ogTitleSource] = $this->resolveOgTitle($seo, $metaTitle, $title);
         [$ogDescription, $ogDescriptionSource] = $this->resolveOgDescription($seo, $metaDescription, $excerpt);
         [$ogImageId, $ogImageUrl, $ogImageSource] = $this->resolveOgImage($seo, $content);
-        [$schemaType, $schemaSource] = $this->resolveSchemaType($seo);
+
+        $postTypeKey = $content instanceof Post ? (string) ($content->post_type ?: 'post') : null;
+        [$schemaType, $schemaSource] = $this->resolveSchemaType($seo, $postTypeKey);
 
         return new ResolvedSeoMetadata(
             metaTitle: $metaTitle,
@@ -229,7 +231,10 @@ class ContentSeoService
         [$ogTitle] = $this->resolveOgTitleFromValues($ogTitleValue, $metaTitle, $title);
         [$ogDescription] = $this->resolveOgDescriptionFromValues($ogDescriptionValue, $metaDescription, $excerpt);
         [$ogImageId, $ogImageUrl] = $this->resolveOgImageFromValues($ogImageValue, $featuredImageId);
-        [$schemaType] = $this->resolveSchemaTypeFromValues($schemaRaw);
+        [$schemaType] = $this->resolveSchemaTypeFromValues(
+            $schemaRaw,
+            is_string($contentForm['post_type'] ?? null) ? (string) $contentForm['post_type'] : null,
+        );
 
         return new ResolvedSeoMetadata(
             metaTitle: $metaTitle,
@@ -559,20 +564,30 @@ class ContentSeoService
     /**
      * @return array{0: string, 1: string}
      */
-    private function resolveSchemaType(?SeoMetadata $seo): array
+    private function resolveSchemaType(?SeoMetadata $seo, ?string $postTypeKey = null): array
     {
         return $this->resolveSchemaTypeFromValues(
             $seo !== null && filled($seo->schema_type) ? (string) $seo->schema_type : null,
+            $postTypeKey,
         );
     }
 
     /**
+     * Priority: content → post-type default → SEO Defaults (SRS 12.4.7 / 12.5.3).
+     *
      * @return array{0: string, 1: string}
      */
-    private function resolveSchemaTypeFromValues(?string $contentValue): array
+    private function resolveSchemaTypeFromValues(?string $contentValue, ?string $postTypeKey = null): array
     {
         if (filled($contentValue)) {
             return [(string) $contentValue, 'content'];
+        }
+
+        if (filled($postTypeKey)) {
+            $typeDefault = \App\Support\PostTypeRegistry::defaultSchemaType($postTypeKey);
+            if (filled($typeDefault)) {
+                return [$typeDefault, 'post_type'];
+            }
         }
 
         return [$this->defaults->schemaType(), 'defaults'];

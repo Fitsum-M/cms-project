@@ -4,8 +4,11 @@ namespace App\Filament\Pages\Content;
 
 use App\Enums\Permission;
 use App\Filament\Pages\PlaceholderPage;
+use App\Filament\Resources\Posts\PostResource;
 use App\Filament\Resources\PostTypes\PostTypeResource;
+use App\Support\PostTypeRegistry;
 use BackedEnum;
+use Filament\Navigation\NavigationItem;
 use Filament\Support\Icons\Heroicon;
 use UnitEnum;
 
@@ -41,6 +44,43 @@ class CustomPostTypes extends PlaceholderPage
             || $user->can(Permission::PostsViewOwn->value);
     }
 
+    /**
+     * CPT listings for any role that can view posts (SRS 12.4.1). Manage Types stays on PostTypeResource.
+     *
+     * @return list<NavigationItem>
+     */
+    public static function getNavigationItems(): array
+    {
+        $items = parent::getNavigationItems();
+
+        $user = auth()->user();
+
+        if ($user === null) {
+            return $items;
+        }
+
+        if (! ($user->can(Permission::PostsViewAll->value) || $user->can(Permission::PostsViewOwn->value))) {
+            return $items;
+        }
+
+        $sort = 10;
+
+        foreach (PostTypeRegistry::customTypes() as $type) {
+            $items[] = NavigationItem::make($type->plural_name)
+                ->group('Content')
+                ->parentItem('Custom Post Types')
+                ->icon($type->resolvedIcon())
+                ->sort($sort++)
+                ->isActiveWhen(fn (): bool => request()->routeIs('filament.admin.resources.posts.*')
+                    && request()->query('post_type') === $type->slug)
+                ->url(PostResource::getUrl('index', [
+                    'post_type' => $type->slug,
+                ]));
+        }
+
+        return $items;
+    }
+
     public function mount(): void
     {
         if (auth()->user()?->can(Permission::CustomPostTypesManage->value)) {
@@ -49,6 +89,14 @@ class CustomPostTypes extends PlaceholderPage
             return;
         }
 
-        $this->redirect(\App\Filament\Resources\Posts\PostResource::getUrl('index'));
+        $first = PostTypeRegistry::customTypes()[0] ?? null;
+
+        if ($first !== null) {
+            $this->redirect(PostResource::getUrl('index', ['post_type' => $first->slug]));
+
+            return;
+        }
+
+        $this->redirect(PostResource::getUrl('index'));
     }
 }

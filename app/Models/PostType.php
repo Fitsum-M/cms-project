@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\Schema;
     'icon',
     'supports_categories',
     'supports_tags',
+    'supports_excerpt',
+    'supports_featured_image',
+    'default_schema_type',
     'sort_order',
 ])]
 class PostType extends Model
@@ -32,6 +35,8 @@ class PostType extends Model
             'sort_order' => 'integer',
             'supports_categories' => 'boolean',
             'supports_tags' => 'boolean',
+            'supports_excerpt' => 'boolean',
+            'supports_featured_image' => 'boolean',
         ];
     }
 

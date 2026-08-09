@@ -7,6 +7,7 @@ use App\Filament\Resources\Posts\PostResource;
 use App\Models\Post;
 use App\Services\ContentLifecycleService;
 use App\Services\PostService;
+use App\Support\PostTypeRegistry;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
@@ -19,6 +20,19 @@ use Illuminate\Validation\ValidationException;
 class EditPost extends EditRecord
 {
     protected static string $resource = PostResource::class;
+
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        /** @var Post $record */
+        $record = $this->getRecord();
+        $type = (string) ($record->post_type ?: 'post');
+
+        if (PostTypeRegistry::isCustom($type)) {
+            return 'Edit '.PostTypeRegistry::singularLabel($type);
+        }
+
+        return parent::getTitle();
+    }
 
     protected function getHeaderActions(): array
     {

@@ -11,9 +11,7 @@ use App\Filament\Resources\PostTypes\Schemas\PostTypeForm;
 use App\Filament\Resources\PostTypes\Schemas\PostTypeInfolist;
 use App\Filament\Resources\PostTypes\Tables\PostTypesTable;
 use App\Models\PostType;
-use App\Support\PostTypeRegistry;
 use BackedEnum;
-use Filament\Navigation\NavigationItem;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -90,37 +88,5 @@ class PostTypeResource extends Resource
     public static function canAccess(): bool
     {
         return auth()->user()?->can(Permission::CustomPostTypesManage->value) ?? false;
-    }
-
-    /**
-     * Registered custom types appear under Custom Post Types (SRS 12.4.1 / 10.1).
-     *
-     * @return list<NavigationItem>
-     */
-    public static function getNavigationItems(): array
-    {
-        $items = parent::getNavigationItems();
-
-        if (! (auth()->user()?->can(\App\Enums\Permission::PostsViewAll->value)
-            || auth()->user()?->can(\App\Enums\Permission::PostsViewOwn->value))) {
-            return $items;
-        }
-
-        $sort = 10;
-
-        foreach (PostTypeRegistry::customTypes() as $type) {
-            $items[] = NavigationItem::make($type->plural_name)
-                ->group('Content')
-                ->parentItem('Custom Post Types')
-                ->icon($type->resolvedIcon())
-                ->sort($sort++)
-                ->isActiveWhen(fn (): bool => request()->routeIs('filament.admin.resources.posts.*')
-                    && request()->query('post_type') === $type->slug)
-                ->url(\App\Filament\Resources\Posts\PostResource::getUrl('index', [
-                    'post_type' => $type->slug,
-                ]));
-        }
-
-        return $items;
     }
 }

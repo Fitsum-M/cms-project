@@ -6,6 +6,7 @@ use App\Models\Post;
 use App\Models\PostType;
 use App\Support\ReservedPostTypeSlugs;
 use App\Support\Settings\PermalinkSettings;
+use App\Support\Settings\SeoDefaultsSettings;
 use App\Support\SlugGenerator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -29,6 +30,10 @@ class PostTypeService
      *     icon?: string|null,
      *     supports_categories?: bool,
      *     supports_tags?: bool,
+     *     supports_excerpt?: bool,
+     *     supports_featured_image?: bool,
+     *     default_schema_type?: string|null,
+     *     custom_schema_type?: string|null,
      *     custom_taxonomy_ids?: list<int|string>,
      *     sort_order?: int|null
      * }  $data
@@ -47,6 +52,13 @@ class PostTypeService
         $supportsTags = array_key_exists('supports_tags', $data)
             ? (bool) $data['supports_tags']
             : true;
+        $supportsExcerpt = array_key_exists('supports_excerpt', $data)
+            ? (bool) $data['supports_excerpt']
+            : true;
+        $supportsFeaturedImage = array_key_exists('supports_featured_image', $data)
+            ? (bool) $data['supports_featured_image']
+            : true;
+        $defaultSchemaType = $this->normalizeSchemaType($data);
         $customTaxonomyIds = $this->normalizeCustomTaxonomyIds($data['custom_taxonomy_ids'] ?? []);
 
         return DB::transaction(function () use (
@@ -57,6 +69,9 @@ class PostTypeService
             $sortOrder,
             $supportsCategories,
             $supportsTags,
+            $supportsExcerpt,
+            $supportsFeaturedImage,
+            $defaultSchemaType,
             $customTaxonomyIds,
         ): PostType {
             $postType = PostType::query()->create([
@@ -66,6 +81,9 @@ class PostTypeService
                 'icon' => $icon,
                 'supports_categories' => $supportsCategories,
                 'supports_tags' => $supportsTags,
+                'supports_excerpt' => $supportsExcerpt,
+                'supports_featured_image' => $supportsFeaturedImage,
+                'default_schema_type' => $defaultSchemaType,
                 'sort_order' => $sortOrder,
             ]);
 
@@ -83,6 +101,10 @@ class PostTypeService
      *     icon?: string|null,
      *     supports_categories?: bool,
      *     supports_tags?: bool,
+     *     supports_excerpt?: bool,
+     *     supports_featured_image?: bool,
+     *     default_schema_type?: string|null,
+     *     custom_schema_type?: string|null,
      *     custom_taxonomy_ids?: list<int|string>,
      *     sort_order?: int|null
      * }  $data
@@ -117,6 +139,18 @@ class PostTypeService
             ? (bool) $data['supports_tags']
             : (bool) $postType->supports_tags;
 
+        $supportsExcerpt = array_key_exists('supports_excerpt', $data)
+            ? (bool) $data['supports_excerpt']
+            : (bool) $postType->supports_excerpt;
+
+        $supportsFeaturedImage = array_key_exists('supports_featured_image', $data)
+            ? (bool) $data['supports_featured_image']
+            : (bool) $postType->supports_featured_image;
+
+        $defaultSchemaType = array_key_exists('default_schema_type', $data) || array_key_exists('custom_schema_type', $data)
+            ? $this->normalizeSchemaType($data)
+            : $postType->default_schema_type;
+
         $syncCustomTaxonomies = array_key_exists('custom_taxonomy_ids', $data);
         $customTaxonomyIds = $syncCustomTaxonomies
             ? $this->normalizeCustomTaxonomyIds($data['custom_taxonomy_ids'] ?? [])
@@ -131,6 +165,9 @@ class PostTypeService
             $sortOrder,
             $supportsCategories,
             $supportsTags,
+            $supportsExcerpt,
+            $supportsFeaturedImage,
+            $defaultSchemaType,
             $syncCustomTaxonomies,
             $customTaxonomyIds,
         ): PostType {
@@ -143,6 +180,9 @@ class PostTypeService
                 'icon' => $icon,
                 'supports_categories' => $supportsCategories,
                 'supports_tags' => $supportsTags,
+                'supports_excerpt' => $supportsExcerpt,
+                'supports_featured_image' => $supportsFeaturedImage,
+                'default_schema_type' => $defaultSchemaType,
                 'sort_order' => $sortOrder,
             ])->save();
 
@@ -260,6 +300,31 @@ class PostTypeService
         }
 
         return $existing;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function normalizeSchemaType(array $data): ?string
+    {
+        $schemaType = $this->blankToNull($data['default_schema_type'] ?? null);
+
+        if ($schemaType === 'Custom') {
+            $schemaType = $this->blankToNull($data['custom_schema_type'] ?? null);
+        }
+
+        if ($schemaType === null) {
+            return null;
+        }
+
+        $known = array_keys(SeoDefaultsSettings::schemaTypeOptions());
+
+        if (in_array($schemaType, $known, true) && $schemaType !== 'Custom') {
+            return $schemaType;
+        }
+
+        // Free-text custom schema.org type
+        return mb_substr($schemaType, 0, 100);
     }
 
     private function requiredName(mixed $value, string $field): string
