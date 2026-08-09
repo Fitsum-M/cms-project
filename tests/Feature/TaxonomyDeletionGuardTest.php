@@ -2,11 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Permission;
 use App\Enums\TaxonomyStructure;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\Category;
-use App\Models\CustomTaxonomyTerm;
+use App\Models\Post;
 use App\Models\Tag;
 use App\Models\User;
 use App\Services\CategoryService;
@@ -14,11 +15,11 @@ use App\Services\CustomTaxonomyService;
 use App\Services\CustomTaxonomyTermService;
 use App\Services\TagService;
 use App\Services\TaxonomyAssignmentService;
+use Database\Seeders\PermalinkSettingsSeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission as PermissionModel;
-use App\Enums\Permission;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
@@ -31,13 +32,15 @@ class TaxonomyDeletionGuardTest extends TestCase
         parent::setUp();
 
         $this->seed(RoleSeeder::class);
+        $this->seed(PermalinkSettingsSeeder::class);
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
     public function test_category_with_assigned_content_cannot_be_deleted(): void
     {
         $category = Category::factory()->create();
-        app(TaxonomyAssignmentService::class)->assignCategory($category, postId: 101);
+        $post = Post::factory()->create();
+        app(TaxonomyAssignmentService::class)->assignCategory($category, postId: $post->id);
 
         $this->assertTrue($category->hasAssignedContent());
         $this->assertSame(1, $category->assignedContentCount());
@@ -55,9 +58,10 @@ class TaxonomyDeletionGuardTest extends TestCase
     public function test_category_can_be_deleted_after_content_is_unassigned(): void
     {
         $category = Category::factory()->create();
+        $post = Post::factory()->create();
         $assignments = app(TaxonomyAssignmentService::class);
-        $assignments->assignCategory($category, 101);
-        $assignments->unassignCategory($category, 101);
+        $assignments->assignCategory($category, $post->id);
+        $assignments->unassignCategory($category, $post->id);
 
         app(CategoryService::class)->delete($category);
 
@@ -67,7 +71,8 @@ class TaxonomyDeletionGuardTest extends TestCase
     public function test_tag_with_assigned_content_cannot_be_deleted(): void
     {
         $tag = Tag::factory()->create();
-        app(TaxonomyAssignmentService::class)->assignTag($tag, postId: 55);
+        $post = Post::factory()->create();
+        app(TaxonomyAssignmentService::class)->assignTag($tag, postId: $post->id);
 
         $this->expectException(ValidationException::class);
         app(TagService::class)->delete($tag);
@@ -87,7 +92,8 @@ class TaxonomyDeletionGuardTest extends TestCase
             'slug' => 'alpha',
         ]);
 
-        app(TaxonomyAssignmentService::class)->assignCustomTerm($term, postId: 9);
+        $post = Post::factory()->create();
+        app(TaxonomyAssignmentService::class)->assignCustomTerm($term, postId: $post->id);
 
         $this->expectException(ValidationException::class);
         app(CustomTaxonomyTermService::class)->delete($term);
@@ -107,7 +113,8 @@ class TaxonomyDeletionGuardTest extends TestCase
             'slug' => 's1',
         ]);
 
-        app(TaxonomyAssignmentService::class)->assignCustomTerm($term, postId: 3);
+        $post = Post::factory()->create();
+        app(TaxonomyAssignmentService::class)->assignCustomTerm($term, postId: $post->id);
 
         $this->expectException(ValidationException::class);
         app(CustomTaxonomyService::class)->delete($taxonomy);
@@ -140,7 +147,8 @@ class TaxonomyDeletionGuardTest extends TestCase
         $admin->assignSingleRole(UserRole::Administrator);
 
         $category = Category::factory()->create();
-        app(TaxonomyAssignmentService::class)->assignCategory($category, 1);
+        $post = Post::factory()->create();
+        app(TaxonomyAssignmentService::class)->assignCategory($category, $post->id);
 
         $this->assertFalse($admin->can('delete', $category));
     }
@@ -148,14 +156,15 @@ class TaxonomyDeletionGuardTest extends TestCase
     public function test_sync_replaces_assignment_set(): void
     {
         $tag = Tag::factory()->create();
+        $posts = Post::factory()->count(3)->create();
         $assignments = app(TaxonomyAssignmentService::class);
 
-        $assignments->syncTagPosts($tag, [1, 2, 3]);
+        $assignments->syncTagPosts($tag, $posts->pluck('id')->all());
         $this->assertSame(3, $tag->assignedContentCount());
 
-        $assignments->syncTagPosts($tag, [2]);
+        $assignments->syncTagPosts($tag, [$posts[1]->id]);
         $this->assertSame(1, $tag->fresh()->assignedContentCount());
-        $this->assertDatabaseHas('post_tag', ['tag_id' => $tag->id, 'post_id' => 2]);
-        $this->assertDatabaseMissing('post_tag', ['tag_id' => $tag->id, 'post_id' => 1]);
+        $this->assertDatabaseHas('post_tag', ['tag_id' => $tag->id, 'post_id' => $posts[1]->id]);
+        $this->assertDatabaseMissing('post_tag', ['tag_id' => $tag->id, 'post_id' => $posts[0]->id]);
     }
 }

@@ -4,11 +4,13 @@ namespace App\Filament\Pages\Dam;
 
 use App\Enums\Permission;
 use App\Filament\Resources\MediaAssets\MediaAssetResource;
+use App\Services\FolderService;
 use App\Services\MediaUploadService;
 use App\Support\Settings\MediaSettings;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Pages\Concerns\CanUseDatabaseTransactions;
 use Filament\Pages\Page;
@@ -59,6 +61,7 @@ class UploadMedia extends Page
     {
         $this->form->fill([
             'files' => [],
+            'folder_id' => app(MediaSettings::class)->defaultUploadFolderId(),
         ]);
     }
 
@@ -80,6 +83,13 @@ class UploadMedia extends Page
                 Section::make('Upload files')
                     ->description('Drag and drop files here, or use the file picker. Multiple files are uploaded in one batch with progress shown for each file.')
                     ->schema([
+                        Select::make('folder_id')
+                            ->label('Destination folder')
+                            ->options(fn (): array => app(FolderService::class)->options())
+                            ->searchable()
+                            ->nullable()
+                            ->placeholder('— Unfiled —')
+                            ->helperText('Defaults to the Media Settings default upload folder when set.'),
                         FileUpload::make('files')
                             ->label('Files')
                             ->multiple()
@@ -153,6 +163,10 @@ class UploadMedia extends Page
             $assets = app(MediaUploadService::class)->uploadMany(
                 $files,
                 auth()->user(),
+                isset($data['folder_id']) && $data['folder_id'] !== ''
+                    ? (int) $data['folder_id']
+                    : null,
+                applyDefaultFolder: false,
             );
 
             $this->commitDatabaseTransaction();

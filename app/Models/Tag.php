@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -29,6 +30,11 @@ class Tag extends Model implements HasContentAssignments
     public static function findByNameInsensitive(string $name): ?self
     {
         return static::query()->whereNameInsensitive($name)->first();
+    }
+
+    public function posts(): BelongsToMany
+    {
+        return $this->belongsToMany(Post::class, 'post_tag')->withTimestamps();
     }
 
     public function hasAssignedContent(): bool

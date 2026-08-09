@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -37,6 +38,16 @@ class CustomTaxonomyTerm extends Model implements HasContentAssignments
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id')->orderBy('name');
+    }
+
+    public function posts(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Post::class,
+            'custom_taxonomy_term_post',
+            'custom_taxonomy_term_id',
+            'post_id',
+        )->withTimestamps();
     }
 
     /**

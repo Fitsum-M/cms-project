@@ -9,6 +9,7 @@ use UnitEnum;
 
 class AllPages extends PlaceholderPage
 {
+    protected static bool $shouldRegisterNavigation = false;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 

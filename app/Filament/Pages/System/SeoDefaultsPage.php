@@ -223,14 +223,14 @@ class SeoDefaultsPage extends Page
      */
     private function ogImageRules(): array
     {
-        if (! SeoDefaultsSettings::mediaTableReady()) {
+        if (! SeoDefaultsSettings::mediaAssetsTableReady()) {
             return ['nullable'];
         }
 
         return [
             'nullable',
             'integer',
-            Rule::exists('media', 'id'),
+            Rule::exists('media_assets', 'id'),
         ];
     }
 }

@@ -9,6 +9,7 @@ use UnitEnum;
 
 class AddNewPost extends PlaceholderPage
 {
+    protected static bool $shouldRegisterNavigation = false;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPlusCircle;
 

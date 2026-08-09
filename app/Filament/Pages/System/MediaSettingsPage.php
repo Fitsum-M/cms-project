@@ -71,7 +71,7 @@ class MediaSettingsPage extends Page
         $foldersReady = MediaSettings::foldersTableReady();
         $folderHelper = $foldersReady
             ? 'Folder used as the default destination for new uploads.'
-            : 'No folders available yet — unlocks after DAM folders are implemented (Phase 4).';
+            : 'Create folders under Digital Asset Management → Folders to enable this setting.';
 
         return $schema
             ->components([

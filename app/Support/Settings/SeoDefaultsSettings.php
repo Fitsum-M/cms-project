@@ -3,9 +3,9 @@
 namespace App\Support\Settings;
 
 use App\Enums\SettingGroup;
+use App\Models\MediaAsset;
 use App\Services\SettingsStore;
 use Illuminate\Support\Facades\Schema;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class SeoDefaultsSettings
 {
@@ -234,38 +234,46 @@ class SeoDefaultsSettings
      */
     public static function ogImageOptions(): array
     {
-        if (! self::mediaTableReady()) {
+        if (! self::mediaAssetsTableReady()) {
             return [];
         }
 
-        return Media::query()
+        return MediaAsset::query()
             ->where('mime_type', 'like', 'image/%')
             ->orderByDesc('id')
             ->limit(200)
-            ->get(['id', 'name', 'file_name'])
-            ->mapWithKeys(fn (Media $media): array => [
-                (int) $media->id => trim($media->name.' ('.$media->file_name.')'),
+            ->get(['id', 'title', 'original_file_name'])
+            ->mapWithKeys(fn (MediaAsset $asset): array => [
+                (int) $asset->id => trim($asset->title.' ('.$asset->original_file_name.')'),
             ])
             ->all();
     }
 
-    public static function mediaTableReady(): bool
+    public static function mediaAssetsTableReady(): bool
     {
         try {
-            return Schema::hasTable('media');
+            return Schema::hasTable('media_assets');
         } catch (\Throwable) {
             return false;
         }
     }
 
-    public static function mediaImageExists(int $mediaId): bool
+    /**
+     * @deprecated Use mediaAssetsTableReady()
+     */
+    public static function mediaTableReady(): bool
     {
-        if (! self::mediaTableReady()) {
+        return self::mediaAssetsTableReady();
+    }
+
+    public static function mediaImageExists(int $mediaAssetId): bool
+    {
+        if (! self::mediaAssetsTableReady()) {
             return false;
         }
 
-        return Media::query()
-            ->whereKey($mediaId)
+        return MediaAsset::query()
+            ->whereKey($mediaAssetId)
             ->where('mime_type', 'like', 'image/%')
             ->exists();
     }

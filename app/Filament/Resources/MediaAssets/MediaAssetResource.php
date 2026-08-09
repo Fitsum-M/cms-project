@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources\MediaAssets;
 
+use App\Filament\Resources\MediaAssets\Pages\EditMediaAsset;
 use App\Filament\Resources\MediaAssets\Pages\ListMediaAssets;
 use App\Filament\Resources\MediaAssets\Pages\ViewMediaAsset;
+use App\Filament\Resources\MediaAssets\Schemas\MediaAssetForm;
 use App\Filament\Resources\MediaAssets\Schemas\MediaAssetInfolist;
 use App\Filament\Resources\MediaAssets\Tables\MediaAssetsTable;
 use App\Models\MediaAsset;
@@ -12,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
@@ -42,7 +45,7 @@ class MediaAssetResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return $schema;
+        return MediaAssetForm::configure($schema);
     }
 
     public static function infolist(Schema $schema): Schema
@@ -55,6 +58,11 @@ class MediaAssetResource extends Resource
         return MediaAssetsTable::configure($table);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['uploader', 'folder']);
+    }
+
     public static function getRelations(): array
     {
         return [];
@@ -65,12 +73,13 @@ class MediaAssetResource extends Resource
         return [
             'index' => ListMediaAssets::route('/'),
             'view' => ViewMediaAsset::route('/{record}'),
+            'edit' => EditMediaAsset::route('/{record}/edit'),
         ];
     }
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['title', 'original_file_name'];
+        return ['title', 'original_file_name', 'alt_text', 'caption', 'description'];
     }
 
     public static function getGlobalSearchResultDetails(Model $record): array
@@ -78,6 +87,7 @@ class MediaAssetResource extends Resource
         /** @var MediaAsset $record */
         return [
             'File' => $record->original_file_name,
+            'Type' => $record->mime_type ?? '—',
         ];
     }
 }

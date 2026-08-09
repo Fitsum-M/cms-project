@@ -21,7 +21,7 @@ class MediaUploadService
      * @param  list<UploadedFile|TemporaryUploadedFile|string>  $files
      * @return Collection<int, MediaAsset>
      */
-    public function uploadMany(array $files, User $uploader, ?int $folderId = null): Collection
+    public function uploadMany(array $files, User $uploader, ?int $folderId = null, bool $applyDefaultFolder = true): Collection
     {
         $assets = collect();
 
@@ -32,7 +32,7 @@ class MediaUploadService
                 continue;
             }
 
-            $assets->push($this->upload($uploaded, $uploader, $folderId));
+            $assets->push($this->upload($uploaded, $uploader, $folderId, $applyDefaultFolder));
         }
 
         if ($assets->isEmpty()) {
@@ -44,7 +44,7 @@ class MediaUploadService
         return $assets;
     }
 
-    public function upload(UploadedFile $file, User $uploader, ?int $folderId = null): MediaAsset
+    public function upload(UploadedFile $file, User $uploader, ?int $folderId = null, bool $applyDefaultFolder = true): MediaAsset
     {
         $this->assertAllowed($file);
 
@@ -54,7 +54,9 @@ class MediaUploadService
         $size = (int) $file->getSize();
         [$width, $height] = $this->imageDimensions($file, is_string($mimeType) ? $mimeType : null);
 
-        $folderId ??= $this->mediaSettings->defaultUploadFolderId();
+        if ($applyDefaultFolder) {
+            $folderId ??= $this->mediaSettings->defaultUploadFolderId();
+        }
 
         $asset = MediaAsset::query()->create([
             'title' => $this->defaultTitle($originalName),

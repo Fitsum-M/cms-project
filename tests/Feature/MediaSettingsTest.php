@@ -117,10 +117,16 @@ class MediaSettingsTest extends TestCase
         ]);
     }
 
-    public function test_folder_options_are_empty_until_folders_table_exists(): void
+    public function test_folder_options_include_created_folders(): void
     {
-        $this->assertFalse(MediaSettings::foldersTableReady());
-        $this->assertSame([], MediaSettings::folderOptions());
+        $this->assertTrue(MediaSettings::foldersTableReady());
+
+        $folder = \App\Models\Folder::factory()->create(['name' => 'Heroes']);
+
+        $options = MediaSettings::folderOptions();
+
+        $this->assertArrayHasKey($folder->id, $options);
+        $this->assertSame('Heroes', $options[$folder->id]);
     }
 
     private function makeUser(UserRole $role): User

@@ -4,7 +4,6 @@ namespace App\Support\Settings;
 
 use App\Enums\SettingGroup;
 use App\Services\SettingsStore;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class MediaSettings
@@ -285,11 +284,7 @@ class MediaSettings
             return [];
         }
 
-        return DB::table('folders')
-            ->orderBy('name')
-            ->get(['id', 'name'])
-            ->mapWithKeys(fn (object $folder): array => [(int) $folder->id => (string) $folder->name])
-            ->all();
+        return app(\App\Services\FolderService::class)->options();
     }
 
     public static function foldersTableReady(): bool
