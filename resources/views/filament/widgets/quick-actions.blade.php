@@ -1,7 +1,7 @@
 <x-filament-widgets::widget class="fi-wi-quick-actions">
     <x-filament::section
-        heading="Quick Actions"
-        description="Jump into common editorial tasks."
+        :heading="__('cms.dashboard.quick_actions.heading')"
+        :description="__('cms.dashboard.quick_actions.description')"
     >
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             @foreach ($actions as $action)

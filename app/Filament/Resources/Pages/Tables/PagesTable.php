@@ -6,6 +6,8 @@ use App\Enums\ContentStatus;
 use App\Models\Page;
 use App\Models\User;
 use App\Services\ContentLifecycleService;
+use App\Support\Content\ContentSearch;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -18,7 +20,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
 
@@ -29,8 +30,8 @@ class PagesTable
         return $table
             ->columns([
                 TextColumn::make('title')
-                    ->label('Title')
-                    ->searchable()
+                    ->label(__('cms.tables.title'))
+                    ->searchable(query: fn (Builder $query, string $search): Builder => ContentSearch::applyPagesSearch($query, $search))
                     ->sortable()
                     ->description(fn (Page $record): string => $record->hierarchicalLabel() !== $record->title
                         ? $record->hierarchicalLabel()

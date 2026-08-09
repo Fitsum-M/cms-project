@@ -44,10 +44,10 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Blue,
             ])
             ->navigationGroups([
-                'Content',
-                'Digital Asset Management',
-                'Identity & Access Management',
-                'System Configuration',
+                __('cms.navigation.groups.content'),
+                __('cms.navigation.groups.dam'),
+                __('cms.navigation.groups.iam'),
+                __('cms.navigation.groups.system'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

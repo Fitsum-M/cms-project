@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\CategoryService;
 use App\Services\ContentLifecycleService;
 use App\Services\PostService;
+use App\Support\Content\ContentSearch;
 use App\Support\PostTypeRegistry;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
@@ -49,30 +50,8 @@ class PostsTable
                     ->extraImgAttributes(['alt' => ''])
                     ->toggleable(),
                 TextColumn::make('title')
-                    ->label('Title')
-                    ->searchable(query: function (Builder $query, string $search): Builder {
-                        $term = '%'.$search.'%';
-
-                        return $query
-                            ->where(function (Builder $inner) use ($term): void {
-                                $inner
-                                    ->where('title', 'like', $term)
-                                    ->orWhere('slug', 'like', $term)
-                                    ->orWhere('excerpt', 'like', $term)
-                                    ->orWhere('body', 'like', $term);
-                            })
-                            ->reorder()
-                            ->orderByRaw(
-                                'CASE
-                                    WHEN title LIKE ? THEN 0
-                                    WHEN slug LIKE ? THEN 1
-                                    WHEN excerpt LIKE ? THEN 2
-                                    ELSE 3
-                                END',
-                                [$term, $term, $term],
-                            )
-                            ->orderByDesc('published_at');
-                    })
+                    ->label(__('cms.tables.title'))
+                    ->searchable(query: fn (Builder $query, string $search): Builder => ContentSearch::applyPostsSearch($query, $search))
                     ->sortable()
                     ->description(fn (Post $record): string => $record->slug),
                 TextColumn::make('author.name')

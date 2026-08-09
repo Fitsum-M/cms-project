@@ -11,11 +11,11 @@
         <table class="w-full table-auto divide-y divide-gray-200 text-sm dark:divide-white/10">
             <thead>
                 <tr class="text-start text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    <th class="px-2 py-2 text-start">Title</th>
-                    <th class="px-2 py-2 text-start">Type</th>
-                    <th class="px-2 py-2 text-start">Status</th>
-                    <th class="px-2 py-2 text-start">Author</th>
-                    <th class="px-2 py-2 text-start">Updated</th>
+                    <th class="px-2 py-2 text-start">{{ __('cms.dashboard.content_table.title') }}</th>
+                    <th class="px-2 py-2 text-start">{{ __('cms.dashboard.content_table.type') }}</th>
+                    <th class="px-2 py-2 text-start">{{ __('cms.dashboard.content_table.status') }}</th>
+                    <th class="px-2 py-2 text-start">{{ __('cms.dashboard.content_table.author') }}</th>
+                    <th class="px-2 py-2 text-start">{{ __('cms.dashboard.content_table.updated') }}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 dark:divide-white/10">

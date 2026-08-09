@@ -19,10 +19,6 @@ class OverviewStatsWidget extends StatsOverviewWidget
 {
     protected static ?int $sort = 1;
 
-    protected ?string $heading = 'Overview';
-
-    protected ?string $description = 'Current content and account totals across the CMS.';
-
     /**
      * @var int | array<string, ?int> | null
      */
@@ -33,6 +29,16 @@ class OverviewStatsWidget extends StatsOverviewWidget
         return auth()->user()?->can(Permission::DashboardView->value) ?? false;
     }
 
+    public function getHeading(): ?string
+    {
+        return __('cms.dashboard.overview.heading');
+    }
+
+    public function getDescription(): ?string
+    {
+        return __('cms.dashboard.overview.description');
+    }
+
     /**
      * @return array<Stat>
      */
@@ -41,23 +47,23 @@ class OverviewStatsWidget extends StatsOverviewWidget
         $counts = app(DashboardOverviewService::class)->counts();
 
         return [
-            Stat::make('Posts', number_format($counts['posts']))
-                ->description('Published, draft, and pending posts')
+            Stat::make(__('cms.dashboard.overview.stats.posts'), number_format($counts['posts']))
+                ->description(__('cms.dashboard.overview.stats.posts_description'))
                 ->icon(Heroicon::OutlinedDocumentText)
                 ->color('primary')
                 ->url(PostResource::getUrl('index')),
-            Stat::make('Pages', number_format($counts['pages']))
-                ->description('All non-trashed pages')
+            Stat::make(__('cms.dashboard.overview.stats.pages'), number_format($counts['pages']))
+                ->description(__('cms.dashboard.overview.stats.pages_description'))
                 ->icon(Heroicon::OutlinedDocumentDuplicate)
                 ->color('success')
                 ->url(PageResource::getUrl('index')),
-            Stat::make('Media', number_format($counts['media']))
-                ->description('Items in the media library')
+            Stat::make(__('cms.dashboard.overview.stats.media'), number_format($counts['media']))
+                ->description(__('cms.dashboard.overview.stats.media_description'))
                 ->icon(Heroicon::OutlinedPhoto)
                 ->color('warning')
                 ->url(MediaAssetResource::getUrl('index')),
-            Stat::make('Users', number_format($counts['users']))
-                ->description('Active, pending, and suspended accounts')
+            Stat::make(__('cms.dashboard.overview.stats.users'), number_format($counts['users']))
+                ->description(__('cms.dashboard.overview.stats.users_description'))
                 ->icon(Heroicon::OutlinedUsers)
                 ->color('gray')
                 ->url(AllUsers::getUrl()),

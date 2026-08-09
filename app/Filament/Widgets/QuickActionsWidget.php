@@ -45,8 +45,8 @@ class QuickActionsWidget extends Widget
 
         if ($user?->can(Permission::PostsCreate->value)) {
             $actions[] = [
-                'label' => 'Add New Post',
-                'description' => 'Create a draft post',
+                'label' => __('cms.dashboard.quick_actions.add_post'),
+                'description' => __('cms.dashboard.quick_actions.add_post_description'),
                 'url' => PostResource::getUrl('create'),
                 'icon' => 'document-text',
             ];
@@ -54,8 +54,8 @@ class QuickActionsWidget extends Widget
 
         if ($user?->can(Permission::PagesCreate->value)) {
             $actions[] = [
-                'label' => 'Add New Page',
-                'description' => 'Create a new page',
+                'label' => __('cms.dashboard.quick_actions.add_page'),
+                'description' => __('cms.dashboard.quick_actions.add_page_description'),
                 'url' => PageResource::getUrl('create'),
                 'icon' => 'document-duplicate',
             ];
@@ -63,8 +63,8 @@ class QuickActionsWidget extends Widget
 
         if ($user?->can(Permission::MediaUpload->value)) {
             $actions[] = [
-                'label' => 'Upload Media',
-                'description' => 'Add files to the library',
+                'label' => __('cms.dashboard.quick_actions.upload_media'),
+                'description' => __('cms.dashboard.quick_actions.upload_media_description'),
                 'url' => UploadMedia::getUrl(),
                 'icon' => 'arrow-up-tray',
             ];

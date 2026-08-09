@@ -26,9 +26,19 @@ use Filament\Widgets\AccountWidget;
  */
 class Dashboard extends BaseDashboard
 {
-    protected static ?string $navigationLabel = 'Dashboard';
+    protected static ?string $navigationLabel = null;
 
-    protected static ?string $title = 'Dashboard';
+    protected static ?string $title = null;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('cms.navigation.dashboard');
+    }
+
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return __('cms.navigation.dashboard');
+    }
 
     /**
      * @return array<class-string>
