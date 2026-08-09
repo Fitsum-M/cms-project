@@ -5,7 +5,7 @@
                 {{ static::$title ?? static::getNavigationLabel() }}
             </h2>
             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Placeholder for Phase 0 navigation scaffold (SRS Section 10.1). Full functionality lands in later phases.
+                This area is reserved in the navigation. A dedicated management UI has not been built yet.
             </p>
         </div>
     </div>

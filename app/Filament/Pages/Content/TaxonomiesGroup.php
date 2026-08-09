@@ -3,11 +3,15 @@
 namespace App\Filament\Pages\Content;
 
 use App\Enums\Permission;
-use BackedEnum;
 use App\Filament\Pages\PlaceholderPage;
+use App\Filament\Resources\Categories\CategoryResource;
+use BackedEnum;
 use Filament\Support\Icons\Heroicon;
 use UnitEnum;
 
+/**
+ * Nav parent for Taxonomies (SRS 10.1). Opens Categories by default.
+ */
 class TaxonomiesGroup extends PlaceholderPage
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
@@ -30,5 +34,10 @@ class TaxonomiesGroup extends PlaceholderPage
     public static function shouldRegisterNavigation(): bool
     {
         return static::canAccess();
+    }
+
+    public function mount(): void
+    {
+        $this->redirect(CategoryResource::getUrl('index'));
     }
 }
