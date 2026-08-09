@@ -119,6 +119,7 @@ class PageForm
                             ->helperText('Used for published pages and URL date tokens when configured.'),
                     ])
                     ->columns(2),
+                ...\App\Filament\Forms\Components\SeoPanel::make('page'),
             ]);
     }
 }

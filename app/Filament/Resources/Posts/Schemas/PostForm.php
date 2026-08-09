@@ -97,7 +97,17 @@ class PostForm
                             ->default('post')
                             ->live()
                             ->afterStateUpdated(function (?string $state, Set $set, Get $get): void {
-                                $allowed = array_map('intval', array_keys(self::customTermOptions((string) ($state ?: 'post'))));
+                                $postType = (string) ($state ?: 'post');
+
+                                if (! PostTypeRegistry::supportsCategories($postType)) {
+                                    $set('category_ids', []);
+                                }
+
+                                if (! PostTypeRegistry::supportsTags($postType)) {
+                                    $set('tag_ids', []);
+                                }
+
+                                $allowed = array_map('intval', array_keys(self::customTermOptions($postType)));
                                 $selected = array_map('intval', (array) ($get('custom_term_ids') ?? []));
                                 $set('custom_term_ids', array_values(array_intersect($selected, $allowed)));
                             }),
@@ -148,7 +158,8 @@ class PostForm
                             ->multiple()
                             ->searchable()
                             ->options(fn (): array => app(CategoryService::class)->parentOptions())
-                            ->helperText('Assign one or more hierarchical categories.'),
+                            ->helperText('Assign one or more hierarchical categories.')
+                            ->visible(fn (Get $get): bool => PostTypeRegistry::supportsCategories((string) ($get('post_type') ?: 'post'))),
                         Select::make('tag_ids')
                             ->label('Tags')
                             ->multiple()
@@ -163,7 +174,8 @@ class PostForm
                             ->createOptionUsing(fn (array $data): int => app(TagService::class)
                                 ->findOrCreateByName((string) $data['name'])
                                 ->getKey())
-                            ->helperText('Type to search. Create a new tag when it does not exist.'),
+                            ->helperText('Type to search. Create a new tag when it does not exist.')
+                            ->visible(fn (Get $get): bool => PostTypeRegistry::supportsTags((string) ($get('post_type') ?: 'post'))),
                         Select::make('custom_term_ids')
                             ->label('Custom taxonomy terms')
                             ->multiple()
@@ -172,7 +184,9 @@ class PostForm
                             ->helperText('Only taxonomies associated with the selected post type are listed.')
                             ->visible(fn (Get $get): bool => self::customTermOptions((string) ($get('post_type') ?: 'post')) !== []),
                     ])
+                    ->visible(fn (Get $get): bool => PostTypeRegistry::supportsAnyTaxonomy((string) ($get('post_type') ?: 'post')))
                     ->columns(1),
+                ...\App\Filament\Forms\Components\SeoPanel::make('post'),
             ]);
     }
 

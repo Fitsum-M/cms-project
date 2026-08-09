@@ -98,6 +98,7 @@ class EditPage extends EditRecord
         $record = $this->getRecord();
 
         $data['template'] = $record->resolvedTemplate();
+        $data['seo'] = app(\App\Services\ContentSeoService::class)->formState($record);
 
         return $data;
     }

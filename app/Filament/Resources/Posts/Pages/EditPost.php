@@ -127,6 +127,7 @@ class EditPost extends EditRecord
         $data['category_ids'] = $record->categories()->pluck('categories.id')->all();
         $data['tag_ids'] = $record->tags()->pluck('tags.id')->all();
         $data['custom_term_ids'] = $record->customTaxonomyTerms()->pluck('custom_taxonomy_terms.id')->all();
+        $data['seo'] = app(\App\Services\ContentSeoService::class)->formState($record);
 
         return $data;
     }

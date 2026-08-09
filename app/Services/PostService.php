@@ -19,6 +19,7 @@ class PostService
         private readonly ContentSlugService $slugs,
         private readonly ContentLifecycleService $lifecycle,
         private readonly TaxonomyAssignmentService $taxonomies,
+        private readonly ContentSeoService $seo,
     ) {}
 
     /**
@@ -85,8 +86,9 @@ class PostService
             ]);
 
             $this->syncTaxonomies($post, $data);
+            $this->seo->sync($post, isset($data['seo']) && is_array($data['seo']) ? $data['seo'] : null, $actor);
 
-            return $post->fresh(['author', 'featuredImage', 'categories', 'tags', 'customTaxonomyTerms']) ?? $post;
+            return $post->fresh(['author', 'featuredImage', 'categories', 'tags', 'customTaxonomyTerms', 'seo']) ?? $post;
         });
     }
 
@@ -195,7 +197,11 @@ class PostService
             $post = $post->fresh() ?? $post;
             $this->syncTaxonomies($post, $data, onlyProvided: true);
 
-            return $post->fresh(['author', 'featuredImage', 'categories', 'tags', 'customTaxonomyTerms']) ?? $post;
+            if (array_key_exists('seo', $data)) {
+                $this->seo->sync($post, is_array($data['seo']) ? $data['seo'] : null, $actor);
+            }
+
+            return $post->fresh(['author', 'featuredImage', 'categories', 'tags', 'customTaxonomyTerms', 'seo']) ?? $post;
         });
     }
 
@@ -280,7 +286,9 @@ class PostService
                 $copy->forceFill(['password' => $source->password])->save();
             }
 
-            return $copy->fresh(['author', 'featuredImage', 'categories', 'tags', 'customTaxonomyTerms']) ?? $copy;
+            $this->seo->copy($source, $copy);
+
+            return $copy->fresh(['author', 'featuredImage', 'categories', 'tags', 'customTaxonomyTerms', 'seo']) ?? $copy;
         });
     }
 
@@ -707,14 +715,20 @@ class PostService
      */
     private function syncTaxonomies(Post $post, array $data, bool $onlyProvided = false): void
     {
-        if (! $onlyProvided || array_key_exists('category_ids', $data)) {
+        $postType = (string) ($post->post_type ?: 'post');
+
+        if (! PostTypeRegistry::supportsCategories($postType)) {
+            $this->taxonomies->syncPostCategories($post, []);
+        } elseif (! $onlyProvided || array_key_exists('category_ids', $data)) {
             $this->taxonomies->syncPostCategories(
                 $post,
                 array_values((array) ($data['category_ids'] ?? [])),
             );
         }
 
-        if (! $onlyProvided || array_key_exists('tag_ids', $data)) {
+        if (! PostTypeRegistry::supportsTags($postType)) {
+            $this->taxonomies->syncPostTags($post, []);
+        } elseif (! $onlyProvided || array_key_exists('tag_ids', $data)) {
             $this->taxonomies->syncPostTags(
                 $post,
                 array_values((array) ($data['tag_ids'] ?? [])),
@@ -726,6 +740,8 @@ class PostService
                 $post,
                 array_values((array) ($data['custom_term_ids'] ?? [])),
             );
+        } elseif (PostTypeRegistry::customTaxonomyIds($postType) === []) {
+            $this->taxonomies->syncPostCustomTerms($post, []);
         }
     }
 

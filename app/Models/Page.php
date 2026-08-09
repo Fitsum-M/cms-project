@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use App\Contracts\HasContentLifecycle;
+use App\Contracts\HasSeoMetadata;
 use App\Contracts\Ownable;
 use App\Enums\ContentSlugScope;
 use App\Enums\ContentStatus;
 use App\Enums\Permission;
 use App\Models\Concerns\HasContentLifecycle as HasContentLifecycleTrait;
+use App\Models\Concerns\HasContentSeo;
 use App\Services\ContentUrlGenerator;
 use App\Support\PageTemplateRegistry;
 use Database\Factories\PageFactory;
@@ -29,10 +31,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'status',
     'published_at',
 ])]
-class Page extends Model implements HasContentLifecycle, Ownable
+class Page extends Model implements HasContentLifecycle, HasSeoMetadata, Ownable
 {
     /** @use HasFactory<PageFactory> */
     use HasContentLifecycleTrait;
+    use HasContentSeo;
     use HasFactory;
 
     /**

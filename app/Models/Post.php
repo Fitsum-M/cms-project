@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use App\Contracts\HasContentLifecycle;
+use App\Contracts\HasSeoMetadata;
 use App\Contracts\Ownable;
 use App\Enums\ContentSlugScope;
 use App\Enums\ContentStatus;
 use App\Enums\Permission;
 use App\Enums\PostVisibility;
 use App\Models\Concerns\HasContentLifecycle as HasContentLifecycleTrait;
+use App\Models\Concerns\HasContentSeo;
+use App\Services\ContentUrlGenerator;
 use App\Services\PostService;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -32,10 +35,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
     'published_at',
 ])]
 #[Hidden(['password'])]
-class Post extends Model implements HasContentLifecycle, Ownable
+class Post extends Model implements HasContentLifecycle, HasSeoMetadata, Ownable
 {
     /** @use HasFactory<PostFactory> */
     use HasContentLifecycleTrait;
+    use HasContentSeo;
     use HasFactory;
 
     /**
@@ -146,5 +150,10 @@ class Post extends Model implements HasContentLifecycle, Ownable
     public function isPubliclyAccessible(): bool
     {
         return app(PostService::class)->isPubliclyAccessible($this);
+    }
+
+    public function contentPublicPath(): string
+    {
+        return app(ContentUrlGenerator::class)->postPath($this);
     }
 }

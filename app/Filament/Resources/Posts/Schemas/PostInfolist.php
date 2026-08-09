@@ -84,6 +84,30 @@ class PostInfolist
                             ->dateTime(),
                     ])
                     ->columns(2),
+                Section::make('SEO & Metadata')
+                    ->schema([
+                        TextEntry::make('seo_meta_title')
+                            ->label('Meta Title (resolved)')
+                            ->state(fn (Post $record): string => app(\App\Services\ContentSeoService::class)->resolve($record)->metaTitle ?: '—'),
+                        TextEntry::make('seo_meta_description')
+                            ->label('Meta Description (resolved)')
+                            ->state(fn (Post $record): string => app(\App\Services\ContentSeoService::class)->resolve($record)->metaDescription ?: '—')
+                            ->columnSpanFull(),
+                        TextEntry::make('seo.focus_keyword')
+                            ->label('Focus Keyword')
+                            ->placeholder('—'),
+                        TextEntry::make('seo_canonical')
+                            ->label('Canonical URL')
+                            ->state(fn (Post $record): string => app(\App\Services\ContentSeoService::class)->resolve($record)->canonicalUrl)
+                            ->copyable(),
+                        TextEntry::make('seo_robots')
+                            ->label('Robots')
+                            ->state(fn (Post $record): string => app(\App\Services\ContentSeoService::class)->resolve($record)->robotsDirective()),
+                        TextEntry::make('seo_schema')
+                            ->label('Schema Type')
+                            ->state(fn (Post $record): string => app(\App\Services\ContentSeoService::class)->resolve($record)->schemaType),
+                    ])
+                    ->columns(2),
             ]);
     }
 }

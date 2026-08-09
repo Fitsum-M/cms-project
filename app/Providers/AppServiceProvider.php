@@ -10,6 +10,7 @@ use App\Models\Folder;
 use App\Models\MediaAsset;
 use App\Models\Page;
 use App\Models\Post;
+use App\Models\PostType;
 use App\Models\Tag;
 use App\Models\User;
 use App\Policies\CategoryPolicy;
@@ -19,9 +20,11 @@ use App\Policies\FolderPolicy;
 use App\Policies\MediaAssetPolicy;
 use App\Policies\PagePolicy;
 use App\Policies\PostPolicy;
+use App\Policies\PostTypePolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
 use App\Services\MediaReferenceService;
+use App\Services\MediaReferences\ContentSeoOgImageMediaReferenceProvider;
 use App\Services\MediaReferences\PostFeaturedImageMediaReferenceProvider;
 use App\Services\MediaReferences\SeoDefaultsMediaReferenceProvider;
 use App\Support\Settings\EmailSettings;
@@ -53,6 +56,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->tag([
             SeoDefaultsMediaReferenceProvider::class,
             PostFeaturedImageMediaReferenceProvider::class,
+            ContentSeoOgImageMediaReferenceProvider::class,
         ], 'media.reference_providers');
 
         $this->app->singleton(MediaReferenceService::class, function ($app): MediaReferenceService {
@@ -73,6 +77,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(MediaAsset::class, MediaAssetPolicy::class);
         Gate::policy(Folder::class, FolderPolicy::class);
         Gate::policy(Post::class, PostPolicy::class);
+        Gate::policy(PostType::class, PostTypePolicy::class);
         Gate::policy(Page::class, PagePolicy::class);
 
         try {

@@ -19,6 +19,7 @@ class PageService
     public function __construct(
         private readonly ContentSlugService $slugs,
         private readonly ContentLifecycleService $lifecycle,
+        private readonly ContentSeoService $seo,
     ) {}
 
     /**
@@ -78,7 +79,9 @@ class PageService
                 'published_at' => $publishedAt,
             ]);
 
-            return $page->fresh(['author', 'parent']) ?? $page;
+            $this->seo->sync($page, isset($data['seo']) && is_array($data['seo']) ? $data['seo'] : null, $actor);
+
+            return $page->fresh(['author', 'parent', 'seo']) ?? $page;
         });
     }
 
@@ -168,7 +171,13 @@ class PageService
                 $this->applyStatusChange($page->fresh() ?? $page, $data['status'], $actor);
             }
 
-            return $page->fresh(['author', 'parent', 'children']) ?? $page;
+            $page = $page->fresh() ?? $page;
+
+            if (array_key_exists('seo', $data)) {
+                $this->seo->sync($page, is_array($data['seo']) ? $data['seo'] : null, $actor);
+            }
+
+            return $page->fresh(['author', 'parent', 'children', 'seo']) ?? $page;
         });
     }
 
