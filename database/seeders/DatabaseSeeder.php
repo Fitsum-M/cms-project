@@ -44,5 +44,9 @@ class DatabaseSeeder extends Seeder
         );
 
         $admin->assignSingleRole(UserRole::Administrator);
+
+        if (filter_var(env('SEED_DEMO_DATA', false), FILTER_VALIDATE_BOOLEAN)) {
+            $this->call(DemoDataSeeder::class);
+        }
     }
 }

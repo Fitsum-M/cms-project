@@ -3,9 +3,9 @@
         :heading="__('cms.dashboard.draft_summary.heading')"
         :description="$showPendingReview ? __('cms.dashboard.draft_summary.description_with_review') : __('cms.dashboard.draft_summary.description')"
     >
-        <div class="space-y-6">
+        <div class="space-y-8">
             <div>
-                <h3 class="mb-2 text-sm font-semibold text-gray-950 dark:text-white">
+                <h3 class="fi-dashboard-content-subheading">
                     {{ __('cms.dashboard.draft_summary.my_drafts') }}
                 </h3>
 
@@ -17,7 +17,7 @@
 
             @if ($showPendingReview)
                 <div>
-                    <h3 class="mb-2 text-sm font-semibold text-gray-950 dark:text-white">
+                    <h3 class="fi-dashboard-content-subheading">
                         {{ __('cms.dashboard.draft_summary.awaiting_review') }}
                     </h3>
 
