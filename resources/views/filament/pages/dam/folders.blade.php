@@ -63,15 +63,25 @@
             >
                 Drop here to move a folder to the root (Unfiled parent).
             </div>
-
             @if (count($tree) === 0)
                 <p class="text-sm text-gray-500 dark:text-gray-400">
                     No folders yet. Create one to organize the media library.
                 </p>
             @else
-                <ul class="space-y-1" role="tree">
-                    @include('filament.pages.dam.partials.folder-nodes', ['nodes' => $tree, 'depth' => 0])
-                </ul>
+                <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-white/10">
+                    <table class="w-full text-left" role="tree">
+                        <thead class="border-b border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/5">
+                            <tr>
+                                <th class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Name</th>
+                                <th class="px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Items</th>
+                                <th class="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                            @include('filament.pages.dam.partials.folder-nodes', ['nodes' => $tree, 'depth' => 0])
+                        </tbody>
+                    </table>
+                </div>
             @endif
         </div>
     </div>
