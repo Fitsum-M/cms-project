@@ -90,12 +90,21 @@ class DemoDataSeeder extends Seeder
             'author_id' => $editor->id,
         ]);
 
-        foreach (range(1, 2) as $index) {
-            Page::factory()->published()->inNavigation()->create([
-                'author_id' => $authors->random()->id,
-                'sort_order' => $index,
-            ]);
-        }
+        Page::factory()->published()->inNavigation()->create([
+            'title' => 'Services',
+            'slug' => 'services',
+            'body' => '<p>Learn about the services we offer and how we can help you.</p>',
+            'author_id' => $authors->random()->id,
+            'sort_order' => 1,
+        ]);
+
+        Page::factory()->published()->inNavigation()->create([
+            'title' => 'Contact',
+            'slug' => 'contact',
+            'body' => '<p>Get in touch with us — we would love to hear from you.</p>',
+            'author_id' => $authors->random()->id,
+            'sort_order' => 2,
+        ]);
 
         Page::factory()->count(2)->create(['author_id' => $author->id]);
 
