@@ -93,7 +93,7 @@ class DemoDataSeeder extends Seeder
         Page::factory()->published()->inNavigation()->create([
             'title' => 'Services',
             'slug' => 'services',
-            'body' => '<p>Learn about the services we offer and how we can help you.</p>',
+            'body' => '<p>We help teams publish and manage content with a clear workflow from draft to live.</p><p>From page building and media libraries to roles and publishing controls, our tools keep editors productive and visitors informed.</p>',
             'author_id' => $authors->random()->id,
             'sort_order' => 1,
         ]);
@@ -101,7 +101,7 @@ class DemoDataSeeder extends Seeder
         Page::factory()->published()->inNavigation()->create([
             'title' => 'Contact',
             'slug' => 'contact',
-            'body' => '<p>Get in touch with us — we would love to hear from you.</p>',
+            'body' => '<p>Get in touch with us — we would love to hear from you.</p><p>Reach out with questions about the CMS, feedback on the demo, or help getting started with your own content.</p>',
             'author_id' => $authors->random()->id,
             'sort_order' => 2,
         ]);
