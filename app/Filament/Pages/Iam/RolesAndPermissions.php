@@ -4,14 +4,16 @@ namespace App\Filament\Pages\Iam;
 
 use App\Enums\Permission;
 use App\Enums\UserRole;
-use App\Support\Auth\RolePermissionMatrix;
 use BackedEnum;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Role;
 use UnitEnum;
 
 /**
- * Roles & Permissions overview — full §11.4 matrix (SRS 10.1 / 15.6).
+ * Roles & Permissions overview and management UI (SRS 10.1 / 11.4 / 15.6).
  */
 class RolesAndPermissions extends Page
 {
@@ -28,6 +30,17 @@ class RolesAndPermissions extends Page
     protected static ?string $slug = 'iam/roles';
 
     protected string $view = 'filament.pages.iam.roles-matrix';
+
+    // Livewire state properties
+    public bool $isAddModalOpen = false;
+    public bool $isEditModalOpen = false;
+    public bool $isDeleteModalOpen = false;
+
+    public string $newRoleName = '';
+    public ?int $editingRoleId = null;
+    public string $editingRoleName = '';
+    public array $editingRolePermissions = [];
+    public ?int $deletingRoleId = null;
 
     public static function canAccess(): bool
     {
@@ -47,56 +60,23 @@ class RolesAndPermissions extends Page
     }
 
     /**
-     * @return list<array{group: string, capability: string, roles: array<string, bool>}>
-     */
-    public function getMatrixRows(): array
-    {
-        $roles = UserRole::cases();
-        $rows = [];
-
-        foreach (Permission::cases() as $permission) {
-            $granted = [];
-
-            foreach ($roles as $role) {
-                $granted[$role->value] = in_array(
-                    $permission,
-                    RolePermissionMatrix::permissionsFor($role),
-                    true,
-                );
-            }
-
-            $rows[] = [
-                'group' => $permission->group(),
-                'capability' => $permission->label(),
-                'roles' => $granted,
-            ];
-        }
-
-        return $rows;
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function getRoleNames(): array
-    {
-        return array_map(fn (UserRole $role): string => $role->value, UserRole::cases());
-    }
-
-    /**
-     * @return list<array{role: UserRole, url: string, granted_count: int, total_count: int, coverage_percent: int}>
+     * @return list<array{role: Role, url: string, description: string, color: string, icon: string, granted_count: int, total_count: int, coverage_percent: int}>
      */
     public function getRoleCards(): array
     {
         $total = count(Permission::cases());
         $cards = [];
 
-        foreach (UserRole::cases() as $role) {
-            $granted = count(RolePermissionMatrix::permissionsFor($role));
+        foreach (Role::orderBy('name')->get() as $role) {
+            $granted = $role->permissions->count();
+            $enum = UserRole::tryFrom($role->name);
 
             $cards[] = [
-                'role' => $role,
-                'url' => $this->roleDetailUrl($role),
+                'id' => $role->id,
+                'name' => $role->name,
+                'description' => $enum ? $enum->description() : 'Custom user-defined role.',
+                'color' => $enum ? $enum->color() : 'gray',
+                'icon' => $enum ? $enum->icon() : 'heroicon-o-shield-check',
                 'granted_count' => $granted,
                 'total_count' => $total,
                 'coverage_percent' => $total > 0 ? (int) round(($granted / $total) * 100) : 0,
@@ -106,13 +86,158 @@ class RolesAndPermissions extends Page
         return $cards;
     }
 
-    private function roleDetailUrl(UserRole $role): string
+    /**
+     * @return array<string, list<Permission>>
+     */
+    public function getPermissionsGrouped(): array
     {
-        return match ($role) {
-            UserRole::Administrator => AdministratorRolePage::getUrl(),
-            UserRole::Editor => EditorRolePage::getUrl(),
-            UserRole::Author => AuthorRolePage::getUrl(),
-            UserRole::Contributor => ContributorRolePage::getUrl(),
-        };
+        $grouped = [];
+
+        foreach (Permission::cases() as $permission) {
+            $grouped[$permission->group()][] = $permission;
+        }
+
+        return $grouped;
+    }
+
+    public function addRole(): void
+    {
+        abort_unless(auth()->user()?->can(Permission::UsersEditRole->value), 403);
+
+        $validated = $this->validate([
+            'newRoleName' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('roles', 'name')->where('guard_name', 'web'),
+            ],
+        ], [
+            'newRoleName.unique' => 'This role already exists.',
+        ]);
+
+        $role = Role::create([
+            'name' => $validated['newRoleName'],
+            'guard_name' => 'web',
+        ]);
+
+        $role->syncPermissions([Permission::DashboardView->value]);
+
+        Notification::make()
+            ->success()
+            ->title('Role Created')
+            ->body("Role '{$role->name}' has been created successfully.")
+            ->send();
+
+        $this->newRoleName = '';
+        $this->isAddModalOpen = false;
+    }
+
+    public function editRole(int $id): void
+    {
+        abort_unless(auth()->user()?->can(Permission::UsersEditRole->value), 403);
+
+        $role = Role::findById($id, 'web');
+        $this->editingRoleId = $role->id;
+        $this->editingRoleName = $role->name;
+        $this->editingRolePermissions = $role->permissions->pluck('name')->toArray();
+        $this->isEditModalOpen = true;
+    }
+
+    public function saveRole(): void
+    {
+        abort_unless(auth()->user()?->can(Permission::UsersEditRole->value), 403);
+
+        $role = Role::findById($this->editingRoleId, 'web');
+
+        $rules = [
+            'editingRoleName' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('roles', 'name')->ignore($role->id)->where('guard_name', 'web'),
+            ],
+            'editingRolePermissions' => ['array'],
+        ];
+
+        $this->validate($rules, [
+            'editingRoleName.unique' => 'This role name is already taken.',
+        ]);
+
+        // Do not allow renaming the Administrator role
+        if ($role->name === UserRole::Administrator->value && $this->editingRoleName !== UserRole::Administrator->value) {
+            Notification::make()
+                ->danger()
+                ->title('Renaming Blocked')
+                ->body('The Administrator role name is system-protected and cannot be renamed.')
+                ->send();
+            return;
+        }
+
+        $role->name = $this->editingRoleName;
+        $role->save();
+
+        $role->syncPermissions($this->editingRolePermissions);
+
+        Notification::make()
+            ->success()
+            ->title('Role Saved')
+            ->body("Role '{$role->name}' has been updated successfully.")
+            ->send();
+
+        $this->isEditModalOpen = false;
+        $this->editingRoleId = null;
+        $this->editingRoleName = '';
+        $this->editingRolePermissions = [];
+    }
+
+    public function confirmDeleteRole(int $id): void
+    {
+        abort_unless(auth()->user()?->can(Permission::UsersEditRole->value), 403);
+
+        $role = Role::findById($id, 'web');
+
+        if ($role->name === UserRole::Administrator->value) {
+            Notification::make()
+                ->danger()
+                ->title('Deletion Blocked')
+                ->body('The Administrator role is system-protected and cannot be deleted.')
+                ->send();
+            return;
+        }
+
+        if (\App\Models\User::role($role->name)->exists()) {
+            Notification::make()
+                ->danger()
+                ->title('Deletion Blocked')
+                ->body("The role '{$role->name}' is currently assigned to one or more users and cannot be deleted.")
+                ->send();
+            return;
+        }
+
+        $this->deletingRoleId = $role->id;
+        $this->isDeleteModalOpen = true;
+    }
+
+    public function deleteRole(): void
+    {
+        abort_unless(auth()->user()?->can(Permission::UsersEditRole->value), 403);
+
+        $role = Role::findById($this->deletingRoleId, 'web');
+
+        if ($role->name === UserRole::Administrator->value) {
+            return;
+        }
+
+        $roleName = $role->name;
+        $role->delete();
+
+        Notification::make()
+            ->success()
+            ->title('Role Deleted')
+            ->body("Role '{$roleName}' has been deleted successfully.")
+            ->send();
+
+        $this->isDeleteModalOpen = false;
+        $this->deletingRoleId = null;
     }
 }

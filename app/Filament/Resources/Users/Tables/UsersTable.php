@@ -44,7 +44,7 @@ class UsersTable
                     ->sortable(),
                 TextColumn::make('role')
                     ->label('Role')
-                    ->state(fn (User $record): string => $record->primaryRole()?->value ?? '—')
+                    ->state(fn (User $record): string => $record->primaryRoleName() ?? '—')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         UserRole::Administrator->value => 'danger',
@@ -84,9 +84,10 @@ class UsersTable
                     )->all()),
                 SelectFilter::make('role')
                     ->label('Role')
-                    ->options(collect(UserRole::cases())->mapWithKeys(
-                        fn (UserRole $role): array => [$role->value => $role->value]
-                    )->all())
+                    ->options(fn (): array => \Spatie\Permission\Models\Role::query()
+                        ->where('guard_name', 'web')
+                        ->pluck('name', 'name')
+                        ->all())
                     ->query(function (Builder $query, array $data): Builder {
                         $value = $data['value'] ?? null;
 

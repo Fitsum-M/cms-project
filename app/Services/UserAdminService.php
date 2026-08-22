@@ -46,7 +46,11 @@ class UserAdminService
                 Rule::unique('users', 'email')->ignore($target->id),
             ],
             'bio' => ['nullable', 'string', 'max:1000'],
-            'role' => ['nullable', 'string', Rule::enum(UserRole::class)],
+            'role' => ['nullable', 'string', function ($attribute, $value, $fail) {
+                if (\App\Enums\UserRole::tryFrom($value) === null && ! \Spatie\Permission\Models\Role::where('name', $value)->where('guard_name', 'web')->exists()) {
+                    $fail('The selected role is invalid.');
+                }
+            }],
         ])->validate();
 
         $target->forceFill([
@@ -61,7 +65,7 @@ class UserAdminService
         ]);
 
         if (array_key_exists('role', $validated) && filled($validated['role'])) {
-            $this->roles->assign($actor, $target, UserRole::from($validated['role']));
+            $this->roles->assign($actor, $target, $validated['role']);
         }
 
         return $target->refresh();

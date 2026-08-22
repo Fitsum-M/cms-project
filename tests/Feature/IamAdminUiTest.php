@@ -203,8 +203,9 @@ class IamAdminUiTest extends TestCase
         Livewire::actingAs($admin)
             ->test(RolesAndPermissions::class)
             ->assertOk()
-            ->assertSee('View Dashboard')
-            ->assertSee('Administrator');
+            ->assertSee('Administrator')
+            ->call('editRole', $admin->roles->first()->id)
+            ->assertSee('View Dashboard');
 
         foreach ([
             AdministratorRolePage::class,
@@ -216,6 +217,62 @@ class IamAdminUiTest extends TestCase
                 ->test($page)
                 ->assertOk();
         }
+    }
+
+    public function test_administrator_can_crud_custom_roles_and_permissions(): void
+    {
+        $admin = $this->makeUser(UserRole::Administrator);
+
+        // 1. Create a role
+        Livewire::actingAs($admin)
+            ->test(RolesAndPermissions::class)
+            ->set('newRoleName', 'Moderator')
+            ->call('addRole')
+            ->assertHasNoErrors()
+            ->assertSet('newRoleName', '')
+            ->assertSet('isAddModalOpen', false);
+
+        $this->assertDatabaseHas('roles', [
+            'name' => 'Moderator',
+            'guard_name' => 'web',
+        ]);
+
+        $role = \Spatie\Permission\Models\Role::findByName('Moderator', 'web');
+
+        // 2. Edit the role & permissions
+        Livewire::actingAs($admin)
+            ->test(RolesAndPermissions::class)
+            ->call('editRole', $role->id)
+            ->assertSet('editingRoleId', $role->id)
+            ->assertSet('editingRoleName', 'Moderator')
+            ->set('editingRoleName', 'Super Moderator')
+            ->set('editingRolePermissions', [Permission::PostsCreate->value, Permission::PostsEditOwn->value])
+            ->call('saveRole')
+            ->assertHasNoErrors()
+            ->assertSet('isEditModalOpen', false);
+
+        $this->assertDatabaseHas('roles', [
+            'id' => $role->id,
+            'name' => 'Super Moderator',
+        ]);
+
+        $this->assertTrue($role->fresh()->hasPermissionTo(Permission::PostsCreate->value));
+        $this->assertTrue($role->fresh()->hasPermissionTo(Permission::PostsEditOwn->value));
+        $this->assertFalse($role->fresh()->hasPermissionTo(Permission::PagesCreate->value));
+
+        // 3. Delete the role
+        Livewire::actingAs($admin)
+            ->test(RolesAndPermissions::class)
+            ->call('confirmDeleteRole', $role->id)
+            ->assertSet('deletingRoleId', $role->id)
+            ->assertSet('isDeleteModalOpen', true)
+            ->call('deleteRole')
+            ->assertHasNoErrors()
+            ->assertSet('isDeleteModalOpen', false);
+
+        $this->assertDatabaseMissing('roles', [
+            'id' => $role->id,
+        ]);
     }
 
     /**

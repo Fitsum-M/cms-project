@@ -51,13 +51,14 @@ class UserForm
                     ->schema([
                         Select::make('role')
                             ->label('Role')
-                            ->options(collect(UserRole::cases())->mapWithKeys(
-                                fn (UserRole $role): array => [$role->value => $role->value]
-                            )->all())
+                            ->options(fn (): array => \Spatie\Permission\Models\Role::query()
+                                ->where('guard_name', 'web')
+                                ->pluck('name', 'name')
+                                ->all())
                             ->required()
                             ->native(false)
                             ->helperText(fn (?string $state): ?string => filled($state)
-                                ? UserRole::tryFrom($state)?->description()
+                                ? (UserRole::tryFrom($state)?->description() ?? 'Custom user-defined role.')
                                 : 'Assigned at creation; Administrators may change later.')
                             ->disabled(function (?User $record): bool {
                                 $actor = auth()->user();

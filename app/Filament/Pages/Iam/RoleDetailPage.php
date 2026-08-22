@@ -73,7 +73,8 @@ abstract class RoleDetailPage extends Page
      */
     public function getGroupedCapabilities(): array
     {
-        $granted = RolePermissionMatrix::permissionsFor(static::role());
+        $roleModel = \Spatie\Permission\Models\Role::where('name', static::role()->value)->where('guard_name', 'web')->first();
+        $grantedNames = $roleModel ? $roleModel->permissions->pluck('name')->all() : [];
         $groups = [];
 
         foreach (Permission::cases() as $permission) {
@@ -81,7 +82,7 @@ abstract class RoleDetailPage extends Page
             $groups[$group] ??= [];
             $groups[$group][] = [
                 'label' => $permission->label(),
-                'granted' => in_array($permission, $granted, true),
+                'granted' => in_array($permission->value, $grantedNames, true),
             ];
         }
 
@@ -103,7 +104,8 @@ abstract class RoleDetailPage extends Page
 
     public function getGrantedCount(): int
     {
-        return count(RolePermissionMatrix::permissionsFor(static::role()));
+        $roleModel = \Spatie\Permission\Models\Role::where('name', static::role()->value)->where('guard_name', 'web')->first();
+        return $roleModel ? $roleModel->permissions->count() : 0;
     }
 
     public function getTotalCount(): int

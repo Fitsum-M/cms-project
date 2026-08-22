@@ -109,7 +109,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasMedia
     {
         $roleName = $role instanceof UserRole ? $role->value : $role;
 
-        if (UserRole::tryFrom($roleName) === null) {
+        if (UserRole::tryFrom($roleName) === null && ! \Spatie\Permission\Models\Role::where('name', $roleName)->where('guard_name', 'web')->exists()) {
             throw new InvalidArgumentException("Unknown role [{$roleName}].");
         }
 
@@ -122,6 +122,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasMedia
         $name = $this->getRoleNames()->first();
 
         return is_string($name) ? UserRole::tryFrom($name) : null;
+    }
+
+    public function primaryRoleName(): ?string
+    {
+        return $this->getRoleNames()->first();
     }
 
     public function invitedByUser(): BelongsTo

@@ -22,7 +22,7 @@ class RoleAssignmentService
     {
         $this->assertCanChangeRole($actor, $target);
 
-        $previous = $target->primaryRole()?->value;
+        $previous = $target->primaryRoleName();
         $target->assignSingleRole($role);
 
         $this->audit->userEvent('role_changed', $target->fresh() ?? $target, $actor, [
