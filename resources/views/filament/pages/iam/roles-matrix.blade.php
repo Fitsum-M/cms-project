@@ -26,21 +26,21 @@
 
         <!-- Roles List Table -->
         <x-filament::section>
-            <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
+            <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-white/10 shadow-sm bg-white dark:bg-gray-900">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm divide-y divide-gray-200 dark:divide-white/5">
+                    <table class="w-full text-left text-sm divide-y divide-gray-200 dark:divide-white/5 table-auto">
                         <thead>
                             <tr class="bg-gray-50 dark:bg-white/5">
-                                <th class="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <th class="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[240px] min-w-[200px]">
                                     Role
                                 </th>
-                                <th class="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <th class="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 min-w-[300px]">
                                     Description
                                 </th>
-                                <th class="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <th class="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[180px]">
                                     Permissions
                                 </th>
-                                <th class="px-6 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[180px]">
                                     Actions
                                 </th>
                             </tr>
@@ -49,10 +49,10 @@
                             @foreach ($this->getRoleCards() as $card)
                                 <tr class="transition hover:bg-gray-50/50 dark:hover:bg-white/5">
                                     <!-- Role Column -->
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center gap-3">
+                                    <td class="px-6 py-4 whitespace-nowrap w-[240px] min-w-[200px]">
+                                        <div class="flex items-center gap-x-3 whitespace-nowrap">
                                             <span @class([
-                                                'inline-flex size-9 items-center justify-center rounded-lg font-medium',
+                                                'inline-flex size-9 items-center justify-center rounded-lg font-medium shrink-0',
                                                 match ($card['color']) {
                                                     'danger' => 'bg-danger-50 text-danger-600 dark:bg-danger-400/10 dark:text-danger-400',
                                                     'warning' => 'bg-warning-50 text-warning-600 dark:bg-warning-400/10 dark:text-warning-400',
@@ -62,21 +62,21 @@
                                             ])>
                                                 <x-filament::icon :icon="$card['icon']" class="size-5" />
                                             </span>
-                                            <div>
-                                                <span class="font-semibold text-gray-900 dark:text-white">{{ $card['name'] }}</span>
-                                            </div>
+                                            <span class="font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                                                {{ $card['name'] }}
+                                            </span>
                                         </div>
                                     </td>
 
                                     <!-- Description Column -->
-                                    <td class="px-6 py-4">
-                                        <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 max-w-md">
-                                            {{ $card['description'] }}
+                                    <td class="px-6 py-4 whitespace-normal">
+                                        <p class="text-sm text-gray-500 dark:text-gray-400 max-w-xl">
+                                            {{ \Illuminate\Support\Str::limit($card['description'], 100) }}
                                         </p>
                                     </td>
 
                                     <!-- Permissions Status & Progress -->
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-6 py-4 whitespace-nowrap w-[180px]">
                                         <div class="flex flex-col gap-1 max-w-[200px]">
                                             <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">
                                                 {{ $card['granted_count'] }} / {{ $card['total_count'] }} ({{ $card['coverage_percent'] }}%)
@@ -96,27 +96,29 @@
                                     </td>
 
                                     <!-- Action Column -->
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                        <div class="flex justify-end gap-2">
-                                            <!-- Edit Icon Button -->
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm w-[180px]">
+                                        <div class="flex items-center justify-end gap-x-4">
+                                            <!-- Edit Action -->
                                             <button
                                                 type="button"
                                                 wire:click="editRole({{ $card['id'] }})"
-                                                class="p-2 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition"
+                                                class="inline-flex items-center gap-x-1.5 text-sm font-semibold text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
                                                 title="Edit Role"
                                             >
-                                                <x-filament::icon icon="heroicon-o-pencil-square" class="size-5" />
+                                                <x-filament::icon icon="heroicon-m-pencil-square" class="size-4 shrink-0" />
+                                                Edit
                                             </button>
 
-                                            <!-- Delete Icon Button -->
+                                            <!-- Delete Action -->
                                             @if ($card['name'] !== \App\Enums\UserRole::Administrator->value)
                                                 <button
                                                     type="button"
                                                     wire:click="confirmDeleteRole({{ $card['id'] }})"
-                                                    class="p-2 text-gray-500 hover:text-danger-600 dark:text-gray-400 dark:hover:text-danger-400 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition"
+                                                    class="inline-flex items-center gap-x-1.5 text-sm font-semibold text-danger-600 hover:text-danger-500 dark:text-danger-400 dark:hover:text-danger-300"
                                                     title="Delete Role"
                                                 >
-                                                    <x-filament::icon icon="heroicon-o-trash" class="size-5" />
+                                                    <x-filament::icon icon="heroicon-m-trash" class="size-4 shrink-0" />
+                                                    Delete
                                                 </button>
                                             @endif
                                         </div>
