@@ -50,28 +50,17 @@
                                 <tr class="transition hover:bg-gray-50/50 dark:hover:bg-white/5">
                                     <!-- Role Column -->
                                     <td class="px-6 py-4 whitespace-nowrap w-[240px] min-w-[200px]">
-                                        <div class="flex items-center gap-x-3 whitespace-nowrap">
-                                            <span @class([
-                                                'inline-flex size-9 items-center justify-center rounded-lg font-medium shrink-0',
-                                                match ($card['color']) {
-                                                    'danger' => 'bg-danger-50 text-danger-600 dark:bg-danger-400/10 dark:text-danger-400',
-                                                    'warning' => 'bg-warning-50 text-warning-600 dark:bg-warning-400/10 dark:text-warning-400',
-                                                    'info' => 'bg-info-50 text-info-600 dark:bg-info-400/10 dark:text-info-400',
-                                                    default => 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300',
-                                                },
-                                            ])>
-                                                <x-filament::icon :icon="$card['icon']" class="size-5" />
-                                            </span>
-                                            <span class="font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                                        <div class="flex">
+                                            <x-filament::badge :color="$card['color']" size="lg">
                                                 {{ $card['name'] }}
-                                            </span>
+                                            </x-filament::badge>
                                         </div>
                                     </td>
 
                                     <!-- Description Column -->
                                     <td class="px-6 py-4 whitespace-normal">
                                         <p class="text-sm text-gray-500 dark:text-gray-400 max-w-xl">
-                                            {{ \Illuminate\Support\Str::limit($card['description'], 100) }}
+                                            {{ \Illuminate\Support\Str::limit($card['description'], 50) }}
                                         </p>
                                     </td>
 
@@ -96,18 +85,17 @@
                                     </td>
 
                                     <!-- Action Column -->
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm w-[180px]">
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm w-[140px]">
                                         <div class="flex items-center justify-end gap-x-4">
                                             <!-- Edit Action -->
-                                            <button
-                                                type="button"
-                                                wire:click="editRole({{ $card['id'] }})"
-                                                class="inline-flex items-center gap-x-1.5 text-sm font-semibold text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
-                                                title="Edit Role"
-                                            >
-                                                <x-filament::icon icon="heroicon-m-pencil-square" class="size-4 shrink-0" />
-                                                Edit
-                                            </button>
+                                             <a
+                                                 href="{{ \App\Filament\Pages\Iam\EditRole::getUrl(['record' => $card['id']]) }}"
+                                                 class="inline-flex items-center gap-x-1.5 text-sm font-semibold text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+                                                 title="Edit Role"
+                                             >
+                                                 <x-filament::icon icon="heroicon-m-pencil-square" class="size-4 shrink-0" />
+                                                 Edit
+                                             </a>
 
                                             <!-- Delete Action -->
                                             @if ($card['name'] !== \App\Enums\UserRole::Administrator->value)
@@ -174,96 +162,7 @@
         </div>
     @endif
 
-    <!-- EDIT ROLE MODAL -->
-    @if ($isEditModalOpen)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/60 backdrop-blur-sm">
-            <div class="w-full max-w-4xl bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden transform transition-all">
-                <!-- Modal Header -->
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-white/5">
-                    <div>
-                        <h3 class="text-base font-bold text-gray-900 dark:text-white">
-                            Edit Role: {{ $editingRoleName }}
-                        </h3>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                            Update the role identifier and select permitted capabilities.
-                        </p>
-                    </div>
-                    <button type="button" wire:click="$set('isEditModalOpen', false)" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                        <x-filament::icon icon="heroicon-o-x-mark" class="size-5" />
-                    </button>
-                </div>
-                
-                <!-- Modal Form -->
-                <form wire:submit.prevent="saveRole" class="p-6 space-y-6">
-                    <!-- Role Name Input -->
-                    <div>
-                        <label for="editingRoleName" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Role Name</label>
-                        <input
-                            type="text"
-                            id="editingRoleName"
-                            wire:model.defer="editingRoleName"
-                            class="mt-1 block w-full max-w-md rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                            @disabled($editingRoleName === \App\Enums\UserRole::Administrator->value)
-                        >
-                        @error('editingRoleName')
-                            <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
-                        @enderror
-                        @if ($editingRoleName === \App\Enums\UserRole::Administrator->value)
-                            <span class="text-xs text-gray-500 mt-1 block">Administrator name is system-protected and cannot be edited.</span>
-                        @endif
-                    </div>
 
-                    <hr class="border-gray-200 dark:border-gray-800">
-
-                    <!-- Permissions Grid (Editable Checkboxes) -->
-                    <div class="space-y-4">
-                        <h4 class="text-sm font-bold text-gray-900 dark:text-white">Role Capabilities Matrix</h4>
-                        
-                        <div class="max-h-[50vh] overflow-y-auto space-y-6 pr-2">
-                            @foreach ($this->getPermissionsGrouped() as $groupName => $permissions)
-                                <div class="space-y-2">
-                                    <h5 class="text-xs font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 border-b border-primary-100 dark:border-primary-950/20 pb-1">
-                                        {{ $groupName }}
-                                    </h5>
-                                    
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                        @foreach ($permissions as $permission)
-                                            <label class="flex items-start gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50/30 dark:bg-white/5 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition">
-                                                <input
-                                                    type="checkbox"
-                                                    wire:model="editingRolePermissions"
-                                                    value="{{ $permission->value }}"
-                                                    class="rounded border-gray-300 dark:border-gray-700 text-primary-600 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50 mt-0.5"
-                                                >
-                                                <div class="flex flex-col leading-tight">
-                                                    <span class="text-sm font-semibold text-gray-900 dark:text-white">
-                                                        {{ $permission->label() }}
-                                                    </span>
-                                                    <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
-                                                        {{ $permission->value }}
-                                                    </span>
-                                                </div>
-                                            </label>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <!-- Modal Actions -->
-                    <div class="flex justify-end gap-3 pt-2">
-                        <x-filament::button color="gray" type="button" wire:click="$set('isEditModalOpen', false)">
-                            Cancel
-                        </x-filament::button>
-                        <x-filament::button type="submit">
-                            Save Changes
-                        </x-filament::button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    @endif
 
     <!-- DELETE ROLE MODAL -->
     @if ($isDeleteModalOpen)

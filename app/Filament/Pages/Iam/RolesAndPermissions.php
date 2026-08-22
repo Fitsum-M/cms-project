@@ -33,13 +33,9 @@ class RolesAndPermissions extends Page
 
     // Livewire state properties
     public bool $isAddModalOpen = false;
-    public bool $isEditModalOpen = false;
     public bool $isDeleteModalOpen = false;
 
     public string $newRoleName = '';
-    public ?int $editingRoleId = null;
-    public string $editingRoleName = '';
-    public array $editingRolePermissions = [];
     public ?int $deletingRoleId = null;
 
     public static function canAccess(): bool
@@ -132,63 +128,7 @@ class RolesAndPermissions extends Page
         $this->isAddModalOpen = false;
     }
 
-    public function editRole(int $id): void
-    {
-        abort_unless(auth()->user()?->can(Permission::UsersEditRole->value), 403);
 
-        $role = Role::findById($id, 'web');
-        $this->editingRoleId = $role->id;
-        $this->editingRoleName = $role->name;
-        $this->editingRolePermissions = $role->permissions->pluck('name')->toArray();
-        $this->isEditModalOpen = true;
-    }
-
-    public function saveRole(): void
-    {
-        abort_unless(auth()->user()?->can(Permission::UsersEditRole->value), 403);
-
-        $role = Role::findById($this->editingRoleId, 'web');
-
-        $rules = [
-            'editingRoleName' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('roles', 'name')->ignore($role->id)->where('guard_name', 'web'),
-            ],
-            'editingRolePermissions' => ['array'],
-        ];
-
-        $this->validate($rules, [
-            'editingRoleName.unique' => 'This role name is already taken.',
-        ]);
-
-        // Do not allow renaming the Administrator role
-        if ($role->name === UserRole::Administrator->value && $this->editingRoleName !== UserRole::Administrator->value) {
-            Notification::make()
-                ->danger()
-                ->title('Renaming Blocked')
-                ->body('The Administrator role name is system-protected and cannot be renamed.')
-                ->send();
-            return;
-        }
-
-        $role->name = $this->editingRoleName;
-        $role->save();
-
-        $role->syncPermissions($this->editingRolePermissions);
-
-        Notification::make()
-            ->success()
-            ->title('Role Saved')
-            ->body("Role '{$role->name}' has been updated successfully.")
-            ->send();
-
-        $this->isEditModalOpen = false;
-        $this->editingRoleId = null;
-        $this->editingRoleName = '';
-        $this->editingRolePermissions = [];
-    }
 
     public function confirmDeleteRole(int $id): void
     {
