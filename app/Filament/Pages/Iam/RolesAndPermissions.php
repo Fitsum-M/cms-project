@@ -9,6 +9,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Validation\Rule;
+use Filament\Actions\Action;
 use Spatie\Permission\Models\Role;
 use UnitEnum;
 
@@ -37,6 +38,17 @@ class RolesAndPermissions extends Page
 
     public string $newRoleName = '';
     public ?int $deletingRoleId = null;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('addRole')
+                ->label('Add Role')
+                ->icon('heroicon-o-plus')
+                ->visible(fn (): bool => auth()->user()?->can(Permission::UsersEditRole->value) ?? false)
+                ->action(fn () => $this->isAddModalOpen = true),
+        ];
+    }
 
     public static function canAccess(): bool
     {

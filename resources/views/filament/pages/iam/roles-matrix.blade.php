@@ -10,114 +10,103 @@
                     <h2 class="text-sm font-semibold text-gray-950 dark:text-white">
                         Manage Roles & Permissions
                     </h2>
-                    <p class="mt-1 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
-                        Create custom roles, edit permissions using checklists, and maintain system-wide security policies. System roles description defaults to pre-defined settings.
-                    </p>
                 </div>
             </div>
-        </div>
-
-        <!-- Add Role Trigger Button -->
-        <div class="flex justify-end">
-            <x-filament::button wire:click="$set('isAddModalOpen', true)" icon="heroicon-o-plus" class="shadow-sm">
-                Add Role
-            </x-filament::button>
         </div>
 
         <!-- Roles List Table -->
-        <x-filament::section>
-            <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-white/10 shadow-sm bg-white dark:bg-gray-900">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm divide-y divide-gray-200 dark:divide-white/5 table-auto">
-                        <thead>
-                            <tr class="bg-gray-50 dark:bg-white/5">
-                                <th class="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[240px] min-w-[200px]">
-                                    Role
-                                </th>
-                                <th class="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 min-w-[300px]">
-                                    Description
-                                </th>
-                                <th class="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[180px]">
-                                    Permissions
-                                </th>
-                                <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[180px]">
-                                    Actions
-                                </th>
+        <!-- Roles List Table -->
+        <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-white/10 shadow-sm bg-white dark:bg-gray-900">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm divide-y divide-gray-200 dark:divide-white/5 table-auto">
+                    <thead>
+                        <tr class="bg-gray-50 dark:bg-white/5">
+                            <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[20%] min-w-[150px]">
+                                Role
+                            </th>
+                            <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[45%]">
+                                Description
+                            </th>
+                            <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[20%]">
+                                Permissions
+                            </th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 dark:divide-white/5 bg-white dark:bg-gray-900">
+                        @foreach ($this->getRoleCards() as $card)
+                            <tr class="transition hover:bg-gray-50/50 dark:hover:bg-white/5">
+                                <!-- Role Column -->
+                                <td class="px-6 py-4 whitespace-nowrap w-[20%] min-w-[150px]">
+                                    <div class="flex">
+                                        <x-filament::badge :color="$card['color']" size="lg">
+                                            {{ $card['name'] }}
+                                        </x-filament::badge>
+                                    </div>
+                                </td>
+
+                                <!-- Description Column -->
+                                <td class="px-6 py-4 whitespace-normal w-[45%]">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 max-w-xl">
+                                        {{ \Illuminate\Support\Str::limit($card['description'], 35) }}
+                                    </p>
+                                </td>
+
+                                <!-- Permissions Status & Progress -->
+                                <td class="px-6 py-4 whitespace-nowrap w-[20%]">
+                                    <div class="flex flex-col gap-1 max-w-[200px]">
+                                        <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                                            {{ $card['granted_count'] }} / {{ $card['total_count'] }} ({{ $card['coverage_percent'] }}%)
+                                        </span>
+                                        <div class="w-full bg-gray-100 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
+                                            <div @class([
+                                                'h-full rounded-full',
+                                                match ($card['color']) {
+                                                    'danger' => 'bg-danger-500',
+                                                    'warning' => 'bg-warning-500',
+                                                    'info' => 'bg-info-500',
+                                                    default => 'bg-primary-500',
+                                                },
+                                            ]) style="width: {{ $card['coverage_percent'] }}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Action Column -->
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm w-[15%]">
+                                    <div class="flex items-center justify-end gap-x-6">
+                                        <!-- Edit Action -->
+                                         <a
+                                             href="{{ \App\Filament\Pages\Iam\EditRole::getUrl(['record' => $card['id']]) }}"
+                                             class="inline-flex items-center gap-x-1.5 text-sm font-semibold text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 whitespace-nowrap"
+                                             title="Edit Role"
+                                         >
+                                             <x-filament::icon icon="heroicon-m-pencil-square" class="size-4 shrink-0" />
+                                             Edit
+                                         </a>
+
+                                        <!-- Delete Action -->
+                                        @if ($card['name'] !== \App\Enums\UserRole::Administrator->value)
+                                            <button
+                                                type="button"
+                                                wire:click="confirmDeleteRole({{ $card['id'] }})"
+                                                class="inline-flex items-center gap-x-1.5 text-sm font-semibold text-danger-600 hover:text-danger-500 dark:text-danger-400 dark:hover:text-danger-300 whitespace-nowrap"
+                                                title="Delete Role"
+                                            >
+                                                <x-filament::icon icon="heroicon-m-trash" class="size-4 shrink-0" />
+                                                Delete
+                                            </button>
+                                        @endif
+                                    </div>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 dark:divide-white/5 bg-white dark:bg-gray-900">
-                            @foreach ($this->getRoleCards() as $card)
-                                <tr class="transition hover:bg-gray-50/50 dark:hover:bg-white/5">
-                                    <!-- Role Column -->
-                                    <td class="px-6 py-4 whitespace-nowrap w-[240px] min-w-[200px]">
-                                        <div class="flex">
-                                            <x-filament::badge :color="$card['color']" size="lg">
-                                                {{ $card['name'] }}
-                                            </x-filament::badge>
-                                        </div>
-                                    </td>
-
-                                    <!-- Description Column -->
-                                    <td class="px-6 py-4 whitespace-normal">
-                                        <p class="text-sm text-gray-500 dark:text-gray-400 max-w-xl">
-                                            {{ \Illuminate\Support\Str::limit($card['description'], 50) }}
-                                        </p>
-                                    </td>
-
-                                    <!-- Permissions Status & Progress -->
-                                    <td class="px-6 py-4 whitespace-nowrap w-[180px]">
-                                        <div class="flex flex-col gap-1 max-w-[200px]">
-                                            <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">
-                                                {{ $card['granted_count'] }} / {{ $card['total_count'] }} ({{ $card['coverage_percent'] }}%)
-                                            </span>
-                                            <div class="w-full bg-gray-100 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
-                                                <div @class([
-                                                    'h-full rounded-full',
-                                                    match ($card['color']) {
-                                                        'danger' => 'bg-danger-500',
-                                                        'warning' => 'bg-warning-500',
-                                                        'info' => 'bg-info-500',
-                                                        default => 'bg-primary-500',
-                                                    },
-                                                ]) style="width: {{ $card['coverage_percent'] }}%"></div>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    <!-- Action Column -->
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm w-[140px]">
-                                        <div class="flex items-center justify-end gap-x-4">
-                                            <!-- Edit Action -->
-                                             <a
-                                                 href="{{ \App\Filament\Pages\Iam\EditRole::getUrl(['record' => $card['id']]) }}"
-                                                 class="inline-flex items-center gap-x-1.5 text-sm font-semibold text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
-                                                 title="Edit Role"
-                                             >
-                                                 <x-filament::icon icon="heroicon-m-pencil-square" class="size-4 shrink-0" />
-                                                 Edit
-                                             </a>
-
-                                            <!-- Delete Action -->
-                                            @if ($card['name'] !== \App\Enums\UserRole::Administrator->value)
-                                                <button
-                                                    type="button"
-                                                    wire:click="confirmDeleteRole({{ $card['id'] }})"
-                                                    class="inline-flex items-center gap-x-1.5 text-sm font-semibold text-danger-600 hover:text-danger-500 dark:text-danger-400 dark:hover:text-danger-300"
-                                                    title="Delete Role"
-                                                >
-                                                    <x-filament::icon icon="heroicon-m-trash" class="size-4 shrink-0" />
-                                                    Delete
-                                                </button>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-        </x-filament::section>
+        </div>
     </div>
 
     <!-- ADD ROLE MODAL -->
