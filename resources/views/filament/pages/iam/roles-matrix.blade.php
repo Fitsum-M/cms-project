@@ -18,19 +18,19 @@
         <!-- Roles List Table -->
         <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-white/10 shadow-sm bg-white dark:bg-gray-900">
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm divide-y divide-gray-200 dark:divide-white/5 table-auto">
+                <table class="w-full text-left text-sm divide-y divide-gray-200 dark:divide-white/5 table-fixed">
                     <thead>
                         <tr class="bg-gray-50 dark:bg-white/5">
-                            <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[20%] min-w-[150px]">
+                            <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[20%] min-w-[160px]">
                                 Role
                             </th>
-                            <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[45%]">
+                            <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[40%]">
                                 Description
                             </th>
-                            <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[20%]">
+                            <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[25%] min-w-[150px]">
                                 Permissions
                             </th>
-                            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%]">
+                            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 w-[15%] min-w-[150px]">
                                 Actions
                             </th>
                         </tr>
@@ -39,7 +39,7 @@
                         @foreach ($this->getRoleCards() as $card)
                             <tr class="transition hover:bg-gray-50/50 dark:hover:bg-white/5">
                                 <!-- Role Column -->
-                                <td class="px-6 py-4 whitespace-nowrap w-[20%] min-w-[150px]">
+                                <td class="px-6 py-4 whitespace-nowrap w-[20%] min-w-[160px]">
                                     <div class="flex">
                                         <x-filament::badge :color="$card['color']" size="lg">
                                             {{ $card['name'] }}
@@ -48,14 +48,14 @@
                                 </td>
 
                                 <!-- Description Column -->
-                                <td class="px-6 py-4 whitespace-normal w-[45%]">
+                                <td class="px-6 py-4 whitespace-normal w-[40%]">
                                     <p class="text-sm text-gray-500 dark:text-gray-400 max-w-xl">
                                         {{ \Illuminate\Support\Str::limit($card['description'], 35) }}
                                     </p>
                                 </td>
 
                                 <!-- Permissions Status & Progress -->
-                                <td class="px-6 py-4 whitespace-nowrap w-[20%]">
+                                <td class="px-6 py-4 whitespace-nowrap w-[25%] min-w-[150px]">
                                     <div class="flex flex-col gap-1 max-w-[200px]">
                                         <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">
                                             {{ $card['granted_count'] }} / {{ $card['total_count'] }} ({{ $card['coverage_percent'] }}%)
@@ -75,8 +75,8 @@
                                 </td>
 
                                 <!-- Action Column -->
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm w-[15%]">
-                                    <div class="flex items-center justify-end gap-x-6">
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm w-[15%] min-w-[150px]">
+                                    <div class="flex items-center justify-end gap-x-6 whitespace-nowrap">
                                         <!-- Edit Action -->
                                          <a
                                              href="{{ \App\Filament\Pages\Iam\EditRole::getUrl(['record' => $card['id']]) }}"
