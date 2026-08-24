@@ -1,5 +1,7 @@
 @php
-    $role = $this::role();
+    $roleName = $this->record;
+    $roleColor = $this->getRoleColor();
+    $roleIcon = $this->getRoleIcon();
     $grantedCount = $this->getGrantedCount();
     $totalCount = $this->getTotalCount();
     $coveragePercent = $this->getCoveragePercent();
@@ -7,29 +9,30 @@
 
 <x-filament-panels::page>
     <div class="space-y-6">
+        <!-- Header Info Card -->
         <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-white/5 dark:ring-white/10">
             <div class="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white px-6 py-5 dark:border-white/10 dark:from-white/5 dark:to-white/5">
                 <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div class="flex items-start gap-4">
                         <span @class([
                             'inline-flex size-14 shrink-0 items-center justify-center rounded-2xl',
-                            match ($role->color()) {
+                            match ($roleColor) {
                                 'danger' => 'bg-danger-50 text-danger-600 dark:bg-danger-400/10 dark:text-danger-400',
                                 'warning' => 'bg-warning-50 text-warning-600 dark:bg-warning-400/10 dark:text-warning-400',
                                 'info' => 'bg-info-50 text-info-600 dark:bg-info-400/10 dark:text-info-400',
                                 default => 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300',
                             },
                         ])>
-                            <x-filament::icon :icon="$role->icon()" class="size-7" />
+                            <x-filament::icon :icon="$roleIcon" class="size-7" />
                         </span>
 
                         <div class="min-w-0">
                             <div class="flex flex-wrap items-center gap-2">
                                 <h2 class="text-lg font-semibold text-gray-950 dark:text-white">
-                                    {{ $role->value }}
+                                    {{ $roleName }}
                                 </h2>
-                                <x-filament::badge :color="$role->color()">
-                                    {{ __('cms.iam.roles.system_role') }}
+                                <x-filament::badge :color="$roleColor">
+                                    {{ in_array($roleName, ['Administrator', 'Editor', 'Author', 'Contributor']) ? __('cms.iam.roles.system_role') : 'Custom Role' }}
                                 </x-filament::badge>
                             </div>
                             <p class="mt-1 max-w-3xl text-sm leading-relaxed text-gray-600 dark:text-gray-300">
@@ -49,11 +52,11 @@
                             <div
                                 @class([
                                     'h-full rounded-full transition-all',
-                                    match ($role->color()) {
+                                    match ($roleColor) {
                                         'danger' => 'bg-danger-500',
                                         'warning' => 'bg-warning-500',
                                         'info' => 'bg-info-500',
-                                        default => 'bg-gray-400',
+                                        default => 'bg-gray-450',
                                     },
                                 ])
                                 style="width: {{ $coveragePercent }}%"
@@ -67,46 +70,84 @@
             </div>
         </div>
 
-        @foreach ($this->getGroupedCapabilities() as $section)
-            <x-filament::section
-                :heading="$section['group']"
-                :description="__('cms.iam.roles.group_coverage', [
-                    'granted' => $section['granted_count'],
-                    'total' => $section['total_count'],
-                ])"
-            >
-                <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                    @foreach ($section['capabilities'] as $capability)
-                        <div @class([
-                            'flex items-center gap-3 rounded-xl border px-3 py-2.5 transition',
-                            $capability['granted']
-                                ? 'border-success-200/80 bg-success-50/40 dark:border-success-400/20 dark:bg-success-400/5'
-                                : 'border-gray-200 bg-gray-50/50 dark:border-white/10 dark:bg-white/5',
-                        ])>
-                            <span @class([
-                                'inline-flex size-8 shrink-0 items-center justify-center rounded-lg',
-                                $capability['granted']
-                                    ? 'bg-success-100 text-success-600 dark:bg-success-400/15 dark:text-success-400'
-                                    : 'bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-gray-500',
-                            ])>
-                                <x-filament::icon
-                                    :icon="$capability['granted'] ? 'heroicon-m-check' : 'heroicon-m-x-mark'"
-                                    class="size-4"
-                                />
-                            </span>
+        <!-- Group Accordion List with Read-Only Checkboxes -->
+        <x-filament::section>
+            <x-slot name="heading">Role Capabilities Matrix</x-slot>
+            <x-slot name="description">View capabilities permitted for this role. Click any module to expand/collapse its options.</x-slot>
 
-                            <span @class([
-                                'min-w-0 flex-1 text-sm',
-                                $capability['granted']
-                                    ? 'font-medium text-gray-900 dark:text-gray-100'
-                                    : 'text-gray-500 dark:text-gray-400',
-                            ])>
-                                {{ $capability['label'] }}
-                            </span>
+            <div class="space-y-4" x-data="{ activeGroup: 'Dashboard' }">
+                @foreach ($this->getGroupedCapabilities() as $section)
+                    @php
+                        $groupSlug = \Illuminate\Support\Str::slug($section['group']);
+                    @endphp
+                    <div class="border border-gray-200 dark:border-gray-850 rounded-xl overflow-hidden bg-white dark:bg-gray-900/50 transition">
+                        <!-- Group Header Button -->
+                        <button
+                            type="button"
+                            x-on:click="activeGroup = (activeGroup === '{{ $groupSlug }}' ? null : '{{ $groupSlug }}')"
+                            class="w-full flex items-center justify-between px-5 py-4 text-left font-semibold text-sm text-gray-950 dark:text-white bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition duration-200"
+                        >
+                            <div class="flex items-center gap-3">
+                                <x-filament::icon icon="heroicon-o-folder" class="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                                <span>{{ $section['group'] }}</span>
+                                <span class="text-xs font-normal text-gray-500 dark:text-gray-400">
+                                    ({{ $section['granted_count'] }}/{{ $section['total_count'] }} enabled)
+                                </span>
+                            </div>
+                            <div>
+                                <!-- Accordion Icon -->
+                                <svg
+                                    class="w-5 h-5 text-gray-400 dark:text-gray-500 transition-transform duration-200"
+                                    :class="activeGroup === '{{ $groupSlug }}' ? 'rotate-180' : ''"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </button>
+
+                        <!-- Group Capabilities List -->
+                        <div
+                            x-show="activeGroup === '{{ $groupSlug }}'"
+                            x-collapse
+                            class="p-5 border-t border-gray-200 dark:border-gray-800 space-y-3"
+                        >
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                @foreach ($section['capabilities'] as $capability)
+                                    <div @class([
+                                        'flex items-start gap-3 p-3 rounded-lg border transition',
+                                        $capability['granted']
+                                            ? 'border-success-200 bg-success-50/10 dark:border-success-500/20 dark:bg-success-500/5'
+                                            : 'border-gray-150 bg-gray-50/10 dark:border-gray-800 dark:bg-white/5',
+                                    ])>
+                                        <input
+                                            type="checkbox"
+                                            @checked($capability['granted'])
+                                            disabled
+                                            class="rounded border-gray-300 dark:border-gray-700 text-success-600 dark:text-success-500 shadow-sm focus:ring-0 opacity-70 mt-0.5"
+                                        >
+                                        <div class="flex flex-col leading-tight">
+                                            <span @class([
+                                                'text-sm font-semibold',
+                                                $capability['granted']
+                                                    ? 'text-success-900 dark:text-success-400'
+                                                    : 'text-gray-500 dark:text-gray-400',
+                                            ])>
+                                                {{ $capability['label'] }}
+                                            </span>
+                                            <span class="text-[10px] text-gray-450 dark:text-gray-500 mt-0.5">
+                                                {{ $capability['value'] }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
-                    @endforeach
-                </div>
-            </x-filament::section>
-        @endforeach
+                    </div>
+                @endforeach
+            </div>
+        </x-filament::section>
     </div>
 </x-filament-panels::page>

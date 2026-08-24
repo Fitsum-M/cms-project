@@ -4,17 +4,14 @@ namespace App\Filament\Pages\Iam;
 
 use App\Enums\Permission;
 use App\Enums\UserRole;
-use App\Support\Auth\RolePermissionMatrix;
 use BackedEnum;
+use Filament\Navigation\NavigationItem;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
 use UnitEnum;
 
-/**
- * Single-role capability view under Roles & Permissions (SRS 10.1 / 11.4).
- */
-abstract class RoleDetailPage extends Page
+class RoleDetailPage extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
 
@@ -22,28 +19,20 @@ abstract class RoleDetailPage extends Page
 
     protected static ?string $navigationParentItem = 'Roles & Permissions';
 
+    protected static ?string $slug = 'iam/roles/view/{record}';
+
     protected string $view = 'filament.pages.iam.role-detail';
 
-    abstract public static function role(): UserRole;
+    public string $record;
 
-    public static function getNavigationLabel(): string
+    public function mount(string $record): void
     {
-        return static::role()->value;
-    }
-
-    public static function getNavigationSort(): ?int
-    {
-        return match (static::role()) {
-            UserRole::Administrator => 31,
-            UserRole::Editor => 32,
-            UserRole::Author => 33,
-            UserRole::Contributor => 34,
-        };
+        $this->record = $record;
     }
 
     public function getTitle(): string|Htmlable
     {
-        return static::role()->value;
+        return $this->record;
     }
 
     public static function canAccess(): bool
@@ -60,20 +49,72 @@ abstract class RoleDetailPage extends Page
 
     public static function shouldRegisterNavigation(): bool
     {
-        return static::canAccess();
+        return false;
+    }
+
+    public static function getNavigationItems(): array
+    {
+        if (! static::canAccess()) {
+            return [];
+        }
+
+        $items = [];
+        try {
+            $roles = \Spatie\Permission\Models\Role::orderBy('name')->get();
+            foreach ($roles as $role) {
+                $enum = UserRole::tryFrom($role->name);
+                $sort = match ($role->name) {
+                    'Administrator' => 31,
+                    'Editor' => 32,
+                    'Author' => 33,
+                    'Contributor' => 34,
+                    default => 35,
+                };
+
+                $items[] = NavigationItem::make($role->name)
+                    ->group('Identity & Access Management')
+                    ->parentItem('Roles & Permissions')
+                    ->icon($enum ? $enum->icon() : 'heroicon-o-shield-check')
+                    ->sort($sort)
+                    ->url(static::getUrl(['record' => $role->name]))
+                    ->isActiveWhen(fn (): bool => request()->route('record') === $role->name);
+            }
+        } catch (\Throwable $e) {
+            // Fail-safe during migrations/boot
+        }
+
+        return $items;
+    }
+
+    public function getRoleModel(): ?\Spatie\Permission\Models\Role
+    {
+        return \Spatie\Permission\Models\Role::where('name', $this->record)->where('guard_name', 'web')->first();
     }
 
     public function getRoleDescription(): string
     {
-        return static::role()->description();
+        $enum = UserRole::tryFrom($this->record);
+        return $enum ? $enum->description() : 'Custom user-defined role.';
+    }
+
+    public function getRoleColor(): string
+    {
+        $enum = UserRole::tryFrom($this->record);
+        return $enum ? $enum->color() : 'gray';
+    }
+
+    public function getRoleIcon(): string
+    {
+        $enum = UserRole::tryFrom($this->record);
+        return $enum ? $enum->icon() : 'heroicon-o-shield-check';
     }
 
     /**
-     * @return list<array{group: string, capabilities: list<array{label: string, granted: bool}>}>
+     * @return list<array{group: string, capabilities: list<array{label: string, value: string, granted: bool}>, granted_count: int, total_count: int}>
      */
     public function getGroupedCapabilities(): array
     {
-        $roleModel = \Spatie\Permission\Models\Role::where('name', static::role()->value)->where('guard_name', 'web')->first();
+        $roleModel = $this->getRoleModel();
         $grantedNames = $roleModel ? $roleModel->permissions->pluck('name')->all() : [];
         $groups = [];
 
@@ -82,6 +123,7 @@ abstract class RoleDetailPage extends Page
             $groups[$group] ??= [];
             $groups[$group][] = [
                 'label' => $permission->label(),
+                'value' => $permission->value,
                 'granted' => in_array($permission->value, $grantedNames, true),
             ];
         }
@@ -104,7 +146,7 @@ abstract class RoleDetailPage extends Page
 
     public function getGrantedCount(): int
     {
-        $roleModel = \Spatie\Permission\Models\Role::where('name', static::role()->value)->where('guard_name', 'web')->first();
+        $roleModel = $this->getRoleModel();
         return $roleModel ? $roleModel->permissions->count() : 0;
     }
 

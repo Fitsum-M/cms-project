@@ -319,45 +319,6 @@
         </div>
     </div>
 
-    <!-- ADD ROLE MODAL -->
-    @if ($isAddModalOpen)
-        <div class="modal-overlay">
-            <div class="w-full max-w-md bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden transform transition-all">
-                <div class="modal-header">
-                    <h3 class="text-base font-bold text-gray-900 dark:text-white" style="margin: 0;">Add New Role</h3>
-                    <button type="button" wire:click="$set('isAddModalOpen', false)" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                        <x-filament::icon icon="heroicon-o-x-mark" class="size-5" />
-                    </button>
-                </div>
-
-                <form wire:submit.prevent="addRole" class="p-6 space-y-4">
-                    <div>
-                        <label for="newRoleName" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Role Name</label>
-                        <input
-                            type="text"
-                            id="newRoleName"
-                            wire:model.defer="newRoleName"
-                            class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                            placeholder="e.g. Moderator"
-                        >
-                        @error('newRoleName')
-                            <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <div class="modal-footer">
-                        <x-filament::button color="gray" type="button" wire:click="$set('isAddModalOpen', false)">
-                            Cancel
-                        </x-filament::button>
-                        <x-filament::button type="submit">
-                            Create Role
-                        </x-filament::button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    @endif
-
     <!-- DELETE ROLE MODAL -->
     @if ($isDeleteModalOpen)
         <div class="modal-overlay">

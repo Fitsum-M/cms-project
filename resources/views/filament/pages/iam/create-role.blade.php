@@ -1,9 +1,9 @@
 <x-filament-panels::page>
     <form wire:submit.prevent="save" class="space-y-6">
-        <!-- Role & User Information Section -->
+        <!-- Role Information Section -->
         <x-filament::section>
             <x-slot name="heading">Role & Associated User Details</x-slot>
-            <x-slot name="description">Modify the role name and the email & password for the account associated with this role.</x-slot>
+            <x-slot name="description">Enter the role name and the email & password for the account associated with this role.</x-slot>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Role Name Input -->
@@ -12,16 +12,14 @@
                     <input
                         type="text"
                         id="roleName"
-                        wire:model.defer="roleName"
+                        wire:model="roleName"
                         class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                        @disabled($roleName === \App\Enums\UserRole::Administrator->value)
+                        placeholder="e.g. Moderator"
+                        required
                     >
                     @error('roleName')
                         <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
                     @enderror
-                    @if ($roleName === \App\Enums\UserRole::Administrator->value)
-                        <span class="text-xs text-gray-500 mt-1 block">Administrator name is system-protected and cannot be edited.</span>
-                    @endif
                 </div>
 
                 <!-- Email Input -->
@@ -32,6 +30,7 @@
                         id="email"
                         wire:model.defer="email"
                         class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                        placeholder="e.g. moderator@example.com"
                         required
                     >
                     @error('email')
@@ -47,7 +46,8 @@
                         id="password"
                         wire:model.defer="password"
                         class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                        placeholder="Leave blank to keep current password"
+                        placeholder="Min 8 characters"
+                        required
                     >
                     @error('password')
                         <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
@@ -126,13 +126,13 @@
             </div>
         </x-filament::section>
 
-        <!-- Form Action Buttons -->
+        <!-- Form Submission Buttons -->
         <div class="flex items-center gap-3 justify-end">
             <x-filament::button color="gray" type="button" href="{{ \App\Filament\Pages\Iam\RolesAndPermissions::getUrl() }}" tag="a">
                 Cancel
             </x-filament::button>
             <x-filament::button type="submit">
-                Save Changes
+                Create Role
             </x-filament::button>
         </div>
     </form>

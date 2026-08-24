@@ -33,10 +33,8 @@ class RolesAndPermissions extends Page
     protected string $view = 'filament.pages.iam.roles-matrix';
 
     // Livewire state properties
-    public bool $isAddModalOpen = false;
     public bool $isDeleteModalOpen = false;
 
-    public string $newRoleName = '';
     public ?int $deletingRoleId = null;
 
     protected function getHeaderActions(): array
@@ -46,7 +44,7 @@ class RolesAndPermissions extends Page
                 ->label('Add Role')
                 ->icon('heroicon-o-plus')
                 ->visible(fn (): bool => auth()->user()?->can(Permission::UsersEditRole->value) ?? false)
-                ->action(fn () => $this->isAddModalOpen = true),
+                ->url(fn (): string => CreateRole::getUrl()),
         ];
     }
 
@@ -108,38 +106,6 @@ class RolesAndPermissions extends Page
         return $grouped;
     }
 
-    public function addRole(): void
-    {
-        abort_unless(auth()->user()?->can(Permission::UsersEditRole->value), 403);
-
-        $validated = $this->validate([
-            'newRoleName' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('roles', 'name')->where('guard_name', 'web'),
-            ],
-        ], [
-            'newRoleName.unique' => 'This role already exists.',
-        ]);
-
-        $role = Role::create([
-            'name' => $validated['newRoleName'],
-            'guard_name' => 'web',
-        ]);
-
-        $role->syncPermissions([Permission::DashboardView->value]);
-
-        Notification::make()
-            ->success()
-            ->title('Role Created')
-            ->body("Role '{$role->name}' has been created successfully.")
-            ->send();
-
-        $this->newRoleName = '';
-        $this->isAddModalOpen = false;
-    }
-
 
 
     public function confirmDeleteRole(int $id): void
@@ -157,7 +123,11 @@ class RolesAndPermissions extends Page
             return;
         }
 
-        if (\App\Models\User::role($role->name)->exists()) {
+        $hasUsers = \App\Models\User::whereHas('roles', function ($query) use ($role) {
+            $query->where('name', $role->name);
+        })->exists();
+
+        if ($hasUsers) {
             Notification::make()
                 ->danger()
                 ->title('Deletion Blocked')
