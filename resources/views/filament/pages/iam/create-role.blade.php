@@ -71,20 +71,21 @@
                         <button
                             type="button"
                             x-on:click="activeGroup = (activeGroup === '{{ $groupSlug }}' ? null : '{{ $groupSlug }}')"
-                            class="w-full flex items-center justify-between px-5 py-4 text-left font-semibold text-sm text-gray-950 dark:text-white bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition duration-200"
+                            style="display: flex; align-items: center; justify-content: space-between; width: 100%; border: none; outline: none; cursor: pointer;"
+                            class="px-5 py-4 text-left font-semibold text-sm text-gray-950 dark:text-white bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition duration-200"
                         >
-                            <div class="flex items-center gap-3">
-                                <x-filament::icon icon="heroicon-o-folder" class="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <x-filament::icon icon="heroicon-o-folder" style="width: 20px; height: 20px; display: inline-block;" class="text-gray-400 dark:text-gray-500" />
                                 <span>{{ $groupName }}</span>
-                                <span class="text-xs font-normal text-gray-500 dark:text-gray-400">
+                                <span style="font-weight: normal; font-size: 0.75rem;" class="text-gray-500 dark:text-gray-400">
                                     ({{ count($permissions) }} capabilities)
                                 </span>
                             </div>
                             <div>
-                                <!-- Accordion Icon -->
                                 <svg
-                                    class="w-5 h-5 text-gray-400 dark:text-gray-500 transition-transform duration-200"
-                                    :class="activeGroup === '{{ $groupSlug }}' ? 'rotate-180' : ''"
+                                    style="width: 20px; height: 20px; transition: transform 0.2s;"
+                                    :style="activeGroup === '{{ $groupSlug }}' ? 'transform: rotate(180deg);' : ''"
+                                    class="text-gray-400 dark:text-gray-500"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     stroke="currentColor"
