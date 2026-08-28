@@ -41,6 +41,8 @@ class ListMediaAssets extends ListRecords
 
         $this->libraryLayout = $layout;
         session([self::LAYOUT_SESSION_KEY => $layout]);
+
+        $this->table = $this->table($this->makeTable());
     }
 
     public function isGridLayout(): bool

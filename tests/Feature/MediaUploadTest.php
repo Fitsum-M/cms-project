@@ -129,7 +129,15 @@ class MediaUploadTest extends TestCase
             ])
             ->call('upload')
             ->assertHasNoFormErrors()
-            ->assertRedirect(\App\Filament\Resources\MediaAssets\MediaAssetResource::getUrl('index'));
+            ->assertRedirect(
+                \App\Filament\Resources\MediaAssets\MediaAssetResource::getUrl('index', [
+                    'filters' => [
+                        'folder_scope' => [
+                            'value' => 'unfiled',
+                        ],
+                    ],
+                ]),
+            );
 
         $this->assertDatabaseCount('media_assets', 1);
 

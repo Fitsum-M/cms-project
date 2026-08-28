@@ -4,6 +4,7 @@ namespace App\Filament\Pages\Dam;
 
 use App\Enums\Permission;
 use App\Filament\Resources\MediaAssets\MediaAssetResource;
+use App\Models\MediaAsset;
 use App\Services\FolderService;
 use App\Services\MediaUploadService;
 use App\Support\Settings\MediaSettings;
@@ -65,6 +66,17 @@ class UploadMedia extends Page
         ]);
     }
 
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('openLibrary')
+                ->label('Open library')
+                ->icon('heroicon-o-photo')
+                ->url(MediaAssetResource::getUrl('index'))
+                ->color('gray'),
+        ];
+    }
+
     public function defaultForm(Schema $schema): Schema
     {
         return $schema
@@ -122,7 +134,6 @@ class UploadMedia extends Page
     {
         return Form::make([EmbeddedSchema::make('form')])
             ->id('form')
-            ->livewireSubmitHandler('upload')
             ->footer([
                 Actions::make($this->getFormActions())
                     ->alignment($this->getFormActionsAlignment())
@@ -139,17 +150,16 @@ class UploadMedia extends Page
         return [
             Action::make('upload')
                 ->label('Upload')
-                ->submit('upload')
+                ->icon('heroicon-o-arrow-up-tray')
+                ->action('upload')
                 ->keyBindings(['mod+s']),
-            Action::make('openLibrary')
-                ->label('Open library')
-                ->url(MediaAssetResource::getUrl('index'))
-                ->color('gray'),
         ];
     }
 
     public function upload(): void
     {
+        $this->authorize('create', MediaAsset::class);
+
         try {
             $this->beginDatabaseTransaction();
 
@@ -200,6 +210,23 @@ class UploadMedia extends Page
             ->body('Files are now available in the media library.')
             ->send();
 
-        $this->redirect(MediaAssetResource::getUrl('index'));
+        $folderId = isset($data['folder_id']) && $data['folder_id'] !== ''
+            ? (int) $data['folder_id']
+            : null;
+
+        $this->redirect($this->libraryUrlForFolder($folderId));
+    }
+
+    protected function libraryUrlForFolder(?int $folderId): string
+    {
+        $parameters = [
+            'filters' => [
+                'folder_scope' => [
+                    'value' => $folderId === null ? 'unfiled' : (string) $folderId,
+                ],
+            ],
+        ];
+
+        return MediaAssetResource::getUrl('index', $parameters);
     }
 }

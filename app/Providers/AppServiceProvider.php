@@ -100,6 +100,15 @@ class AppServiceProvider extends ServiceProvider
             // Settings table may not exist yet during install/migrate.
         }
 
+        foreach ([
+            storage_path('app/public'),
+            storage_path('app/private/livewire-tmp'),
+        ] as $directory) {
+            if (! is_dir($directory)) {
+                mkdir($directory, 0755, true);
+            }
+        }
+
         // GAP.S.01 — admin tables/infolists use General Settings date/time formats (§16.2, §18.10).
         FilamentTimezone::set(fn (): string => app(GeneralSettings::class)->timezone());
 
