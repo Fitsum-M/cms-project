@@ -10,7 +10,7 @@ use Filament\Support\Icons\Heroicon;
 use UnitEnum;
 
 /**
- * Nav hub for Add New User (SRS 10.1). Opens the invite form.
+ * Nav hub for Add New User (SRS 10.1). Opens the create-user form.
  */
 class AddNewUser extends NavigationHubPage
 {

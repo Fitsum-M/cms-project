@@ -17,10 +17,9 @@ use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Filament\Resources\Users\Pages\ViewUser;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
-use App\Notifications\UserInvitationNotification;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission as PermissionModel;
 use Spatie\Permission\PermissionRegistrar;
@@ -54,11 +53,10 @@ class IamAdminUiTest extends TestCase
             ->assertRedirect(UserResource::getUrl('create'));
     }
 
-    public function test_administrator_can_list_and_invite_users(): void
+    public function test_administrator_can_create_user_with_password_and_they_can_login(): void
     {
-        Notification::fake();
-
         $admin = $this->makeUser(UserRole::Administrator);
+        $password = 'SecurePass1!ab';
 
         Livewire::actingAs($admin)
             ->test(ListUsers::class)
@@ -67,23 +65,30 @@ class IamAdminUiTest extends TestCase
         Livewire::actingAs($admin)
             ->test(CreateUser::class)
             ->fillForm([
-                'name' => 'Invited Editor',
-                'username' => 'invited_editor',
-                'email' => 'invited@example.com',
+                'name' => 'Created Editor',
+                'username' => 'created_editor',
+                'email' => 'created@example.com',
+                'password' => $password,
+                'passwordConfirmation' => $password,
                 'bio' => 'Hello',
                 'role' => UserRole::Editor->value,
             ])
             ->call('create')
             ->assertHasNoFormErrors();
 
-        $invited = User::query()->where('email', 'invited@example.com')->first();
+        $created = User::query()->where('email', 'created@example.com')->first();
 
-        $this->assertNotNull($invited);
-        $this->assertSame(UserStatus::PendingActivation, $invited->status);
-        $this->assertSame(UserRole::Editor, $invited->primaryRole());
-        $this->assertSame($admin->id, $invited->invited_by);
+        $this->assertNotNull($created);
+        $this->assertSame(UserStatus::Active, $created->status);
+        $this->assertSame(UserRole::Editor, $created->primaryRole());
+        $this->assertSame($admin->id, $created->invited_by);
+        $this->assertTrue(Hash::check($password, $created->password));
+        $this->assertTrue($created->canAccessPanel(filament()->getPanel('admin')));
 
-        Notification::assertSentTo($invited, UserInvitationNotification::class);
+        $this->assertTrue(auth()->attempt([
+            'email' => 'created@example.com',
+            'password' => $password,
+        ]));
     }
 
     public function test_administrator_can_change_role_and_cannot_change_own_role(): void

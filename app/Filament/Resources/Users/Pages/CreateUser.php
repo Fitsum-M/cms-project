@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Users\Pages;
 
-use App\Enums\UserRole;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
 use App\Services\UserLifecycleService;
@@ -21,16 +20,16 @@ class CreateUser extends CreateRecord
      */
     protected function handleRecordCreation(array $data): Model
     {
-        return app(UserLifecycleService::class)->invite(
+        return app(UserLifecycleService::class)->createActive(
             [
                 'name' => $data['name'],
                 'username' => $data['username'],
                 'email' => $data['email'],
+                'password' => $data['password'],
                 'bio' => $data['bio'] ?? null,
             ],
-            UserRole::from((string) $data['role']),
+            (string) $data['role'],
             auth()->user(),
-            sendNotification: true,
         );
     }
 
@@ -41,8 +40,8 @@ class CreateUser extends CreateRecord
 
         Notification::make()
             ->success()
-            ->title('Invitation sent')
-            ->body("{$user->name} was invited as {$user->primaryRole()?->value}. They must activate via email.")
+            ->title('User created')
+            ->body("{$user->name} can sign in with their email and password. Access is limited to pages allowed by their role.")
             ->send();
     }
 

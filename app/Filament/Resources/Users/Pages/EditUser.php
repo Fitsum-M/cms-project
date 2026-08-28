@@ -25,7 +25,7 @@ class EditUser extends EditRecord
     {
         /** @var User $record */
         $record = $this->getRecord();
-        $data['role'] = $record->primaryRole()?->value;
+        $data['role'] = $record->primaryRoleName();
 
         return $data;
     }

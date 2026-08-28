@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Users\Schemas;
 use App\Enums\Permission;
 use App\Enums\UserRole;
 use App\Models\User;
+use App\Support\Auth\CmsPassword;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -39,6 +40,24 @@ class UserForm
                             ->maxLength(255)
                             ->unique(ignoreRecord: true)
                             ->autocomplete(false),
+                        TextInput::make('password')
+                            ->label('Password')
+                            ->password()
+                            ->revealable()
+                            ->required()
+                            ->rule(CmsPassword::rules())
+                            ->autocomplete('new-password')
+                            ->helperText('The user will sign in with this email and password.')
+                            ->visible(fn (?User $record): bool => $record === null),
+                        TextInput::make('passwordConfirmation')
+                            ->label('Confirm Password')
+                            ->password()
+                            ->revealable()
+                            ->required()
+                            ->same('password')
+                            ->dehydrated(false)
+                            ->autocomplete('new-password')
+                            ->visible(fn (?User $record): bool => $record === null),
                         Textarea::make('bio')
                             ->label('Biography')
                             ->rows(3)

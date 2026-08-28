@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Enums\Permission;
 use App\Filament\Widgets\DraftSummaryWidget;
 use App\Filament\Widgets\OverviewStatsWidget;
 use App\Filament\Widgets\QuickActionsWidget;
@@ -29,6 +30,11 @@ class Dashboard extends BaseDashboard
     protected static ?string $navigationLabel = null;
 
     protected static ?string $title = null;
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->can(Permission::DashboardView->value) ?? false;
+    }
 
     public static function getNavigationLabel(): string
     {

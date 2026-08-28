@@ -20,13 +20,56 @@ class UserLifecycleService
     public function __construct(private readonly AuditLogger $audit) {}
 
     /**
+     * Create an active user with email/password so they can sign in immediately.
+     *
+     * @param  array{name: string, username: string, email: string, password: string, bio?: ?string}  $attributes
+     *
+     * @throws AuthorizationException
+     */
+    public function createActive(
+        array $attributes,
+        UserRole|string $role,
+        ?User $createdBy = null,
+    ): User {
+        if ($createdBy !== null) {
+            Gate::forUser($createdBy)->authorize('create', User::class);
+        }
+
+        $roleName = $role instanceof UserRole ? $role->value : $role;
+
+        $user = User::query()->create([
+            'name' => $attributes['name'],
+            'username' => $attributes['username'],
+            'email' => $attributes['email'],
+            'bio' => $attributes['bio'] ?? null,
+            'password' => $attributes['password'],
+            'status' => UserStatus::Active,
+            'invitation_token' => null,
+            'invitation_sent_at' => null,
+            'invited_by' => $createdBy?->id,
+            'activated_at' => now(),
+            'email_verified_at' => now(),
+            'suspended_at' => null,
+        ]);
+
+        $user->assignSingleRole($roleName);
+
+        $this->audit->userEvent('created', $user, $createdBy, [
+            'role' => $roleName,
+            'status' => UserStatus::Active->value,
+        ]);
+
+        return $user;
+    }
+
+    /**
      * Invitation stage: create a pending user with a role and send the activation link.
      *
      * @throws AuthorizationException
      */
     public function invite(
         array $attributes,
-        UserRole $role,
+        UserRole|string $role,
         ?User $invitedBy = null,
         bool $sendNotification = true,
     ): User {
@@ -34,6 +77,7 @@ class UserLifecycleService
             Gate::forUser($invitedBy)->authorize('create', User::class);
         }
 
+        $roleName = $role instanceof UserRole ? $role->value : $role;
         $plainToken = $this->generateInvitationToken();
 
         $user = User::query()->create([
@@ -50,14 +94,14 @@ class UserLifecycleService
             'suspended_at' => null,
         ]);
 
-        $user->assignSingleRole($role);
+        $user->assignSingleRole($roleName);
 
         if ($sendNotification) {
             $user->notify(new UserInvitationNotification($plainToken));
         }
 
         $this->audit->userEvent('invited', $user, $invitedBy, [
-            'role' => $role->value,
+            'role' => $roleName,
         ]);
 
         return $user;

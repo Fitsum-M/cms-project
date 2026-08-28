@@ -31,7 +31,7 @@ class CustomPostTypes extends NavigationHubPage
 
     protected static ?string $slug = 'content/posts/custom-types';
 
-    public static function shouldRegisterNavigation(): bool
+    public static function canAccess(): bool
     {
         $user = auth()->user();
 
@@ -42,6 +42,11 @@ class CustomPostTypes extends NavigationHubPage
         return $user->can(Permission::CustomPostTypesManage->value)
             || $user->can(Permission::PostsViewAll->value)
             || $user->can(Permission::PostsViewOwn->value);
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canAccess();
     }
 
     /**
