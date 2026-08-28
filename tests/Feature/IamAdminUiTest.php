@@ -219,8 +219,6 @@ class IamAdminUiTest extends TestCase
         Livewire::actingAs($admin)
             ->test(CreateRole::class)
             ->set('roleName', 'Moderator')
-            ->set('email', 'moderator@example.com')
-            ->set('password', 'password')
             ->set('rolePermissions', [Permission::DashboardView->value])
             ->call('save')
             ->assertHasNoErrors();
@@ -230,8 +228,7 @@ class IamAdminUiTest extends TestCase
             'guard_name' => 'web',
         ]);
 
-        $this->assertDatabaseHas('users', [
-            'email' => 'moderator@example.com',
+        $this->assertDatabaseMissing('users', [
             'name' => 'Moderator',
         ]);
 

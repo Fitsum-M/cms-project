@@ -2,57 +2,22 @@
     <form wire:submit.prevent="save" class="space-y-6">
         <!-- Role Information Section -->
         <x-filament::section>
-            <x-slot name="heading">Role & Associated User Details</x-slot>
-            <x-slot name="description">Enter the role name and the email & password for the account associated with this role.</x-slot>
+            <x-slot name="heading">Role Details</x-slot>
+            <x-slot name="description">Enter a name for the new role.</x-slot>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Role Name Input -->
-                <div>
-                    <label for="roleName" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Role Name</label>
-                    <input
-                        type="text"
-                        id="roleName"
-                        wire:model="roleName"
-                        class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                        placeholder="e.g. Moderator"
-                        required
-                    >
-                    @error('roleName')
-                        <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <!-- Email Input -->
-                <div>
-                    <label for="email" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">User Email</label>
-                    <input
-                        type="email"
-                        id="email"
-                        wire:model.defer="email"
-                        class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                        placeholder="e.g. moderator@example.com"
-                        required
-                    >
-                    @error('email')
-                        <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <!-- Password Input -->
-                <div>
-                    <label for="password" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">User Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        wire:model.defer="password"
-                        class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                        placeholder="Min 8 characters"
-                        required
-                    >
-                    @error('password')
-                        <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
-                    @enderror
-                </div>
+            <div>
+                <label for="roleName" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Role Name</label>
+                <input
+                    type="text"
+                    id="roleName"
+                    wire:model="roleName"
+                    class="mt-1 block w-full max-w-md rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                    placeholder="e.g. Moderator"
+                    required
+                >
+                @error('roleName')
+                    <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
+                @enderror
             </div>
         </x-filament::section>
 
