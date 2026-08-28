@@ -116,7 +116,12 @@
                         No folders yet. Create one to organize the media library.
                     </div>
                 @else
-                    <table class="fi-ta-table w-full">
+                    <table class="fi-ta-table w-full table-fixed">
+                        <colgroup>
+                            <col style="width: 55%" />
+                            <col style="width: 20%" />
+                            <col style="width: 25%" />
+                        </colgroup>
                         <thead>
                             <tr class="fi-ta-header-row">
                                 <th class="fi-ta-header-cell fi-growable" scope="col">
@@ -125,7 +130,7 @@
                                 <th class="fi-ta-header-cell" scope="col">
                                     Items
                                 </th>
-                                <th class="fi-ta-header-cell" scope="col">
+                                <th class="fi-ta-header-cell text-end" scope="col">
                                     <span class="sr-only">Actions</span>
                                 </th>
                             </tr>

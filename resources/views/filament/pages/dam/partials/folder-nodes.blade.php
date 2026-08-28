@@ -71,8 +71,8 @@
             </div>
         </td>
 
-        <td class="fi-ta-cell" role="gridcell">
-            <div class="fi-ta-actions" @mousedown.stop @dragstart.stop.prevent>
+        <td class="fi-ta-cell whitespace-nowrap" role="gridcell">
+            <div class="fi-ta-actions justify-end gap-4 pe-2 sm:pe-3" @mousedown.stop @dragstart.stop.prevent>
                 @if ($this->canManageFolders())
                     {{ ($this->renameFolderAction)(['folder' => $node['id']]) }}
                 @endif
