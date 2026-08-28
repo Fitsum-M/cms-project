@@ -91,9 +91,20 @@
                     No folders yet. Create one to organize the media library.
                 </p>
             @else
-                <ul class="space-y-0.5" role="tree">
-                    @include('filament.pages.dam.partials.folder-nodes', ['nodes' => $tree, 'depth' => 0])
-                </ul>
+                <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-white/10">
+                    <div
+                        class="grid grid-cols-[minmax(0,1fr)_7rem_5.5rem] items-center gap-2 border-b border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400"
+                        role="row"
+                    >
+                        <div>Name</div>
+                        <div>Items</div>
+                        <div class="text-right">Actions</div>
+                    </div>
+
+                    <ul role="tree">
+                        @include('filament.pages.dam.partials.folder-nodes', ['nodes' => $tree, 'depth' => 0])
+                    </ul>
+                </div>
             @endif
         </div>
     </div>
