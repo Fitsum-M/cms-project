@@ -145,8 +145,8 @@ class Folders extends Page
     public function renameFolderAction(): Action
     {
         return Action::make('renameFolder')
-            ->label('Rename')
-            ->iconButton()
+            ->label('Edit')
+            ->link()
             ->icon('heroicon-o-pencil-square')
             ->visible(fn (): bool => $this->canManageFolders())
             ->fillForm(function (array $arguments): array {
@@ -205,7 +205,7 @@ class Folders extends Page
     {
         return Action::make('deleteFolder')
             ->label('Delete')
-            ->iconButton()
+            ->link()
             ->icon('heroicon-o-trash')
             ->color('danger')
             ->visible(fn (): bool => auth()->user()?->can(Permission::MediaDelete->value) ?? false)

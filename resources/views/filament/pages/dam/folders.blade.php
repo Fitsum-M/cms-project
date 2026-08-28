@@ -1,13 +1,37 @@
+@php
+    $parentMap = [];
+    $buildParentMap = function (array $nodes, ?int $parentId = null) use (&$buildParentMap, &$parentMap): void {
+        foreach ($nodes as $node) {
+            $parentMap[$node['id']] = $parentId;
+            if (! empty($node['children'])) {
+                $buildParentMap($node['children'], $node['id']);
+            }
+        }
+    };
+    $buildParentMap($tree);
+@endphp
+
 <x-filament-panels::page>
     <div
-        class="fi-section rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-white/5 dark:ring-white/10"
+        class="space-y-4"
         x-data="{
             draggingId: null,
             dropTargetId: null,
             canManage: @js($this->canManageFolders()),
             expanded: {},
+            parents: @js($parentMap),
             isExpanded(id) {
                 return this.expanded[id] !== false
+            },
+            isRowVisible(id) {
+                let parentId = this.parents[id]
+                while (parentId !== null && parentId !== undefined) {
+                    if (! this.isExpanded(parentId)) {
+                        return false
+                    }
+                    parentId = this.parents[parentId]
+                }
+                return true
             },
             toggle(id) {
                 this.expanded[id] = ! this.isExpanded(id)
@@ -64,48 +88,55 @@
             },
         }"
     >
-        <div class="fi-section-content-ctn space-y-4 p-6">
-            <div>
-                <h2 class="text-base font-semibold text-gray-950 dark:text-white">
-                    Folder tree
-                </h2>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Nest folders without limit. Drag a folder onto another to move it, or onto the drop zone to make it top-level.
-                </p>
+        <div>
+            <h2 class="text-base font-semibold leading-6 text-gray-950 dark:text-white">
+                Folder tree
+            </h2>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                Nest folders without limit. Drag a folder onto another to move it, or onto the drop zone to make it top-level.
+            </p>
+        </div>
+
+        @if ($this->canManageFolders())
+            <div
+                class="rounded-lg border border-dashed border-gray-300 bg-gray-50/80 px-4 py-3 text-sm text-gray-600 transition dark:border-white/10 dark:bg-white/5 dark:text-gray-300"
+                :class="dropTargetId === 'root' ? 'border-primary-400 bg-primary-50/80 text-primary-700 dark:border-primary-400/40 dark:bg-primary-400/10 dark:text-primary-300' : ''"
+                @dragover="onDragOver($event, 'root')"
+                @dragleave="onDragLeave($event, 'root')"
+                @drop="onDropRoot($event)"
+            >
+                Drop here to move a folder to the root (Unfiled parent).
             </div>
+        @endif
 
-            @if ($this->canManageFolders())
-                <div
-                    class="rounded-lg border border-dashed border-gray-300 bg-gray-50/80 px-4 py-3 text-sm text-gray-600 transition dark:border-white/10 dark:bg-white/5 dark:text-gray-300"
-                    :class="dropTargetId === 'root' ? 'border-primary-400 bg-primary-50/80 text-primary-700 dark:border-primary-400/40 dark:bg-primary-400/10 dark:text-primary-300' : ''"
-                    @dragover="onDragOver($event, 'root')"
-                    @dragleave="onDragLeave($event, 'root')"
-                    @drop="onDropRoot($event)"
-                >
-                    Drop here to move a folder to the root (Unfiled parent).
-                </div>
-            @endif
-
-            @if (count($tree) === 0)
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                    No folders yet. Create one to organize the media library.
-                </p>
-            @else
-                <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-white/10">
-                    <div
-                        class="grid grid-cols-[minmax(0,1fr)_7rem_5.5rem] items-center gap-2 border-b border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400"
-                        role="row"
-                    >
-                        <div>Name</div>
-                        <div>Items</div>
-                        <div class="text-right">Actions</div>
+        <div class="fi-ta-ctn flex-col overflow-hidden">
+            <div class="fi-ta-content relative divide-y divide-gray-200 overflow-x-auto dark:divide-white/10">
+                @if (count($tree) === 0)
+                    <div class="px-6 py-8 text-sm text-gray-500 dark:text-gray-400">
+                        No folders yet. Create one to organize the media library.
                     </div>
+                @else
+                    <table class="fi-ta-table w-full">
+                        <thead>
+                            <tr class="fi-ta-header-row">
+                                <th class="fi-ta-header-cell fi-growable" scope="col">
+                                    Name
+                                </th>
+                                <th class="fi-ta-header-cell" scope="col">
+                                    Items
+                                </th>
+                                <th class="fi-ta-header-cell" scope="col">
+                                    <span class="sr-only">Actions</span>
+                                </th>
+                            </tr>
+                        </thead>
 
-                    <ul role="tree">
-                        @include('filament.pages.dam.partials.folder-nodes', ['nodes' => $tree, 'depth' => 0])
-                    </ul>
-                </div>
-            @endif
+                        <tbody>
+                            @include('filament.pages.dam.partials.folder-nodes', ['nodes' => $tree, 'depth' => 0])
+                        </tbody>
+                    </table>
+                @endif
+            </div>
         </div>
     </div>
 
