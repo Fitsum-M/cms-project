@@ -33,33 +33,6 @@ class MediaLibraryViewAndSearchTest extends TestCase
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
-    public function test_library_view_toggle_persists_for_the_session(): void
-    {
-        $admin = $this->makeUser(UserRole::Administrator);
-
-        Livewire::actingAs($admin)
-            ->test(ListMediaAssets::class)
-            ->assertSet('libraryLayout', ListMediaAssets::LAYOUT_LIST)
-            ->callAction('gridView')
-            ->assertSet('libraryLayout', ListMediaAssets::LAYOUT_GRID);
-
-        $this->assertSame(
-            ListMediaAssets::LAYOUT_GRID,
-            session(ListMediaAssets::LAYOUT_SESSION_KEY),
-        );
-
-        Livewire::actingAs($admin)
-            ->test(ListMediaAssets::class)
-            ->assertSet('libraryLayout', ListMediaAssets::LAYOUT_GRID)
-            ->callAction('listView')
-            ->assertSet('libraryLayout', ListMediaAssets::LAYOUT_LIST);
-
-        $this->assertSame(
-            ListMediaAssets::LAYOUT_LIST,
-            session(ListMediaAssets::LAYOUT_SESSION_KEY),
-        );
-    }
-
     public function test_search_is_scoped_to_current_folder_unless_search_all_folders_is_enabled(): void
     {
         $admin = $this->makeUser(UserRole::Administrator);

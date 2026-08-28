@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\MediaAssets\Tables;
 
-use App\Filament\Resources\MediaAssets\Pages\ListMediaAssets;
 use App\Models\MediaAsset;
 use App\Models\User;
 use App\Services\FolderService;
@@ -17,9 +16,7 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
-use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\ImageColumn;
-use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\Filter;
@@ -33,16 +30,8 @@ class MediaAssetsTable
 {
     public static function configure(Table $table): Table
     {
-        $livewire = $table->getLivewire();
-        $isGrid = $livewire instanceof ListMediaAssets && $livewire->isGridLayout();
-
         return $table
-            ->columns($isGrid ? static::gridColumns() : static::listColumns())
-            ->contentGrid($isGrid ? [
-                'md' => 2,
-                'xl' => 3,
-                '2xl' => 4,
-            ] : null)
+            ->columns(static::listColumns())
             ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('folder_scope')
@@ -128,6 +117,7 @@ class MediaAssetsTable
                 Action::make('moveToFolder')
                     ->label('Move')
                     ->icon('heroicon-o-folder')
+                    ->color('gray')
                     ->form([
                         Select::make('folder_id')
                             ->label('Folder')
@@ -293,39 +283,11 @@ class MediaAssetsTable
             TextColumn::make('uploader.name')
                 ->label('Uploader')
                 ->sortable()
-                ->toggleable(),
+                ->toggleable(isToggledHiddenByDefault: true),
             TextColumn::make('created_at')
                 ->label('Uploaded')
                 ->dateTime()
                 ->sortable(),
-        ];
-    }
-
-    /**
-     * @return array<int, Stack>
-     */
-    protected static function gridColumns(): array
-    {
-        return [
-            Stack::make([
-                ImageColumn::make('preview')
-                    ->label('Preview')
-                    ->getStateUsing(fn (MediaAsset $record): ?string => $record->isImage() ? $record->previewUrl() : null)
-                    ->height(140)
-                    ->extraImgAttributes(['alt' => '', 'class' => 'w-full object-cover rounded-lg']),
-                TextColumn::make('title')
-                    ->label('Title')
-                    ->weight(FontWeight::SemiBold)
-                    ->searchable(query: static::metadataSearchQuery())
-                    ->limit(40),
-                TextColumn::make('original_file_name')
-                    ->label('File')
-                    ->color('gray')
-                    ->limit(36),
-                TextColumn::make('mime_type')
-                    ->label('Type')
-                    ->badge(),
-            ])->space(2),
         ];
     }
 
