@@ -127,7 +127,7 @@ class MediaUploadTest extends TestCase
             ->fillForm([
                 'files' => [$file],
             ])
-            ->call('upload')
+            ->call('submitUpload')
             ->assertHasNoFormErrors()
             ->assertRedirect(
                 \App\Filament\Resources\MediaAssets\MediaAssetResource::getUrl('index', [

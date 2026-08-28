@@ -93,7 +93,7 @@ class UploadMedia extends Page
         return $schema
             ->components([
                 Section::make('Upload files')
-                    ->description('Drag and drop files here, or use the file picker. Multiple files are uploaded in one batch with progress shown for each file.')
+                    ->description('Drag and drop files here, or use the file picker. Wait until each file finishes uploading (progress completes), then click Upload.')
                     ->schema([
                         Select::make('folder_id')
                             ->label('Destination folder')
@@ -134,6 +134,7 @@ class UploadMedia extends Page
     {
         return Form::make([EmbeddedSchema::make('form')])
             ->id('form')
+            ->livewireSubmitHandler('submitUpload')
             ->footer([
                 Actions::make($this->getFormActions())
                     ->alignment($this->getFormActionsAlignment())
@@ -148,15 +149,15 @@ class UploadMedia extends Page
     protected function getFormActions(): array
     {
         return [
-            Action::make('upload')
+            Action::make('submitUpload')
                 ->label('Upload')
                 ->icon('heroicon-o-arrow-up-tray')
-                ->action('upload')
+                ->submit('submitUpload')
                 ->keyBindings(['mod+s']),
         ];
     }
 
-    public function upload(): void
+    public function submitUpload(): void
     {
         $this->authorize('create', MediaAsset::class);
 
