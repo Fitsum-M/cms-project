@@ -5,7 +5,6 @@ namespace App\Filament\Resources\Users\Schemas;
 use App\Enums\Permission;
 use App\Enums\UserRole;
 use App\Models\User;
-use App\Support\Auth\CmsPassword;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -44,20 +43,20 @@ class UserForm
                             ->label('Password')
                             ->password()
                             ->revealable()
-                            ->required()
-                            ->rule(CmsPassword::rules())
+                            ->required(fn (?User $record): bool => $record === null)
+                            ->dehydrated(fn (?string $state): bool => filled($state))
                             ->autocomplete('new-password')
-                            ->helperText('The user will sign in with this email and password.')
-                            ->visible(fn (?User $record): bool => $record === null),
+                            ->helperText(fn (?User $record): string => $record === null
+                                ? 'The user will sign in with this email and password.'
+                                : 'Leave blank to keep the current password.'),
                         TextInput::make('passwordConfirmation')
                             ->label('Confirm Password')
                             ->password()
                             ->revealable()
-                            ->required()
+                            ->required(fn (?User $record, callable $get): bool => $record === null || filled($get('password')))
                             ->same('password')
                             ->dehydrated(false)
-                            ->autocomplete('new-password')
-                            ->visible(fn (?User $record): bool => $record === null),
+                            ->autocomplete('new-password'),
                         Textarea::make('bio')
                             ->label('Biography')
                             ->rows(3)

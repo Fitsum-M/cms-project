@@ -56,7 +56,7 @@ class IamAdminUiTest extends TestCase
     public function test_administrator_can_create_user_with_password_and_they_can_login(): void
     {
         $admin = $this->makeUser(UserRole::Administrator);
-        $password = 'SecurePass1!ab';
+        $password = 'pass';
 
         Livewire::actingAs($admin)
             ->test(ListUsers::class)
@@ -89,6 +89,33 @@ class IamAdminUiTest extends TestCase
             'email' => 'created@example.com',
             'password' => $password,
         ]));
+    }
+
+    public function test_administrator_can_update_existing_user_password(): void
+    {
+        $admin = $this->makeUser(UserRole::Administrator);
+        $author = $this->makeUser(UserRole::Author, [
+            'username' => 'author_password',
+            'email' => 'author_password@example.com',
+        ]);
+
+        $newPassword = 'new';
+
+        Livewire::actingAs($admin)
+            ->test(EditUser::class, ['record' => $author->getRouteKey()])
+            ->fillForm([
+                'name' => $author->name,
+                'username' => $author->username,
+                'email' => $author->email,
+                'bio' => null,
+                'role' => UserRole::Author->value,
+                'password' => $newPassword,
+                'passwordConfirmation' => $newPassword,
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertTrue(Hash::check($newPassword, $author->fresh()->password));
     }
 
     public function test_administrator_can_change_role_and_cannot_change_own_role(): void

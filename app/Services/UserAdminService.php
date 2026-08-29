@@ -21,7 +21,7 @@ class UserAdminService
     ) {}
 
     /**
-     * @param  array{name: string, username: string, email: string, bio?: ?string, role?: string}  $data
+     * @param  array{name: string, username: string, email: string, bio?: ?string, role?: string, password?: string}  $data
      *
      * @throws AuthorizationException
      * @throws ValidationException
@@ -46,6 +46,7 @@ class UserAdminService
                 Rule::unique('users', 'email')->ignore($target->id),
             ],
             'bio' => ['nullable', 'string', 'max:1000'],
+            'password' => ['nullable', 'string'],
             'role' => ['nullable', 'string', function ($attribute, $value, $fail) {
                 if (\App\Enums\UserRole::tryFrom($value) === null && ! \Spatie\Permission\Models\Role::where('name', $value)->where('guard_name', 'web')->exists()) {
                     $fail('The selected role is invalid.');
@@ -53,15 +54,24 @@ class UserAdminService
             }],
         ])->validate();
 
-        $target->forceFill([
+        $payload = [
             'name' => $validated['name'],
             'username' => $validated['username'],
             'email' => $validated['email'],
             'bio' => $validated['bio'] ?? null,
-        ])->save();
+        ];
+
+        $fields = ['name', 'username', 'email', 'bio'];
+
+        if (filled($validated['password'] ?? null)) {
+            $payload['password'] = $validated['password'];
+            $fields[] = 'password';
+        }
+
+        $target->forceFill($payload)->save();
 
         $this->audit->userEvent('updated', $target->fresh() ?? $target, $actor, [
-            'fields' => ['name', 'username', 'email', 'bio'],
+            'fields' => $fields,
         ]);
 
         if (array_key_exists('role', $validated) && filled($validated['role'])) {

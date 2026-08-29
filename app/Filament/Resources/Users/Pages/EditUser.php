@@ -26,6 +26,7 @@ class EditUser extends EditRecord
         /** @var User $record */
         $record = $this->getRecord();
         $data['role'] = $record->primaryRoleName();
+        unset($data['password'], $data['passwordConfirmation']);
 
         return $data;
     }
@@ -119,6 +120,7 @@ class EditUser extends EditRecord
             'email' => $data['email'],
             'bio' => $data['bio'] ?? null,
             'role' => $data['role'] ?? null,
+            'password' => $data['password'] ?? null,
         ]);
     }
 }
