@@ -1,4 +1,6 @@
+{{-- Recursive folder tree rows (expand/collapse + drag-and-drop) --}}
 @foreach ($nodes as $node)
+    {{-- One folder row; hidden when an ancestor is collapsed --}}
     <tr
         class="fi-ta-row fi-clickable"
         role="row"
@@ -21,10 +23,12 @@
         @dragleave="onDragLeave($event, {{ $node['id'] }})"
         @drop="onDrop($event, {{ $node['id'] }})"
     >
+        {{-- Name column: indent by depth, toggle, folder icon --}}
         <td class="fi-ta-cell" role="gridcell">
             <div class="fi-ta-col">
                 <div class="fi-ta-text" style="padding-left: {{ 0.75 + ($depth * 1.25) }}rem">
                     <div class="flex min-w-0 items-center gap-2">
+                        {{-- Expand/collapse when this folder has children --}}
                         <button
                             type="button"
                             class="inline-flex size-6 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/10 dark:hover:text-gray-200"
@@ -40,6 +44,7 @@
                                 x-bind:class="isExpanded({{ $node['id'] }}) ? 'rotate-90' : ''"
                             />
                         </button>
+                        {{-- Spacer so leaf rows align with expandable ones --}}
                         <span
                             class="inline-flex size-6 shrink-0"
                             x-show="! hasChildren"
@@ -61,6 +66,7 @@
             </div>
         </td>
 
+        {{-- Media item count --}}
         <td class="fi-ta-cell" role="gridcell">
             <div class="fi-ta-col">
                 <div class="fi-ta-text">
@@ -71,6 +77,7 @@
             </div>
         </td>
 
+        {{-- Rename / delete; stop drag so actions stay clickable --}}
         <td class="fi-ta-cell whitespace-nowrap" role="gridcell">
             <div class="fi-ta-actions justify-end gap-4 pe-2 sm:pe-3" @mousedown.stop @dragstart.stop.prevent>
                 @if ($this->canManageFolders())
@@ -84,6 +91,7 @@
         </td>
     </tr>
 
+    {{-- Nest child folders one level deeper --}}
     @if (! empty($node['children']))
         @include('filament.pages.dam.partials.folder-nodes', [
             'nodes' => $node['children'],
