@@ -1,3 +1,4 @@
+{{-- Build id => parentId map so Alpine can hide rows when an ancestor is collapsed --}}
 @php
     $parentMap = [];
     $buildParentMap = function (array $nodes, ?int $parentId = null) use (&$buildParentMap, &$parentMap): void {
@@ -12,6 +13,7 @@
 @endphp
 
 <x-filament-panels::page>
+    {{-- Alpine state: expand/collapse + drag-and-drop move --}}
     <div
         class="space-y-4"
         x-data="{
@@ -23,6 +25,7 @@
             isExpanded(id) {
                 return this.expanded[id] !== false
             },
+            // Walk parents; hide row if any ancestor is collapsed
             isRowVisible(id) {
                 let parentId = this.parents[id]
                 while (parentId !== null && parentId !== undefined) {
@@ -62,6 +65,7 @@
                     this.dropTargetId = null
                 }
             },
+            // Nest under another folder via Livewire
             onDrop(event, parentId) {
                 event.preventDefault()
                 event.stopPropagation()
@@ -76,6 +80,7 @@
                 }
                 $wire.moveFolder(folderId, parentId)
             },
+            // Move to top level (no parent)
             onDropRoot(event) {
                 event.preventDefault()
                 if (! this.canManage || this.draggingId === null) {
@@ -97,6 +102,7 @@
             </p>
         </div>
 
+        {{-- Drop zone: make folder top-level --}}
         @if ($this->canManageFolders())
             <div
                 class="rounded-lg border border-dashed border-gray-300 bg-gray-50/80 px-4 py-3 text-sm text-gray-600 transition dark:border-white/10 dark:bg-white/5 dark:text-gray-300"
@@ -109,6 +115,7 @@
             </div>
         @endif
 
+        {{-- Folder tree table --}}
         <div class="fi-ta-ctn flex-col overflow-hidden">
             <div class="fi-ta-content relative divide-y divide-gray-200 overflow-x-auto dark:divide-white/10">
                 @if (count($tree) === 0)
@@ -136,6 +143,7 @@
                             </tr>
                         </thead>
 
+                        {{-- Recursive rows from folder-nodes partial --}}
                         <tbody>
                             @include('filament.pages.dam.partials.folder-nodes', ['nodes' => $tree, 'depth' => 0])
                         </tbody>
