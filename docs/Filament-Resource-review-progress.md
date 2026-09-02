@@ -52,7 +52,7 @@ app/Filament/Resources/Roles/
 | # | Task | Status | Notes |
 | :- | :--- | :----- | :---- |
 | 1.1 | Scaffold `RoleResource` (Pages, Schemas, Tables, RelationManagers) | ✅ | Match `UserResource` layout; nav disabled until 1.7 |
-| 1.2 | Port list UI → `RolesTable` (name, user count, permission count, actions) | ⬜ | Replace card grid |
+| 1.2 | Port list UI → `RolesTable` (name, user count, permission count, actions) | ✅ | Role badge, description, coverage %, delete guards |
 | 1.3 | Port create/edit form → `RoleForm` (name + grouped permission CheckboxList) | ⬜ | Use Filament Create/Edit pages |
 | 1.4 | Port detail view → `RoleInfolist` | ⬜ | Coverage %, permission grid |
 | 1.5 | Add `UsersRelationManager` | ⬜ | Users assigned to role |
@@ -213,6 +213,7 @@ Do not treat these as open refactor work:
 | :--- | :--- | :----------- | :---------- |
 | 2026-09-02 | — | Progress tracker created from review | — |
 | 2026-09-02 | 1.1 | Scaffolded `RoleResource` (Pages, Schemas, Tables, UsersRelationManager); nav off | — |
+| 2026-09-02 | 1.2 | Ported roles list UI into `RolesTable` (badge, description, coverage, delete guards) | — |
 
 ---
 

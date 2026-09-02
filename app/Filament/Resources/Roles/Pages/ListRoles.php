@@ -15,7 +15,7 @@ class ListRoles extends ListRecords
     {
         return [
             CreateAction::make()
-                ->label('Add New Role')
+                ->label('Add Role')
                 ->visible(fn (): bool => auth()->user()?->can(Permission::UsersEditRole->value) ?? false),
         ];
     }
