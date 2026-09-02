@@ -266,14 +266,12 @@ class IamAdminUiTest extends TestCase
 
         $role = \Spatie\Permission\Models\Role::findByName('Moderator', 'web');
 
-        // 2. Edit the role & permissions and associated user details
+        // 2. Edit the role name & permissions only (user accounts stay in UserResource)
         Livewire::actingAs($admin)
             ->test(EditRole::class, ['record' => $role->id])
             ->assertSet('roleName', 'Moderator')
-            ->assertSet('email', 'moderator@example.com')
+            ->assertSet('rolePermissions', [Permission::DashboardView->value])
             ->set('roleName', 'Super Moderator')
-            ->set('email', 'supermod@example.com')
-            ->set('password', 'newsecret')
             ->set('rolePermissions', [Permission::PostsCreate->value, Permission::PostsEditOwn->value])
             ->call('save')
             ->assertHasNoErrors();
@@ -283,17 +281,16 @@ class IamAdminUiTest extends TestCase
             'name' => 'Super Moderator',
         ]);
 
-        $this->assertDatabaseHas('users', [
-            'email' => 'supermod@example.com',
+        $this->assertDatabaseMissing('users', [
             'name' => 'Super Moderator',
+        ]);
+        $this->assertDatabaseMissing('users', [
+            'email' => 'supermod@example.com',
         ]);
 
         $this->assertTrue($role->fresh()->hasPermissionTo(Permission::PostsCreate->value));
         $this->assertTrue($role->fresh()->hasPermissionTo(Permission::PostsEditOwn->value));
         $this->assertFalse($role->fresh()->hasPermissionTo(Permission::PagesCreate->value));
-
-        // Delete the associated user so that the role can be deleted
-        \App\Models\User::where('email', 'supermod@example.com')->forceDelete();
 
         // 3. Delete the role on index page
         Livewire::actingAs($admin)

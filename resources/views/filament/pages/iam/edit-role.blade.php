@@ -1,62 +1,27 @@
 <x-filament-panels::page>
     <form wire:submit.prevent="save" class="space-y-6">
-        <!-- Role & User Information Section -->
         <x-filament::section>
-            <x-slot name="heading">Role & Associated User Details</x-slot>
-            <x-slot name="description">Modify the role name and the email & password for the account associated with this role.</x-slot>
+            <x-slot name="heading">Role Details</x-slot>
+            <x-slot name="description">Modify the role name. User accounts are managed under All Users.</x-slot>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Role Name Input -->
-                <div>
-                    <label for="roleName" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Role Name</label>
-                    <input
-                        type="text"
-                        id="roleName"
-                        wire:model.defer="roleName"
-                        class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                        @disabled($roleName === \App\Enums\UserRole::Administrator->value)
-                    >
-                    @error('roleName')
-                        <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
-                    @enderror
-                    @if ($roleName === \App\Enums\UserRole::Administrator->value)
-                        <span class="text-xs text-gray-500 mt-1 block">Administrator name is system-protected and cannot be edited.</span>
-                    @endif
-                </div>
-
-                <!-- Email Input -->
-                <div>
-                    <label for="email" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">User Email</label>
-                    <input
-                        type="email"
-                        id="email"
-                        wire:model.defer="email"
-                        class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                        required
-                    >
-                    @error('email')
-                        <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                <!-- Password Input -->
-                <div>
-                    <label for="password" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">User Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        wire:model.defer="password"
-                        class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
-                        placeholder="Leave blank to keep current password"
-                    >
-                    @error('password')
-                        <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
-                    @enderror
-                </div>
+            <div>
+                <label for="roleName" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Role Name</label>
+                <input
+                    type="text"
+                    id="roleName"
+                    wire:model.defer="roleName"
+                    class="mt-1 block w-full max-w-md rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                    @disabled($roleName === \App\Enums\UserRole::Administrator->value)
+                >
+                @error('roleName')
+                    <span class="text-xs text-danger-600 mt-1 block">{{ $message }}</span>
+                @enderror
+                @if ($roleName === \App\Enums\UserRole::Administrator->value)
+                    <span class="text-xs text-gray-500 mt-1 block">Administrator name is system-protected and cannot be edited.</span>
+                @endif
             </div>
         </x-filament::section>
 
-        <!-- Permissions Accordion Section -->
         <x-filament::section>
             <x-slot name="heading">Role Capabilities Matrix</x-slot>
             <x-slot name="description">Select capabilities permitted for this role. Click any module to expand/collapse its options.</x-slot>
@@ -67,7 +32,6 @@
                         $groupSlug = \Illuminate\Support\Str::slug($groupName);
                     @endphp
                     <div class="border border-gray-200 dark:border-gray-850 rounded-xl overflow-hidden bg-white dark:bg-gray-900/50 transition">
-                        <!-- Group Header Button -->
                         <button
                             type="button"
                             x-on:click="activeGroup = (activeGroup === '{{ $groupSlug }}' ? null : '{{ $groupSlug }}')"
@@ -95,7 +59,6 @@
                             </div>
                         </button>
 
-                        <!-- Group Capabilities List -->
                         <div
                             x-show="activeGroup === '{{ $groupSlug }}'"
                             x-collapse
@@ -127,7 +90,6 @@
             </div>
         </x-filament::section>
 
-        <!-- Form Action Buttons -->
         <div class="flex items-center gap-3 justify-end">
             <x-filament::button color="gray" type="button" href="{{ \App\Filament\Pages\Iam\RolesAndPermissions::getUrl() }}" tag="a">
                 Cancel

@@ -21,6 +21,10 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\Permission\Models\Role;
 use UnitEnum;
 
+/**
+ * Role CRUD owns name + permissions only.
+ * User create/update/password/email belongs in UserResource; assignment uses UsersRelationManager.
+ */
 class RoleResource extends Resource
 {
     protected static ?string $model = Role::class;
@@ -39,7 +43,11 @@ class RoleResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static ?string $slug = 'iam/roles';
+    /**
+     * Interim slug while legacy IAM role pages still own `/iam/roles` (until Steps 1.7–1.8).
+     * After those pages are removed, switch this to `iam/roles`.
+     */
+    protected static ?string $slug = 'iam/roles-resource';
 
     /**
      * Nav still owned by IAM custom pages until Step 1 navigation wiring (1.7).

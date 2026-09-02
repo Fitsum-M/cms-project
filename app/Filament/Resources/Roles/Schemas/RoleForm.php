@@ -14,6 +14,10 @@ use Spatie\Permission\Models\Role;
 
 class RoleForm
 {
+    /**
+     * Role fields only (name + permissions). Do not add user email/password here —
+     * those belong on UserResource / UserForm.
+     */
     public static function configure(Schema $schema): Schema
     {
         return $schema
