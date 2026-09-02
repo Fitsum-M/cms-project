@@ -116,7 +116,7 @@ app/Filament/Resources/Folders/
 | :- | :--- | :----- | :---- |
 | 2.1 | Scaffold `FolderResource` | ✅ | Match Resource layout; nav off; interim slug `dam/folders-resource` |
 | 2.2 | Port create/rename/delete/move into Resource actions or Create/Edit pages | ✅ | FolderService-backed create/edit; table Move + recursive Delete |
-| 2.3 | Decide tree UX: custom `ListFolders` tree **or** hierarchical table | ⬜ | Review allows custom list page |
+| 2.3 | Decide tree UX: custom `ListFolders` tree **or** hierarchical table | ✅ | **Decision: custom tree ListFolders** (drag-drop preserved); Edit/View via Resource pages |
 | 2.4 | Add `MediaAssetsRelationManager` | ⬜ | Files in folder |
 | 2.5 | Form/infolist: name, parent select, stats | ⬜ | |
 | 2.6 | Delete old Folders Page + Blade (list below) | ⬜ | |
@@ -224,6 +224,7 @@ Do not treat these as open refactor work:
 | 2026-09-02 | 1.10 | Full `IamAdminUiTest` passed | — |
 | 2026-09-02 | 2.1 | Scaffolded `FolderResource` (Pages, Schemas, Tables, MediaAssetsRelationManager); nav off | — |
 | 2026-09-02 | 2.2 | Ported create/rename/delete/move via FolderService + FolderActions (move/recursive delete) | — |
+| 2026-09-02 | 2.3 | Chose custom tree ListFolders (drag-drop); Resource Create/Edit/View kept | — |
 
 ---
 

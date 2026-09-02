@@ -12,6 +12,10 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
+/**
+ * Hierarchical table config kept for record actions / future use.
+ * List UX is the custom tree on ListFolders (Step 2.3 decision).
+ */
 class FoldersTable
 {
     public static function configure(Table $table): Table
