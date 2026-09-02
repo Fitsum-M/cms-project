@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Auth\Login;
 use App\Filament\Auth\RequestPasswordReset;
 use App\Filament\Auth\ResetPassword;
+use App\Filament\Navigation\PostsNavigation;
 use App\Filament\Navigation\TaxonomiesNavigation;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\DraftSummaryWidget;
@@ -50,7 +51,10 @@ class AdminPanelProvider extends PanelProvider
                 __('cms.navigation.groups.iam'),
                 __('cms.navigation.groups.system'),
             ])
-            ->navigationItems(TaxonomiesNavigation::items())
+            ->navigationItems([
+                ...PostsNavigation::items(),
+                ...TaxonomiesNavigation::items(),
+            ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([

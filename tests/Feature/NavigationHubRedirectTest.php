@@ -9,8 +9,8 @@ use App\Filament\Pages\Content\CustomPostTypes;
 use App\Filament\Pages\Content\PageHierarchy;
 use App\Filament\Pages\Content\PagesGroup;
 use App\Filament\Pages\Content\PageTemplates;
-use App\Filament\Pages\Content\PostsGroup;
 use App\Filament\Pages\Dashboard;
+use App\Filament\Navigation\PostsNavigation;
 use App\Filament\Navigation\TaxonomiesNavigation;
 use App\Filament\Resources\Categories\CategoryResource;
 use App\Filament\Resources\CustomTaxonomies\CustomTaxonomyResource;
@@ -46,12 +46,31 @@ class NavigationHubRedirectTest extends TestCase
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
-    public function test_posts_hub_redirects_to_all_posts(): void
+    public function test_posts_parent_nav_owned_without_hub(): void
     {
-        $this->actingAs($this->makeUser(UserRole::Administrator));
+        $admin = $this->makeUser(UserRole::Administrator);
+        $this->actingAs($admin);
 
-        Livewire::test(PostsGroup::class)
-            ->assertRedirect(PostResource::getUrl('index'));
+        $this->assertFileDoesNotExist(app_path('Filament/Pages/Content/PostsGroup.php'));
+        $this->assertFalse(Route::has('filament.admin.pages.content.posts-hub'));
+
+        $parent = collect(PostsNavigation::items())->keyBy(fn ($item) => $item->getLabel());
+        $this->assertTrue($parent['Posts']->isVisible());
+        $this->assertSame(PostResource::getUrl('index'), $parent['Posts']->getUrl());
+
+        $labels = collect(PostResource::getNavigationItems())
+            ->map(fn ($item) => $item->getLabel())
+            ->all();
+        $this->assertContains('All Posts', $labels);
+        $this->assertContains('Add New Post', $labels);
+
+        $this->get(PostResource::getUrl('create'))
+            ->assertOk()
+            ->assertSee('Add New Post', false);
+
+        $createItems = collect(PostResource::getNavigationItems())->keyBy(fn ($item) => $item->getLabel());
+        $this->assertTrue($createItems['Add New Post']->isActive());
+        $this->assertFalse($createItems['All Posts']->isActive());
     }
 
     public function test_pages_hub_redirects_to_all_pages(): void
@@ -146,7 +165,7 @@ class NavigationHubRedirectTest extends TestCase
 
     public function test_content_and_iam_navigation_labels_match_srs_10_1(): void
     {
-        $this->assertSame('Posts', PostsGroup::getNavigationLabel());
+        $this->assertSame('Posts', PostsNavigation::items()[0]->getLabel());
         $this->assertSame('All Posts', PostResource::getNavigationLabel());
         $this->assertSame('Custom Post Types', CustomPostTypes::getNavigationLabel());
         $this->assertSame('Manage Types', PostTypeResource::getNavigationLabel());

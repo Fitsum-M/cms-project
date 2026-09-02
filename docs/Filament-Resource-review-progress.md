@@ -175,7 +175,7 @@ app/Filament/Resources/Folders/
 | # | Hub page | Action from review | Decision | Status | Notes |
 | :- | :------- | :----------------- | :------- | :----- | :---- |
 | 4.1 | `TaxonomiesGroup` | **Delete** — resources already use `$navigationParentItem` | **Delete hub; register `TaxonomiesNavigation` parent** | ✅ | Parent nav item → Categories; no hub route |
-| 4.2 | `PostsGroup` | **Evaluate** — move child links to `PostResource::getNavigationItems()` | _TBD_ | ⬜ | |
+| 4.2 | `PostsGroup` | **Evaluate** — move child links to `PostResource::getNavigationItems()` | **Delete hub; `PostsNavigation` + Add New Post on PostResource** | ✅ | Parent → All Posts; Add New Post nested under Posts |
 | 4.3 | `PagesGroup` | **Evaluate** — same as Posts | _TBD_ | ⬜ | |
 | 4.4 | `CustomPostTypes` | **Keep or move** dynamic CPT nav onto `PostTypeResource` | _TBD_ | ⬜ | Legitimate dynamic nav |
 | 4.5 | Apply decisions; remove dead hub routes | ⬜ | |
@@ -234,6 +234,7 @@ Do not treat these as open refactor work:
 | 2026-09-02 | 3.2 | Deleted AddNewUser hub; UserResource NavigationItem + ListUsers header | — |
 | 2026-09-02 | 3.3–3.5 | Link sweep clean; create active state split; IamAdminUiTest + nav hub tests green | — |
 | 2026-09-02 | 4.1 | Deleted TaxonomiesGroup hub; TaxonomiesNavigation parent → Categories | — |
+| 2026-09-02 | 4.2 | Deleted PostsGroup hub; PostsNavigation + PostResource Add New Post | — |
 
 ---
 
