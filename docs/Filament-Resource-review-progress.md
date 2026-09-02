@@ -55,7 +55,7 @@ app/Filament/Resources/Roles/
 | 1.2 | Port list UI → `RolesTable` (name, user count, permission count, actions) | ✅ | Role badge, description, coverage %, delete guards |
 | 1.3 | Port create/edit form → `RoleForm` (name + grouped permission CheckboxList) | ✅ | No user email/password; syncPermissions on create/save |
 | 1.4 | Port detail view → `RoleInfolist` | ✅ | Summary, coverage %, grouped permission IconEntry grid |
-| 1.5 | Add `UsersRelationManager` | ⬜ | Users assigned to role |
+| 1.5 | Add `UsersRelationManager` | ✅ | List, assign via RoleAssignmentService, reassign, link to UserResource |
 | 1.6 | **Separate** role CRUD from user create/update/password sync | ⬜ | User work stays in `UserResource` only |
 | 1.7 | Wire navigation, policies, global search | ⬜ | Remove per-role `getNavigationItems()` DB query |
 | 1.8 | Delete old IAM Pages + Blade templates (list below) | ⬜ | After feature parity |
@@ -216,6 +216,7 @@ Do not treat these as open refactor work:
 | 2026-09-02 | 1.2 | Ported roles list UI into `RolesTable` (badge, description, coverage, delete guards) | — |
 | 2026-09-02 | 1.3 | Ported role form (name + grouped permissions); wired Create/Edit syncPermissions | — |
 | 2026-09-02 | 1.4 | Ported role detail into `RoleInfolist` (summary, coverage, capability matrix) | — |
+| 2026-09-02 | 1.5 | Fleshed out `UsersRelationManager` (assign/reassign via RoleAssignmentService) | — |
 
 ---
 
