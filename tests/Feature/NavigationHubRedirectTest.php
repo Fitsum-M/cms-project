@@ -10,8 +10,8 @@ use App\Filament\Pages\Content\PageHierarchy;
 use App\Filament\Pages\Content\PagesGroup;
 use App\Filament\Pages\Content\PageTemplates;
 use App\Filament\Pages\Content\PostsGroup;
-use App\Filament\Pages\Content\TaxonomiesGroup;
 use App\Filament\Pages\Dashboard;
+use App\Filament\Navigation\TaxonomiesNavigation;
 use App\Filament\Resources\Categories\CategoryResource;
 use App\Filament\Resources\CustomTaxonomies\CustomTaxonomyResource;
 use App\Filament\Resources\Pages\PageResource;
@@ -62,12 +62,21 @@ class NavigationHubRedirectTest extends TestCase
             ->assertRedirect(PageResource::getUrl('index'));
     }
 
-    public function test_taxonomies_hub_redirects_to_categories(): void
+    public function test_taxonomies_parent_nav_owned_without_hub(): void
     {
-        $this->actingAs($this->makeUser(UserRole::Administrator));
+        $admin = $this->makeUser(UserRole::Administrator);
+        $this->actingAs($admin);
 
-        Livewire::test(TaxonomiesGroup::class)
-            ->assertRedirect(CategoryResource::getUrl('index'));
+        $this->assertFileDoesNotExist(app_path('Filament/Pages/Content/TaxonomiesGroup.php'));
+        $this->assertFalse(Route::has('filament.admin.pages.content.taxonomies-hub'));
+
+        $items = collect(TaxonomiesNavigation::items())->keyBy(fn ($item) => $item->getLabel());
+        $this->assertTrue($items['Taxonomies']->isVisible());
+        $this->assertSame(CategoryResource::getUrl('index'), $items['Taxonomies']->getUrl());
+
+        $this->get(CategoryResource::getUrl('index'))
+            ->assertOk()
+            ->assertSee('Categories', false);
     }
 
     public function test_custom_post_types_hub_redirects_to_manage_types_for_administrators(): void
@@ -147,7 +156,7 @@ class NavigationHubRedirectTest extends TestCase
         $this->assertSame('Page Hierarchy', PageHierarchy::getNavigationLabel());
         $this->assertSame('Page Templates', PageTemplates::getNavigationLabel());
 
-        $this->assertSame('Taxonomies', TaxonomiesGroup::getNavigationLabel());
+        $this->assertSame('Taxonomies', TaxonomiesNavigation::items()[0]->getLabel());
         $this->assertSame('Categories', CategoryResource::getNavigationLabel());
         $this->assertSame('Tags', TagResource::getNavigationLabel());
         $this->assertSame('Custom Taxonomies', CustomTaxonomyResource::getNavigationLabel());

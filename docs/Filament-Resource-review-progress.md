@@ -167,14 +167,14 @@ app/Filament/Resources/Folders/
 ## Step 4 — Review Content / taxonomy hubs
 
 **Priority:** 🟡 Medium  
-**Status:** ⬜ Not started  
+**Status:** 🟡 In progress  
 **PR:** _link when opened_
 
 ### Checklist
 
 | # | Hub page | Action from review | Decision | Status | Notes |
 | :- | :------- | :----------------- | :------- | :----- | :---- |
-| 4.1 | `TaxonomiesGroup` | **Delete** — resources already use `$navigationParentItem` | _TBD_ | ⬜ | |
+| 4.1 | `TaxonomiesGroup` | **Delete** — resources already use `$navigationParentItem` | **Delete hub; register `TaxonomiesNavigation` parent** | ✅ | Parent nav item → Categories; no hub route |
 | 4.2 | `PostsGroup` | **Evaluate** — move child links to `PostResource::getNavigationItems()` | _TBD_ | ⬜ | |
 | 4.3 | `PagesGroup` | **Evaluate** — same as Posts | _TBD_ | ⬜ | |
 | 4.4 | `CustomPostTypes` | **Keep or move** dynamic CPT nav onto `PostTypeResource` | _TBD_ | ⬜ | Legitimate dynamic nav |
@@ -233,6 +233,7 @@ Do not treat these as open refactor work:
 | 2026-09-02 | 3.1 | Deleted AllUsers hub; UserResource owns All Users nav + dashboard users link | — |
 | 2026-09-02 | 3.2 | Deleted AddNewUser hub; UserResource NavigationItem + ListUsers header | — |
 | 2026-09-02 | 3.3–3.5 | Link sweep clean; create active state split; IamAdminUiTest + nav hub tests green | — |
+| 2026-09-02 | 4.1 | Deleted TaxonomiesGroup hub; TaxonomiesNavigation parent → Categories | — |
 
 ---
 
