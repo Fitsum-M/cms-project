@@ -23,7 +23,7 @@ use UnitEnum;
 
 /**
  * Folder CRUD via FolderService (create / rename / move / delete).
- * Nav still owned by Dam\Folders page until later Step 2 wiring.
+ * List UX is the custom tree on ListFolders.
  */
 class FolderResource extends Resource
 {
@@ -43,14 +43,11 @@ class FolderResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    /**
-     * Interim slug while legacy Dam\Folders still owns `/dam/folders` (until Steps 2.6–2.7).
-     */
-    protected static ?string $slug = 'dam/folders-resource';
+    protected static ?string $slug = 'dam/folders';
 
     public static function shouldRegisterNavigation(): bool
     {
-        return false;
+        return static::canAccess();
     }
 
     public static function form(Schema $schema): Schema

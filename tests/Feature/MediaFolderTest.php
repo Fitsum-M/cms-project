@@ -5,7 +5,8 @@ namespace Tests\Feature;
 use App\Enums\Permission;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
-use App\Filament\Pages\Dam\Folders;
+use App\Filament\Resources\Folders\Pages\CreateFolder;
+use App\Filament\Resources\Folders\Pages\ListFolders;
 use App\Filament\Resources\MediaAssets\Pages\ListMediaAssets;
 use App\Models\Folder;
 use App\Models\MediaAsset;
@@ -135,13 +136,13 @@ class MediaFolderTest extends TestCase
         $child = Folder::factory()->create(['name' => 'Nested', 'parent_id' => null]);
 
         Livewire::actingAs($admin)
-            ->test(Folders::class)
-            ->assertSuccessful()
-            ->callAction('createFolder', [
+            ->test(CreateFolder::class)
+            ->fillForm([
                 'name' => 'Created',
                 'parent_id' => $parent->id,
             ])
-            ->assertHasNoActionErrors();
+            ->call('create')
+            ->assertHasNoFormErrors();
 
         $this->assertDatabaseHas('folders', [
             'name' => 'Created',
@@ -149,7 +150,7 @@ class MediaFolderTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)
-            ->test(Folders::class)
+            ->test(ListFolders::class)
             ->call('moveFolder', $child->id, $parent->id)
             ->assertSuccessful();
 
@@ -198,9 +199,9 @@ class MediaFolderTest extends TestCase
         $contributor = $this->makeUser(UserRole::Contributor);
 
         Livewire::actingAs($contributor)
-            ->test(Folders::class)
+            ->test(ListFolders::class)
             ->assertSuccessful()
-            ->assertActionHidden('createFolder');
+            ->assertActionHidden('create');
     }
 
     private function makeUser(UserRole $role): User

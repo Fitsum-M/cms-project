@@ -13,7 +13,7 @@
 | Phase | Focus | Status |
 | :---- | :---- | :----- |
 | Step 1 | `RoleResource` | ✅ Done |
-| Step 2 | `FolderResource` | 🟡 In progress |
+| Step 2 | `FolderResource` | 🟡 In progress (2.8 tests remaining) |
 | Step 3 | Delete IAM hub pages | ⬜ Not started |
 | Step 4 | Review Content hubs | ⬜ Not started |
 | Later | Low-priority UX improvements | ⬜ Not started |
@@ -119,22 +119,22 @@ app/Filament/Resources/Folders/
 | 2.3 | Decide tree UX: custom `ListFolders` tree **or** hierarchical table | ✅ | **Decision: custom tree ListFolders** (drag-drop preserved); Edit/View via Resource pages |
 | 2.4 | Add `MediaAssetsRelationManager` | ✅ | List/preview, add existing, move/bulk move, delete; links to MediaAssetResource |
 | 2.5 | Form/infolist: name, parent select, stats | ✅ | Path preview on form; summary + contents stats on View |
-| 2.6 | Delete old Folders Page + Blade (list below) | ⬜ | |
-| 2.7 | Update DAM nav / links | ⬜ | |
+| 2.6 | Delete old Folders Page + Blade (list below) | ✅ | Legacy page + Blade removed; FolderResource owns `dam/folders` + nav |
+| 2.7 | Update DAM nav / links | ✅ | FolderResource registers Folders nav; tests use ListFolders/CreateFolder |
 | 2.8 | Run `MediaUploadTest` (+ any folder tests); fix failures | ⬜ | |
 
 ### Files to delete when Step 2 is done
 
-- [ ] `app/Filament/Pages/Dam/Folders.php`
-- [ ] `resources/views/filament/pages/dam/folders.blade.php`
-- [ ] `resources/views/filament/pages/dam/partials/folder-nodes.blade.php`
+- [x] `app/Filament/Pages/Dam/Folders.php`
+- [x] `resources/views/filament/pages/dam/folders.blade.php`
+- [x] `resources/views/filament/pages/dam/partials/folder-nodes.blade.php`
 
 ### Done criteria
 
-- [ ] Folder CRUD works via Resource
-- [ ] Authorization goes through policies / Resource, not ad-hoc action checks only
-- [ ] Media-in-folder visible via relation manager (or equivalent)
-- [ ] Old Folders page + Blade removed (or tree kept only as custom List page under Resource)
+- [x] Folder CRUD works via Resource
+- [x] Authorization goes through policies / Resource, not ad-hoc action checks only
+- [x] Media-in-folder visible via relation manager (or equivalent)
+- [x] Old Folders page + Blade removed (or tree kept only as custom List page under Resource)
 - [ ] Relevant media/DAM tests pass
 
 ---
@@ -227,6 +227,8 @@ Do not treat these as open refactor work:
 | 2026-09-02 | 2.3 | Chose custom tree ListFolders (drag-drop); Resource Create/Edit/View kept | — |
 | 2026-09-02 | 2.4 | Fleshed out MediaAssetsRelationManager (list, add existing, move, delete) | — |
 | 2026-09-02 | 2.5 | Polished FolderForm (path preview) + FolderInfolist (path, empty, counts) | — |
+| 2026-09-02 | 2.6 | Deleted legacy Dam Folders page + Blade; FolderResource owns `dam/folders` + nav | — |
+| 2026-09-02 | 2.7 | DAM nav/links pointed at FolderResource; MediaFolderTest updated | — |
 
 ---
 
