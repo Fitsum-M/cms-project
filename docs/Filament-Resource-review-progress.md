@@ -13,7 +13,7 @@
 | Phase | Focus | Status |
 | :---- | :---- | :----- |
 | Step 1 | `RoleResource` | ✅ Done |
-| Step 2 | `FolderResource` | ⬜ Not started |
+| Step 2 | `FolderResource` | 🟡 In progress |
 | Step 3 | Delete IAM hub pages | ⬜ Not started |
 | Step 4 | Review Content hubs | ⬜ Not started |
 | Later | Low-priority UX improvements | ⬜ Not started |
@@ -25,7 +25,7 @@
 **Priority:** 🔴 High  
 **Model:** `Spatie\Permission\Models\Role`  
 **Template:** `app/Filament/Resources/Users/`  
-**Status:** 🟡 In progress  
+**Status:** ✅ Done  
 **PR:** _link when opened_
 
 ### Target structure
@@ -88,7 +88,7 @@ app/Filament/Resources/Roles/
 **Priority:** 🔴 High  
 **Model:** `App\Models\Folder`  
 **Depends on:** Step 1 preferred (not hard-blocked)  
-**Status:** ⬜ Not started  
+**Status:** 🟡 In progress  
 **PR:** _link when opened_
 
 ### Target structure
@@ -114,8 +114,8 @@ app/Filament/Resources/Folders/
 
 | # | Task | Status | Notes |
 | :- | :--- | :----- | :---- |
-| 2.1 | Scaffold `FolderResource` | ⬜ | |
-| 2.2 | Port create/rename/delete/move into Resource actions or Create/Edit pages | ⬜ | Policy-backed auth |
+| 2.1 | Scaffold `FolderResource` | ✅ | Match Resource layout; nav off; interim slug `dam/folders-resource` |
+| 2.2 | Port create/rename/delete/move into Resource actions or Create/Edit pages | ✅ | FolderService-backed create/edit; table Move + recursive Delete |
 | 2.3 | Decide tree UX: custom `ListFolders` tree **or** hierarchical table | ⬜ | Review allows custom list page |
 | 2.4 | Add `MediaAssetsRelationManager` | ⬜ | Files in folder |
 | 2.5 | Form/infolist: name, parent select, stats | ⬜ | |
@@ -222,6 +222,8 @@ Do not treat these as open refactor work:
 | 2026-09-02 | 1.8 | Deleted legacy IAM role Pages + Blade; IamAdminUiTest / nav tests pointed at RoleResource | — |
 | 2026-09-02 | 1.9 | Link sweep clean; removed orphan `permission-status` partial; routes only RoleResource | — |
 | 2026-09-02 | 1.10 | Full `IamAdminUiTest` passed | — |
+| 2026-09-02 | 2.1 | Scaffolded `FolderResource` (Pages, Schemas, Tables, MediaAssetsRelationManager); nav off | — |
+| 2026-09-02 | 2.2 | Ported create/rename/delete/move via FolderService + FolderActions (move/recursive delete) | — |
 
 ---
 
