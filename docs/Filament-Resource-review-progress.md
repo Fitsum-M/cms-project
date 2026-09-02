@@ -13,7 +13,7 @@
 | Phase | Focus | Status |
 | :---- | :---- | :----- |
 | Step 1 | `RoleResource` | ✅ Done |
-| Step 2 | `FolderResource` | 🟡 In progress (2.8 tests remaining) |
+| Step 2 | `FolderResource` | ✅ Done |
 | Step 3 | Delete IAM hub pages | ⬜ Not started |
 | Step 4 | Review Content hubs | ⬜ Not started |
 | Later | Low-priority UX improvements | ⬜ Not started |
@@ -88,7 +88,7 @@ app/Filament/Resources/Roles/
 **Priority:** 🔴 High  
 **Model:** `App\Models\Folder`  
 **Depends on:** Step 1 preferred (not hard-blocked)  
-**Status:** 🟡 In progress  
+**Status:** ✅ Done  
 **PR:** _link when opened_
 
 ### Target structure
@@ -121,7 +121,7 @@ app/Filament/Resources/Folders/
 | 2.5 | Form/infolist: name, parent select, stats | ✅ | Path preview on form; summary + contents stats on View |
 | 2.6 | Delete old Folders Page + Blade (list below) | ✅ | Legacy page + Blade removed; FolderResource owns `dam/folders` + nav |
 | 2.7 | Update DAM nav / links | ✅ | FolderResource registers Folders nav; tests use ListFolders/CreateFolder |
-| 2.8 | Run `MediaUploadTest` (+ any folder tests); fix failures | ⬜ | |
+| 2.8 | Run `MediaUploadTest` (+ any folder tests); fix failures | ✅ | MediaFolderTest + MediaUploadTest green |
 
 ### Files to delete when Step 2 is done
 
@@ -135,7 +135,7 @@ app/Filament/Resources/Folders/
 - [x] Authorization goes through policies / Resource, not ad-hoc action checks only
 - [x] Media-in-folder visible via relation manager (or equivalent)
 - [x] Old Folders page + Blade removed (or tree kept only as custom List page under Resource)
-- [ ] Relevant media/DAM tests pass
+- [x] Relevant media/DAM tests pass
 
 ---
 
@@ -229,6 +229,7 @@ Do not treat these as open refactor work:
 | 2026-09-02 | 2.5 | Polished FolderForm (path preview) + FolderInfolist (path, empty, counts) | — |
 | 2026-09-02 | 2.6 | Deleted legacy Dam Folders page + Blade; FolderResource owns `dam/folders` + nav | — |
 | 2026-09-02 | 2.7 | DAM nav/links pointed at FolderResource; MediaFolderTest updated | — |
+| 2026-09-02 | 2.8 | MediaUploadTest + MediaFolderTest passed (no code fixes needed) | — |
 
 ---
 
