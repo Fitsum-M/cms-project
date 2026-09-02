@@ -6,7 +6,6 @@ use App\Enums\Permission;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Pages\Iam\AddNewUser;
-use App\Filament\Pages\Iam\AllUsers;
 use App\Filament\Resources\Roles\Pages\CreateRole;
 use App\Filament\Resources\Roles\Pages\EditRole;
 use App\Filament\Resources\Roles\Pages\ListRoles;
@@ -38,12 +37,17 @@ class IamAdminUiTest extends TestCase
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
-    public function test_all_users_hub_redirects_to_listing(): void
+    public function test_user_resource_owns_all_users_navigation(): void
     {
-        $this->actingAs($this->makeUser(UserRole::Administrator));
+        $admin = $this->makeUser(UserRole::Administrator);
 
-        Livewire::test(AllUsers::class)
-            ->assertRedirect(UserResource::getUrl('index'));
+        $this->actingAs($admin);
+        $this->assertTrue(UserResource::shouldRegisterNavigation());
+        $this->assertSame('All Users', UserResource::getNavigationLabel());
+
+        Livewire::actingAs($admin)
+            ->test(ListUsers::class)
+            ->assertOk();
     }
 
     public function test_add_new_user_hub_redirects_to_create(): void
@@ -212,10 +216,6 @@ class IamAdminUiTest extends TestCase
 
             Livewire::actingAs($user)
                 ->test(ListUsers::class)
-                ->assertForbidden();
-
-            Livewire::actingAs($user)
-                ->test(AllUsers::class)
                 ->assertForbidden();
 
             Livewire::actingAs($user)

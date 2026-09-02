@@ -3,10 +3,10 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\Permission;
-use App\Filament\Pages\Iam\AllUsers;
 use App\Filament\Resources\MediaAssets\MediaAssetResource;
 use App\Filament\Resources\Pages\PageResource;
 use App\Filament\Resources\Posts\PostResource;
+use App\Filament\Resources\Users\UserResource;
 use App\Services\DashboardOverviewService;
 use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\StatsOverviewWidget;
@@ -66,7 +66,7 @@ class OverviewStatsWidget extends StatsOverviewWidget
                 ->description(__('cms.dashboard.overview.stats.users_description'))
                 ->icon(Heroicon::OutlinedUsers)
                 ->color('gray')
-                ->url(AllUsers::getUrl()),
+                ->url(UserResource::getUrl('index')),
         ];
     }
 }

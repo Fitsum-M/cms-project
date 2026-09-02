@@ -41,12 +41,9 @@ class UserResource extends Resource
 
     protected static ?string $slug = 'iam/users';
 
-    /**
-     * Nav labels for All Users / Add New User are owned by IAM hub pages (SRS 10.1).
-     */
     public static function shouldRegisterNavigation(): bool
     {
-        return false;
+        return static::canAccess();
     }
 
     public static function form(Schema $schema): Schema

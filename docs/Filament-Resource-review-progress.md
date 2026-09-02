@@ -14,7 +14,7 @@
 | :---- | :---- | :----- |
 | Step 1 | `RoleResource` | ✅ Done |
 | Step 2 | `FolderResource` | ✅ Done |
-| Step 3 | Delete IAM hub pages | ⬜ Not started |
+| Step 3 | Delete IAM hub pages | 🟡 In progress |
 | Step 4 | Review Content hubs | ⬜ Not started |
 | Later | Low-priority UX improvements | ⬜ Not started |
 
@@ -143,14 +143,14 @@ app/Filament/Resources/Folders/
 
 **Priority:** 🟡 Medium  
 **Depends on:** Step 1 (RoleResource in place); UserResource already owns user CRUD  
-**Status:** ⬜ Not started  
+**Status:** 🟡 In progress  
 **PR:** _link when opened_
 
 ### Checklist
 
 | # | Hub page | Action | Status | Notes |
 | :- | :------- | :----- | :----- | :---- |
-| 3.1 | `AllUsers` | **Delete** — `UserResource` owns nav | ⬜ | |
+| 3.1 | `AllUsers` | **Delete** — `UserResource` owns nav | ✅ | Hub deleted; UserResource registers All Users |
 | 3.2 | `AddNewUser` | **Delete** — use ListUsers header action or `NavigationItem` | ⬜ | |
 | 3.3 | Confirm no remaining links to hub routes | ⬜ | |
 | 3.4 | Verify sidebar active states / badges | ⬜ | |
@@ -230,6 +230,7 @@ Do not treat these as open refactor work:
 | 2026-09-02 | 2.6 | Deleted legacy Dam Folders page + Blade; FolderResource owns `dam/folders` + nav | — |
 | 2026-09-02 | 2.7 | DAM nav/links pointed at FolderResource; MediaFolderTest updated | — |
 | 2026-09-02 | 2.8 | MediaUploadTest + MediaFolderTest passed (no code fixes needed) | — |
+| 2026-09-02 | 3.1 | Deleted AllUsers hub; UserResource owns All Users nav + dashboard users link | — |
 
 ---
 

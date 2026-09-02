@@ -13,7 +13,6 @@ use App\Filament\Pages\Content\PostsGroup;
 use App\Filament\Pages\Content\TaxonomiesGroup;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\Iam\AddNewUser;
-use App\Filament\Pages\Iam\AllUsers;
 use App\Filament\Resources\Categories\CategoryResource;
 use App\Filament\Resources\CustomTaxonomies\CustomTaxonomyResource;
 use App\Filament\Resources\Pages\PageResource;
@@ -79,15 +78,22 @@ class NavigationHubRedirectTest extends TestCase
             ->assertRedirect(PostTypeResource::getUrl('index'));
     }
 
-    public function test_iam_user_hubs_redirect_to_user_resource(): void
+    public function test_add_new_user_hub_redirects_to_user_resource_create(): void
     {
         $this->actingAs($this->makeUser(UserRole::Administrator));
 
-        Livewire::test(AllUsers::class)
-            ->assertRedirect(UserResource::getUrl('index'));
-
         Livewire::test(AddNewUser::class)
             ->assertRedirect(UserResource::getUrl('create'));
+    }
+
+    public function test_user_resource_owns_all_users_navigation(): void
+    {
+        $admin = $this->makeUser(UserRole::Administrator);
+
+        $this->actingAs($admin);
+        $this->assertTrue(UserResource::shouldRegisterNavigation());
+        $this->assertSame('All Users', UserResource::getNavigationLabel());
+        $this->assertSame('iam/users', UserResource::getSlug());
     }
 
     public function test_content_and_iam_navigation_labels_match_srs_10_1(): void
@@ -107,7 +113,7 @@ class NavigationHubRedirectTest extends TestCase
         $this->assertSame('Tags', TagResource::getNavigationLabel());
         $this->assertSame('Custom Taxonomies', CustomTaxonomyResource::getNavigationLabel());
 
-        $this->assertSame('All Users', AllUsers::getNavigationLabel());
+        $this->assertSame('All Users', UserResource::getNavigationLabel());
         $this->assertSame('Add New User', AddNewUser::getNavigationLabel());
         $this->assertSame('Roles & Permissions', RoleResource::getNavigationLabel());
     }
