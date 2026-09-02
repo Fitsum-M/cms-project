@@ -177,7 +177,7 @@ app/Filament/Resources/Folders/
 | 4.1 | `TaxonomiesGroup` | **Delete** — resources already use `$navigationParentItem` | **Delete hub; register `TaxonomiesNavigation` parent** | ✅ | Parent nav item → Categories; no hub route |
 | 4.2 | `PostsGroup` | **Evaluate** — move child links to `PostResource::getNavigationItems()` | **Delete hub; `PostsNavigation` + Add New Post on PostResource** | ✅ | Parent → All Posts; Add New Post nested under Posts |
 | 4.3 | `PagesGroup` | **Evaluate** — same as Posts | **Delete hub; `PagesNavigation` + Add New Page on PageResource** | ✅ | Parent → All Pages; Hierarchy/Templates still nest |
-| 4.4 | `CustomPostTypes` | **Keep or move** dynamic CPT nav onto `PostTypeResource` | _TBD_ | ⬜ | Legitimate dynamic nav |
+| 4.4 | `CustomPostTypes` | **Keep or move** dynamic CPT nav onto `PostTypeResource` | **Move — delete hub; `CustomPostTypesNavigation` + CPT items on PostResource** | ✅ | Not only PostTypeResource (manage-only); listings need PostsView |
 | 4.5 | Apply decisions; remove dead hub routes | ⬜ | |
 | 4.6 | Smoke-test Content sidebar | ⬜ | |
 
@@ -236,6 +236,7 @@ Do not treat these as open refactor work:
 | 2026-09-02 | 4.1 | Deleted TaxonomiesGroup hub; TaxonomiesNavigation parent → Categories | — |
 | 2026-09-02 | 4.2 | Deleted PostsGroup hub; PostsNavigation + PostResource Add New Post | — |
 | 2026-09-02 | 4.3 | Deleted PagesGroup hub; PagesNavigation + PageResource Add New Page | — |
+| 2026-09-02 | 4.4 | Deleted CustomPostTypes hub; CustomPostTypesNavigation + CPT nav on PostResource | — |
 
 ---
 

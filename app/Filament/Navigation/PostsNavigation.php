@@ -11,7 +11,7 @@ use function Filament\Support\original_request;
 
 /**
  * Content → Posts parent item (SRS 10.1) without a redirect hub page.
- * Children nest via PostResource / CustomPostTypes `$navigationParentItem = 'Posts'`.
+ * Children nest via PostResource / Custom Post Types `$navigationParentItem = 'Posts'`.
  */
 final class PostsNavigation
 {
@@ -40,7 +40,6 @@ final class PostsNavigation
                 ->url(fn (): string => PostResource::getUrl('index'))
                 ->isActiveWhen(fn (): bool => original_request()->routeIs([
                     'filament.admin.resources.content.posts.*',
-                    'filament.admin.pages.content.posts.custom-types',
                     'filament.admin.resources.content.posts.types.*',
                 ])),
         ];

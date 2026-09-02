@@ -5,10 +5,10 @@ namespace Tests\Feature;
 use App\Enums\Permission;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
-use App\Filament\Pages\Content\CustomPostTypes;
 use App\Filament\Pages\Content\PageHierarchy;
 use App\Filament\Pages\Content\PageTemplates;
 use App\Filament\Pages\Dashboard;
+use App\Filament\Navigation\CustomPostTypesNavigation;
 use App\Filament\Navigation\PagesNavigation;
 use App\Filament\Navigation\PostsNavigation;
 use App\Filament\Navigation\TaxonomiesNavigation;
@@ -25,6 +25,7 @@ use App\Filament\Widgets\OverviewStatsWidget;
 use App\Filament\Widgets\QuickActionsWidget;
 use App\Filament\Widgets\RecentContentWidget;
 use App\Models\User;
+use App\Services\PostTypeService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
@@ -117,12 +118,33 @@ class NavigationHubRedirectTest extends TestCase
             ->assertSee('Categories', false);
     }
 
-    public function test_custom_post_types_hub_redirects_to_manage_types_for_administrators(): void
+    public function test_custom_post_types_nav_owned_without_hub(): void
     {
-        $this->actingAs($this->makeUser(UserRole::Administrator));
+        $admin = $this->makeUser(UserRole::Administrator);
+        $this->actingAs($admin);
 
-        Livewire::test(CustomPostTypes::class)
-            ->assertRedirect(PostTypeResource::getUrl('index'));
+        app(PostTypeService::class)->create([
+            'plural_name' => 'Case Studies',
+            'singular_name' => 'Case Study',
+            'slug' => 'case-studies',
+            'icon' => 'heroicon-o-briefcase',
+        ]);
+
+        $this->assertFileDoesNotExist(app_path('Filament/Pages/Content/CustomPostTypes.php'));
+        $this->assertFalse(Route::has('filament.admin.pages.content.posts.custom-types'));
+
+        $parent = collect(CustomPostTypesNavigation::items())->keyBy(fn ($item) => $item->getLabel());
+        $this->assertTrue($parent['Custom Post Types']->isVisible());
+        $this->assertSame(PostTypeResource::getUrl('index'), $parent['Custom Post Types']->getUrl());
+        $this->assertSame('Posts', $parent['Custom Post Types']->getParentItem());
+
+        $labels = collect(PostResource::getNavigationItems())
+            ->map(fn ($item) => $item->getLabel())
+            ->all();
+        $this->assertContains('Case Studies', $labels);
+
+        $this->get(PostTypeResource::getUrl('index'))
+            ->assertOk();
     }
 
     public function test_user_resource_owns_all_users_and_add_new_user_navigation(): void
@@ -186,7 +208,7 @@ class NavigationHubRedirectTest extends TestCase
     {
         $this->assertSame('Posts', PostsNavigation::items()[0]->getLabel());
         $this->assertSame('All Posts', PostResource::getNavigationLabel());
-        $this->assertSame('Custom Post Types', CustomPostTypes::getNavigationLabel());
+        $this->assertSame('Custom Post Types', CustomPostTypesNavigation::items()[0]->getLabel());
         $this->assertSame('Manage Types', PostTypeResource::getNavigationLabel());
 
         $this->assertSame('Pages', PagesNavigation::items()[0]->getLabel());
@@ -221,7 +243,7 @@ class NavigationHubRedirectTest extends TestCase
     public function test_content_navigation_parent_nesting_matches_srs_10_1(): void
     {
         $this->assertSame('Posts', $this->navigationParentItem(PostResource::class));
-        $this->assertSame('Posts', $this->navigationParentItem(CustomPostTypes::class));
+        $this->assertSame('Posts', CustomPostTypesNavigation::items()[0]->getParentItem());
         $this->assertSame('Custom Post Types', $this->navigationParentItem(PostTypeResource::class));
 
         $this->assertSame('Pages', $this->navigationParentItem(PageResource::class));

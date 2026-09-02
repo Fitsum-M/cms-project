@@ -11,6 +11,7 @@ use App\Filament\Resources\Posts\Schemas\PostForm;
 use App\Filament\Resources\Posts\Schemas\PostInfolist;
 use App\Filament\Resources\Posts\Tables\PostsTable;
 use App\Models\Post;
+use App\Support\PostTypeRegistry;
 use BackedEnum;
 use Filament\Navigation\NavigationItem;
 use Filament\Resources\Resource;
@@ -69,17 +70,72 @@ class PostResource extends Resource
     {
         $items = parent::getNavigationItems();
 
-        if (! (auth()->user()?->can(Permission::PostsCreate->value) ?? false)) {
-            return $items;
+        foreach ($items as $item) {
+            $item->isActiveWhen(function (): bool {
+                $request = original_request();
+                $base = static::getRouteBaseName();
+
+                if (! $request->routeIs([
+                    $base.'.index',
+                    $base.'.view',
+                    $base.'.edit',
+                ])) {
+                    return false;
+                }
+
+                $postType = $request->query('post_type');
+
+                return ! (is_string($postType) && PostTypeRegistry::isCustom($postType));
+            });
         }
 
-        $items[] = NavigationItem::make('Add New Post')
-            ->group(static::getNavigationGroup())
-            ->parentItem('Posts')
-            ->icon(Heroicon::OutlinedPlusCircle)
-            ->sort(12)
-            ->url(static::getUrl('create'))
-            ->isActiveWhen(fn (): bool => original_request()->routeIs(static::getRouteBaseName().'.create'));
+        if (auth()->user()?->can(Permission::PostsCreate->value) ?? false) {
+            $items[] = NavigationItem::make('Add New Post')
+                ->group(static::getNavigationGroup())
+                ->parentItem('Posts')
+                ->icon(Heroicon::OutlinedPlusCircle)
+                ->sort(12)
+                ->url(static::getUrl('create'))
+                ->isActiveWhen(fn (): bool => original_request()->routeIs(static::getRouteBaseName().'.create'));
+        }
+
+        return array_merge($items, static::customPostTypeNavigationItems());
+    }
+
+    /**
+     * CPT listings under Custom Post Types (SRS 12.4.1). Registered here so auth/registry resolve per request.
+     *
+     * @return list<NavigationItem>
+     */
+    public static function customPostTypeNavigationItems(): array
+    {
+        $user = auth()->user();
+
+        if ($user === null) {
+            return [];
+        }
+
+        if (! ($user->can(Permission::PostsViewAll->value) || $user->can(Permission::PostsViewOwn->value))) {
+            return [];
+        }
+
+        $items = [];
+        $sort = 10;
+
+        foreach (PostTypeRegistry::customTypes() as $type) {
+            $slug = $type->slug;
+
+            $items[] = NavigationItem::make($type->plural_name)
+                ->group(static::getNavigationGroup())
+                ->parentItem('Custom Post Types')
+                ->icon($type->resolvedIcon())
+                ->sort($sort++)
+                ->url(fn (): string => static::getUrl('index', [
+                    'post_type' => $slug,
+                ]))
+                ->isActiveWhen(fn (): bool => original_request()->routeIs(static::getRouteBaseName().'.*')
+                    && original_request()->query('post_type') === $slug);
+        }
 
         return $items;
     }

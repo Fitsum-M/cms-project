@@ -7,8 +7,8 @@ use Filament\Pages\Page;
 /**
  * Navigation hub: appears in the sidebar and immediately redirects to a real UI.
  *
- * Used for §10.1 parent items (CPT) that exist for nesting / labels,
- * not as standalone screens. IAM hubs, TaxonomiesGroup, PostsGroup, and PagesGroup were removed.
+ * No Content/IAM hub pages remain (moved to *Navigation helpers + Resources).
+ * Kept as a shared base if a future hub is needed.
  */
 abstract class NavigationHubPage extends Page
 {
