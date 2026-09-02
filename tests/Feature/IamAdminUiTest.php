@@ -7,10 +7,10 @@ use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Pages\Iam\AddNewUser;
 use App\Filament\Pages\Iam\AllUsers;
-use App\Filament\Pages\Iam\CreateRole;
-use App\Filament\Pages\Iam\EditRole;
-use App\Filament\Pages\Iam\RoleDetailPage;
-use App\Filament\Pages\Iam\RolesAndPermissions;
+use App\Filament\Resources\Roles\Pages\CreateRole;
+use App\Filament\Resources\Roles\Pages\EditRole;
+use App\Filament\Resources\Roles\Pages\ListRoles;
+use App\Filament\Resources\Roles\Pages\ViewRole;
 use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
@@ -22,6 +22,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission as PermissionModel;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
@@ -218,27 +219,31 @@ class IamAdminUiTest extends TestCase
                 ->assertForbidden();
 
             Livewire::actingAs($user)
-                ->test(RolesAndPermissions::class)
+                ->test(ListRoles::class)
                 ->assertForbidden();
 
+            $administratorRole = Role::findByName('Administrator', 'web');
+
             Livewire::actingAs($user)
-                ->test(RoleDetailPage::class, ['record' => 'Administrator'])
+                ->test(ViewRole::class, ['record' => $administratorRole->getRouteKey()])
                 ->assertForbidden();
         }
     }
 
-    public function test_roles_matrix_and_role_detail_pages_are_readable_by_admin(): void
+    public function test_roles_list_and_role_view_pages_are_readable_by_admin(): void
     {
         $admin = $this->makeUser(UserRole::Administrator);
 
         Livewire::actingAs($admin)
-            ->test(RolesAndPermissions::class)
+            ->test(ListRoles::class)
             ->assertOk()
-            ->assertSee('Administrator');
+            ->assertCanSeeTableRecords(Role::query()->where('guard_name', 'web')->get());
 
         foreach (['Administrator', 'Editor', 'Author', 'Contributor'] as $roleName) {
+            $role = Role::findByName($roleName, 'web');
+
             Livewire::actingAs($admin)
-                ->test(RoleDetailPage::class, ['record' => $roleName])
+                ->test(ViewRole::class, ['record' => $role->getRouteKey()])
                 ->assertOk();
         }
     }
@@ -247,13 +252,17 @@ class IamAdminUiTest extends TestCase
     {
         $admin = $this->makeUser(UserRole::Administrator);
 
-        // 1. Create a role via dedicated page
+        // 1. Create a role via RoleResource
         Livewire::actingAs($admin)
             ->test(CreateRole::class)
-            ->set('roleName', 'Moderator')
-            ->set('rolePermissions', [Permission::DashboardView->value])
-            ->call('save')
-            ->assertHasNoErrors();
+            ->fillForm([
+                'name' => 'Moderator',
+                'permissionGroups' => [
+                    'dashboard' => [Permission::DashboardView->value],
+                ],
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
 
         $this->assertDatabaseHas('roles', [
             'name' => 'Moderator',
@@ -264,17 +273,25 @@ class IamAdminUiTest extends TestCase
             'name' => 'Moderator',
         ]);
 
-        $role = \Spatie\Permission\Models\Role::findByName('Moderator', 'web');
+        $role = Role::findByName('Moderator', 'web');
 
         // 2. Edit the role name & permissions only (user accounts stay in UserResource)
         Livewire::actingAs($admin)
-            ->test(EditRole::class, ['record' => $role->id])
-            ->assertSet('roleName', 'Moderator')
-            ->assertSet('rolePermissions', [Permission::DashboardView->value])
-            ->set('roleName', 'Super Moderator')
-            ->set('rolePermissions', [Permission::PostsCreate->value, Permission::PostsEditOwn->value])
+            ->test(EditRole::class, ['record' => $role->getRouteKey()])
+            ->assertFormSet([
+                'name' => 'Moderator',
+            ])
+            ->fillForm([
+                'name' => 'Super Moderator',
+                'permissionGroups' => [
+                    'posts' => [
+                        Permission::PostsCreate->value,
+                        Permission::PostsEditOwn->value,
+                    ],
+                ],
+            ])
             ->call('save')
-            ->assertHasNoErrors();
+            ->assertHasNoFormErrors();
 
         $this->assertDatabaseHas('roles', [
             'id' => $role->id,
@@ -292,15 +309,11 @@ class IamAdminUiTest extends TestCase
         $this->assertTrue($role->fresh()->hasPermissionTo(Permission::PostsEditOwn->value));
         $this->assertFalse($role->fresh()->hasPermissionTo(Permission::PagesCreate->value));
 
-        // 3. Delete the role on index page
+        // 3. Delete the role from the Resource list table
         Livewire::actingAs($admin)
-            ->test(RolesAndPermissions::class)
-            ->call('confirmDeleteRole', $role->id)
-            ->assertSet('deletingRoleId', $role->id)
-            ->assertSet('isDeleteModalOpen', true)
-            ->call('deleteRole')
-            ->assertHasNoErrors()
-            ->assertSet('isDeleteModalOpen', false);
+            ->test(ListRoles::class)
+            ->callTableAction('delete', $role)
+            ->assertHasNoTableActionErrors();
 
         $this->assertDatabaseMissing('roles', [
             'id' => $role->id,

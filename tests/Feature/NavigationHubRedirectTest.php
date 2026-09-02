@@ -14,7 +14,6 @@ use App\Filament\Pages\Content\TaxonomiesGroup;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\Iam\AddNewUser;
 use App\Filament\Pages\Iam\AllUsers;
-use App\Filament\Pages\Iam\RolesAndPermissions;
 use App\Filament\Resources\Categories\CategoryResource;
 use App\Filament\Resources\CustomTaxonomies\CustomTaxonomyResource;
 use App\Filament\Resources\Pages\PageResource;
@@ -111,15 +110,11 @@ class NavigationHubRedirectTest extends TestCase
         $this->assertSame('All Users', AllUsers::getNavigationLabel());
         $this->assertSame('Add New User', AddNewUser::getNavigationLabel());
         $this->assertSame('Roles & Permissions', RoleResource::getNavigationLabel());
-        $this->assertSame('Roles & Permissions', RolesAndPermissions::getNavigationLabel());
     }
 
     public function test_role_resource_owns_iam_roles_navigation_without_per_role_items(): void
     {
         $admin = $this->makeUser(UserRole::Administrator);
-
-        $this->assertFalse(RolesAndPermissions::shouldRegisterNavigation());
-        $this->assertSame([], \App\Filament\Pages\Iam\RoleDetailPage::getNavigationItems());
 
         $this->actingAs($admin);
         $this->assertTrue(RoleResource::shouldRegisterNavigation());
