@@ -47,6 +47,24 @@ class NavigationHubRedirectTest extends TestCase
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
+    public function test_all_content_and_iam_navigation_hub_routes_are_removed(): void
+    {
+        $this->assertFileDoesNotExist(app_path('Filament/Pages/NavigationHubPage.php'));
+        $this->assertFileDoesNotExist(resource_path('views/filament/pages/navigation-hub.blade.php'));
+
+        foreach ([
+            'filament.admin.pages.content.posts-hub',
+            'filament.admin.pages.content.pages-hub',
+            'filament.admin.pages.content.taxonomies-hub',
+            'filament.admin.pages.content.posts.custom-types',
+            'filament.admin.pages.iam.users',
+            'filament.admin.pages.iam.users-hub',
+            'filament.admin.pages.iam.users.create-hub',
+        ] as $routeName) {
+            $this->assertFalse(Route::has($routeName), "Hub route still registered: {$routeName}");
+        }
+    }
+
     public function test_posts_parent_nav_owned_without_hub(): void
     {
         $admin = $this->makeUser(UserRole::Administrator);

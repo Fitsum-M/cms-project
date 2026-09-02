@@ -14,8 +14,8 @@
 | :---- | :---- | :----- |
 | Step 1 | `RoleResource` | ✅ Done |
 | Step 2 | `FolderResource` | ✅ Done |
-| Step 3 | Delete IAM hub pages | 🟡 In progress |
-| Step 4 | Review Content hubs | ⬜ Not started |
+| Step 3 | Delete IAM hub pages | ✅ Done |
+| Step 4 | Review Content hubs | ✅ Done |
 | Later | Low-priority UX improvements | ⬜ Not started |
 
 ---
@@ -167,7 +167,7 @@ app/Filament/Resources/Folders/
 ## Step 4 — Review Content / taxonomy hubs
 
 **Priority:** 🟡 Medium  
-**Status:** 🟡 In progress  
+**Status:** ✅ Done  
 **PR:** _link when opened_
 
 ### Checklist
@@ -178,14 +178,14 @@ app/Filament/Resources/Folders/
 | 4.2 | `PostsGroup` | **Evaluate** — move child links to `PostResource::getNavigationItems()` | **Delete hub; `PostsNavigation` + Add New Post on PostResource** | ✅ | Parent → All Posts; Add New Post nested under Posts |
 | 4.3 | `PagesGroup` | **Evaluate** — same as Posts | **Delete hub; `PagesNavigation` + Add New Page on PageResource** | ✅ | Parent → All Pages; Hierarchy/Templates still nest |
 | 4.4 | `CustomPostTypes` | **Keep or move** dynamic CPT nav onto `PostTypeResource` | **Move — delete hub; `CustomPostTypesNavigation` + CPT items on PostResource** | ✅ | Not only PostTypeResource (manage-only); listings need PostsView |
-| 4.5 | Apply decisions; remove dead hub routes | ⬜ | |
-| 4.6 | Smoke-test Content sidebar | ⬜ | |
+| 4.5 | Apply decisions; remove dead hub routes | ✅ | No `*-hub` / `custom-types` routes; deleted unused `NavigationHubPage` + Blade |
+| 4.6 | Smoke-test Content sidebar | ✅ | `NavigationHubRedirectTest` covers parents + nesting + hub absence |
 
 ### Done criteria
 
-- [ ] Decision recorded for each hub above
-- [ ] Implemented cleanup matches decision
-- [ ] No orphan redirect-only hubs left (unless explicitly kept)
+- [x] Decision recorded for each hub above
+- [x] Implemented cleanup matches decision
+- [x] No orphan redirect-only hubs left (unless explicitly kept)
 
 ---
 
@@ -237,6 +237,7 @@ Do not treat these as open refactor work:
 | 2026-09-02 | 4.2 | Deleted PostsGroup hub; PostsNavigation + PostResource Add New Post | — |
 | 2026-09-02 | 4.3 | Deleted PagesGroup hub; PagesNavigation + PageResource Add New Page | — |
 | 2026-09-02 | 4.4 | Deleted CustomPostTypes hub; CustomPostTypesNavigation + CPT nav on PostResource | — |
+| 2026-09-02 | 4.5–4.6 | Removed NavigationHubPage + Blade; hub-route regression test; Step 4 marked Done | — |
 
 ---
 
