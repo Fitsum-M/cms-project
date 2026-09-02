@@ -12,6 +12,7 @@ use App\Filament\Resources\Pages\Schemas\PageInfolist;
 use App\Filament\Resources\Pages\Tables\PagesTable;
 use App\Models\Page;
 use BackedEnum;
+use Filament\Navigation\NavigationItem;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -20,6 +21,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
+
+use function Filament\Support\original_request;
 
 class PageResource extends Resource
 {
@@ -42,6 +45,44 @@ class PageResource extends Resource
     protected static ?string $recordTitleAttribute = 'title';
 
     protected static ?string $slug = 'content/pages';
+
+    /**
+     * Keep "All Pages" inactive on create so "Add New Page" owns that active state.
+     *
+     * @return string|array<string>
+     */
+    public static function getNavigationItemActiveRoutePattern(): string|array
+    {
+        $base = static::getRouteBaseName();
+
+        return [
+            $base.'.index',
+            $base.'.view',
+            $base.'.edit',
+        ];
+    }
+
+    /**
+     * @return list<NavigationItem>
+     */
+    public static function getNavigationItems(): array
+    {
+        $items = parent::getNavigationItems();
+
+        if (! (auth()->user()?->can(Permission::PagesCreate->value) ?? false)) {
+            return $items;
+        }
+
+        $items[] = NavigationItem::make('Add New Page')
+            ->group(static::getNavigationGroup())
+            ->parentItem('Pages')
+            ->icon(Heroicon::OutlinedPlusCircle)
+            ->sort(22)
+            ->url(static::getUrl('create'))
+            ->isActiveWhen(fn (): bool => original_request()->routeIs(static::getRouteBaseName().'.create'));
+
+        return $items;
+    }
 
     public static function form(Schema $schema): Schema
     {

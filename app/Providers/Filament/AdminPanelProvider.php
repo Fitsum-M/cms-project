@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Auth\Login;
 use App\Filament\Auth\RequestPasswordReset;
 use App\Filament\Auth\ResetPassword;
+use App\Filament\Navigation\PagesNavigation;
 use App\Filament\Navigation\PostsNavigation;
 use App\Filament\Navigation\TaxonomiesNavigation;
 use App\Filament\Pages\Dashboard;
@@ -53,6 +54,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigationItems([
                 ...PostsNavigation::items(),
+                ...PagesNavigation::items(),
                 ...TaxonomiesNavigation::items(),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
