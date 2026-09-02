@@ -12,6 +12,7 @@ use App\Filament\Resources\Users\Schemas\UserInfolist;
 use App\Filament\Resources\Users\Tables\UsersTable;
 use App\Models\User;
 use BackedEnum;
+use Filament\Navigation\NavigationItem;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -20,6 +21,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
+
+use function Filament\Support\original_request;
 
 class UserResource extends Resource
 {
@@ -44,6 +47,43 @@ class UserResource extends Resource
     public static function shouldRegisterNavigation(): bool
     {
         return static::canAccess();
+    }
+
+    /**
+     * Keep "All Users" inactive on the create route so "Add New User" owns that active state.
+     *
+     * @return string|array<string>
+     */
+    public static function getNavigationItemActiveRoutePattern(): string|array
+    {
+        $base = static::getRouteBaseName();
+
+        return [
+            $base.'.index',
+            $base.'.view',
+            $base.'.edit',
+        ];
+    }
+
+    /**
+     * @return list<NavigationItem>
+     */
+    public static function getNavigationItems(): array
+    {
+        $items = parent::getNavigationItems();
+
+        if (! (auth()->user()?->can(Permission::UsersCreate->value) ?? false)) {
+            return $items;
+        }
+
+        $items[] = NavigationItem::make('Add New User')
+            ->group(static::getNavigationGroup())
+            ->icon(Heroicon::OutlinedUserPlus)
+            ->sort(2)
+            ->url(static::getUrl('create'))
+            ->isActiveWhen(fn (): bool => original_request()->routeIs(static::getRouteBaseName().'.create'));
+
+        return $items;
     }
 
     public static function form(Schema $schema): Schema

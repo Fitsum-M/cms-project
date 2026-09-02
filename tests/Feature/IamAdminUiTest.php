@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Enums\Permission;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
-use App\Filament\Pages\Iam\AddNewUser;
 use App\Filament\Resources\Roles\Pages\CreateRole;
 use App\Filament\Resources\Roles\Pages\EditRole;
 use App\Filament\Resources\Roles\Pages\ListRoles;
@@ -50,12 +49,22 @@ class IamAdminUiTest extends TestCase
             ->assertOk();
     }
 
-    public function test_add_new_user_hub_redirects_to_create(): void
+    public function test_user_resource_owns_add_new_user_navigation(): void
     {
-        $this->actingAs($this->makeUser(UserRole::Administrator));
+        $admin = $this->makeUser(UserRole::Administrator);
 
-        Livewire::test(AddNewUser::class)
-            ->assertRedirect(UserResource::getUrl('create'));
+        $this->actingAs($admin);
+
+        $labels = collect(UserResource::getNavigationItems())
+            ->map(fn ($item) => $item->getLabel())
+            ->all();
+
+        $this->assertContains('All Users', $labels);
+        $this->assertContains('Add New User', $labels);
+
+        Livewire::actingAs($admin)
+            ->test(CreateUser::class)
+            ->assertOk();
     }
 
     public function test_administrator_can_create_user_with_password_and_they_can_login(): void
@@ -201,9 +210,11 @@ class IamAdminUiTest extends TestCase
             ->test(EditUser::class, ['record' => $author->getRouteKey()])
             ->assertForbidden();
 
-        Livewire::actingAs($editor)
-            ->test(AddNewUser::class)
-            ->assertForbidden();
+        $this->actingAs($editor);
+        $labels = collect(UserResource::getNavigationItems())
+            ->map(fn ($item) => $item->getLabel())
+            ->all();
+        $this->assertNotContains('Add New User', $labels);
     }
 
     public function test_author_and_contributor_cannot_access_iam_ui(): void

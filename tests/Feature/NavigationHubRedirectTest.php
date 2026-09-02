@@ -12,7 +12,6 @@ use App\Filament\Pages\Content\PageTemplates;
 use App\Filament\Pages\Content\PostsGroup;
 use App\Filament\Pages\Content\TaxonomiesGroup;
 use App\Filament\Pages\Dashboard;
-use App\Filament\Pages\Iam\AddNewUser;
 use App\Filament\Resources\Categories\CategoryResource;
 use App\Filament\Resources\CustomTaxonomies\CustomTaxonomyResource;
 use App\Filament\Resources\Pages\PageResource;
@@ -28,6 +27,7 @@ use App\Filament\Widgets\RecentContentWidget;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use ReflectionClass;
 use Spatie\Permission\Models\Permission as PermissionModel;
@@ -78,15 +78,7 @@ class NavigationHubRedirectTest extends TestCase
             ->assertRedirect(PostTypeResource::getUrl('index'));
     }
 
-    public function test_add_new_user_hub_redirects_to_user_resource_create(): void
-    {
-        $this->actingAs($this->makeUser(UserRole::Administrator));
-
-        Livewire::test(AddNewUser::class)
-            ->assertRedirect(UserResource::getUrl('create'));
-    }
-
-    public function test_user_resource_owns_all_users_navigation(): void
+    public function test_user_resource_owns_all_users_and_add_new_user_navigation(): void
     {
         $admin = $this->makeUser(UserRole::Administrator);
 
@@ -94,6 +86,53 @@ class NavigationHubRedirectTest extends TestCase
         $this->assertTrue(UserResource::shouldRegisterNavigation());
         $this->assertSame('All Users', UserResource::getNavigationLabel());
         $this->assertSame('iam/users', UserResource::getSlug());
+
+        $labels = collect(UserResource::getNavigationItems())
+            ->map(fn ($item) => $item->getLabel())
+            ->all();
+
+        $this->assertContains('All Users', $labels);
+        $this->assertContains('Add New User', $labels);
+    }
+
+    public function test_iam_user_hub_pages_and_routes_are_removed(): void
+    {
+        $this->assertFileDoesNotExist(app_path('Filament/Pages/Iam/AllUsers.php'));
+        $this->assertFileDoesNotExist(app_path('Filament/Pages/Iam/AddNewUser.php'));
+
+        $this->assertFalse(Route::has('filament.admin.pages.iam.users'));
+        $this->assertFalse(Route::has('filament.admin.pages.iam.users.create-hub'));
+        $this->assertFalse(Route::has('filament.admin.pages.iam.users-hub'));
+
+        $this->assertTrue(Route::has('filament.admin.resources.iam.users.index'));
+        $this->assertTrue(Route::has('filament.admin.resources.iam.users.create'));
+    }
+
+    public function test_user_resource_navigation_urls_and_active_patterns(): void
+    {
+        $admin = $this->makeUser(UserRole::Administrator);
+        $this->actingAs($admin);
+
+        $items = collect(UserResource::getNavigationItems())->keyBy(fn ($item) => $item->getLabel());
+
+        $this->assertSame(UserResource::getUrl('index'), $items['All Users']->getUrl());
+        $this->assertSame(UserResource::getUrl('create'), $items['Add New User']->getUrl());
+        $this->assertNull(UserResource::getNavigationBadge());
+
+        $patterns = UserResource::getNavigationItemActiveRoutePattern();
+        $this->assertIsArray($patterns);
+        $this->assertContains('filament.admin.resources.iam.users.index', $patterns);
+        $this->assertContains('filament.admin.resources.iam.users.view', $patterns);
+        $this->assertContains('filament.admin.resources.iam.users.edit', $patterns);
+        $this->assertNotContains('filament.admin.resources.iam.users.create', $patterns);
+
+        $this->get(UserResource::getUrl('create'))
+            ->assertOk()
+            ->assertSee('Add New User', false);
+
+        $createItems = collect(UserResource::getNavigationItems())->keyBy(fn ($item) => $item->getLabel());
+        $this->assertTrue($createItems['Add New User']->isActive());
+        $this->assertFalse($createItems['All Users']->isActive());
     }
 
     public function test_content_and_iam_navigation_labels_match_srs_10_1(): void
@@ -114,8 +153,13 @@ class NavigationHubRedirectTest extends TestCase
         $this->assertSame('Custom Taxonomies', CustomTaxonomyResource::getNavigationLabel());
 
         $this->assertSame('All Users', UserResource::getNavigationLabel());
-        $this->assertSame('Add New User', AddNewUser::getNavigationLabel());
         $this->assertSame('Roles & Permissions', RoleResource::getNavigationLabel());
+
+        $this->actingAs($this->makeUser(UserRole::Administrator));
+        $iamLabels = collect(UserResource::getNavigationItems())
+            ->map(fn ($item) => $item->getLabel())
+            ->all();
+        $this->assertContains('Add New User', $iamLabels);
     }
 
     public function test_role_resource_owns_iam_roles_navigation_without_per_role_items(): void
@@ -157,8 +201,8 @@ class NavigationHubRedirectTest extends TestCase
         $this->assertContains(QuickActionsWidget::class, $widgets);
 
         $this->assertSame(
-            'Overview',
-            (new ReflectionClass(OverviewStatsWidget::class))->getProperty('heading')->getDefaultValue(),
+            __('cms.dashboard.overview.heading'),
+            (new OverviewStatsWidget)->getHeading(),
         );
         $this->assertSame('Dashboard', Dashboard::getNavigationLabel());
     }

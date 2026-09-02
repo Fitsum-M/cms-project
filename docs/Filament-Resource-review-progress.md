@@ -143,7 +143,7 @@ app/Filament/Resources/Folders/
 
 **Priority:** 🟡 Medium  
 **Depends on:** Step 1 (RoleResource in place); UserResource already owns user CRUD  
-**Status:** 🟡 In progress  
+**Status:** ✅ Done  
 **PR:** _link when opened_
 
 ### Checklist
@@ -151,16 +151,16 @@ app/Filament/Resources/Folders/
 | # | Hub page | Action | Status | Notes |
 | :- | :------- | :----- | :----- | :---- |
 | 3.1 | `AllUsers` | **Delete** — `UserResource` owns nav | ✅ | Hub deleted; UserResource registers All Users |
-| 3.2 | `AddNewUser` | **Delete** — use ListUsers header action or `NavigationItem` | ⬜ | |
-| 3.3 | Confirm no remaining links to hub routes | ⬜ | |
-| 3.4 | Verify sidebar active states / badges | ⬜ | |
-| 3.5 | Run `IamAdminUiTest` | ⬜ | |
+| 3.2 | `AddNewUser` | **Delete** — use ListUsers header action or `NavigationItem` | ✅ | Hub deleted; ListUsers header + UserResource nav item |
+| 3.3 | Confirm no remaining links to hub routes | ✅ | No hub classes/routes; dashboard + tests use UserResource |
+| 3.4 | Verify sidebar active states / badges | ✅ | All Users inactive on create; Add New User owns create active; no badge |
+| 3.5 | Run `IamAdminUiTest` | ✅ | Full suite green |
 
 ### Done criteria
 
-- [ ] IAM hub redirect pages removed
-- [ ] Users reachable via Resource navigation only
-- [ ] No broken sidebar links; active state correct
+- [x] IAM hub redirect pages removed
+- [x] Users reachable via Resource navigation only
+- [x] No broken sidebar links; active state correct
 
 ---
 
@@ -231,6 +231,8 @@ Do not treat these as open refactor work:
 | 2026-09-02 | 2.7 | DAM nav/links pointed at FolderResource; MediaFolderTest updated | — |
 | 2026-09-02 | 2.8 | MediaUploadTest + MediaFolderTest passed (no code fixes needed) | — |
 | 2026-09-02 | 3.1 | Deleted AllUsers hub; UserResource owns All Users nav + dashboard users link | — |
+| 2026-09-02 | 3.2 | Deleted AddNewUser hub; UserResource NavigationItem + ListUsers header | — |
+| 2026-09-02 | 3.3–3.5 | Link sweep clean; create active state split; IamAdminUiTest + nav hub tests green | — |
 
 ---
 
