@@ -118,7 +118,7 @@ app/Filament/Resources/Folders/
 | 2.2 | Port create/rename/delete/move into Resource actions or Create/Edit pages | ✅ | FolderService-backed create/edit; table Move + recursive Delete |
 | 2.3 | Decide tree UX: custom `ListFolders` tree **or** hierarchical table | ✅ | **Decision: custom tree ListFolders** (drag-drop preserved); Edit/View via Resource pages |
 | 2.4 | Add `MediaAssetsRelationManager` | ✅ | List/preview, add existing, move/bulk move, delete; links to MediaAssetResource |
-| 2.5 | Form/infolist: name, parent select, stats | ⬜ | |
+| 2.5 | Form/infolist: name, parent select, stats | ✅ | Path preview on form; summary + contents stats on View |
 | 2.6 | Delete old Folders Page + Blade (list below) | ⬜ | |
 | 2.7 | Update DAM nav / links | ⬜ | |
 | 2.8 | Run `MediaUploadTest` (+ any folder tests); fix failures | ⬜ | |
@@ -226,6 +226,7 @@ Do not treat these as open refactor work:
 | 2026-09-02 | 2.2 | Ported create/rename/delete/move via FolderService + FolderActions (move/recursive delete) | — |
 | 2026-09-02 | 2.3 | Chose custom tree ListFolders (drag-drop); Resource Create/Edit/View kept | — |
 | 2026-09-02 | 2.4 | Fleshed out MediaAssetsRelationManager (list, add existing, move, delete) | — |
+| 2026-09-02 | 2.5 | Polished FolderForm (path preview) + FolderInfolist (path, empty, counts) | — |
 
 ---
 
