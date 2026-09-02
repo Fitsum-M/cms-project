@@ -5,7 +5,6 @@ namespace App\Filament\Pages\Iam;
 use App\Enums\Permission;
 use App\Enums\UserRole;
 use BackedEnum;
-use Filament\Navigation\NavigationItem;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
@@ -19,7 +18,7 @@ class RoleDetailPage extends Page
 
     protected static ?string $navigationParentItem = 'Roles & Permissions';
 
-    protected static ?string $slug = 'iam/roles/view/{record}';
+    protected static ?string $slug = 'iam/roles-legacy/view/{record}';
 
     protected string $view = 'filament.pages.iam.role-detail';
 
@@ -52,38 +51,15 @@ class RoleDetailPage extends Page
         return false;
     }
 
+    /**
+     * Per-role sidebar items removed (Step 1.7) — caused a roles DB query on every request.
+     * Role detail lives on RoleResource view pages instead.
+     *
+     * @return array<int, never>
+     */
     public static function getNavigationItems(): array
     {
-        if (! static::canAccess()) {
-            return [];
-        }
-
-        $items = [];
-        try {
-            $roles = \Spatie\Permission\Models\Role::orderBy('name')->get();
-            foreach ($roles as $role) {
-                $enum = UserRole::tryFrom($role->name);
-                $sort = match ($role->name) {
-                    'Administrator' => 31,
-                    'Editor' => 32,
-                    'Author' => 33,
-                    'Contributor' => 34,
-                    default => 35,
-                };
-
-                $items[] = NavigationItem::make($role->name)
-                    ->group('Identity & Access Management')
-                    ->parentItem('Roles & Permissions')
-                    ->icon($enum ? $enum->icon() : 'heroicon-o-shield-check')
-                    ->sort($sort)
-                    ->url(static::getUrl(['record' => $role->name]))
-                    ->isActiveWhen(fn (): bool => request()->route('record') === $role->name);
-            }
-        } catch (\Throwable $e) {
-            // Fail-safe during migrations/boot
-        }
-
-        return $items;
+        return [];
     }
 
     public function getRoleModel(): ?\Spatie\Permission\Models\Role

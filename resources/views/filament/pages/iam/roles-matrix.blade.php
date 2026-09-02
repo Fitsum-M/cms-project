@@ -291,7 +291,7 @@
                                     <div class="action-buttons-group">
                                         <!-- Edit Action -->
                                         <a
-                                            href="{{ \App\Filament\Pages\Iam\EditRole::getUrl(['record' => $card['id']]) }}"
+                                            href="{{ \App\Filament\Resources\Roles\RoleResource::getUrl('edit', ['record' => $card['id']]) }}"
                                             class="action-btn action-btn-edit"
                                         >
                                             <x-filament::icon icon="heroicon-m-pencil-square" />

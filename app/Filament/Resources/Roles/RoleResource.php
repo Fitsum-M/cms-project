@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Roles;
 
 use App\Enums\Permission;
+use App\Enums\UserRole;
 use App\Filament\Resources\Roles\Pages\CreateRole;
 use App\Filament\Resources\Roles\Pages\EditRole;
 use App\Filament\Resources\Roles\Pages\ListRoles;
@@ -43,18 +44,11 @@ class RoleResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    /**
-     * Interim slug while legacy IAM role pages still own `/iam/roles` (until Steps 1.7–1.8).
-     * After those pages are removed, switch this to `iam/roles`.
-     */
-    protected static ?string $slug = 'iam/roles-resource';
+    protected static ?string $slug = 'iam/roles';
 
-    /**
-     * Nav still owned by IAM custom pages until Step 1 navigation wiring (1.7).
-     */
     public static function shouldRegisterNavigation(): bool
     {
-        return false;
+        return static::canAccess();
     }
 
     public static function form(Schema $schema): Schema
@@ -104,12 +98,30 @@ class RoleResource extends Resource
     public static function getGlobalSearchResultDetails(Model $record): array
     {
         /** @var Role $record */
+        $enum = UserRole::tryFrom($record->name);
+        $usersCount = (int) ($record->users_count ?? $record->users()->count());
+        $permissionsCount = (int) ($record->permissions_count ?? $record->permissions()->count());
+
         return [
-            'Guard' => $record->guard_name,
+            'Type' => $enum !== null ? __('cms.iam.roles.system_role') : 'Custom Role',
+            'Users' => (string) $usersCount,
+            'Permissions' => (string) $permissionsCount,
         ];
     }
 
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        return parent::getGlobalSearchEloquentQuery()
+            ->where('guard_name', 'web')
+            ->withCount(['users', 'permissions']);
+    }
+
     public static function canAccess(): bool
+    {
+        return static::canViewAny();
+    }
+
+    public static function canViewAny(): bool
     {
         $user = auth()->user();
 
@@ -119,5 +131,30 @@ class RoleResource extends Resource
 
         return $user->can(Permission::UsersViewAll->value)
             || $user->can(Permission::UsersEditRole->value);
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->can(Permission::UsersEditRole->value) ?? false;
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return auth()->user()?->can(Permission::UsersEditRole->value) ?? false;
+    }
+
+    public static function canView(Model $record): bool
+    {
+        return static::canViewAny();
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        /** @var Role $record */
+        if ($record->name === UserRole::Administrator->value) {
+            return false;
+        }
+
+        return auth()->user()?->can(Permission::UsersEditRole->value) ?? false;
     }
 }

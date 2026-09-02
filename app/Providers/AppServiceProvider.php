@@ -22,6 +22,7 @@ use App\Policies\MediaAssetPolicy;
 use App\Policies\PagePolicy;
 use App\Policies\PostPolicy;
 use App\Policies\PostTypePolicy;
+use App\Policies\RolePolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
 use App\Services\MediaReferences\ContentSeoOgImageMediaReferenceProvider;
@@ -47,6 +48,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Role;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -92,6 +94,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Post::class, PostPolicy::class);
         Gate::policy(PostType::class, PostTypePolicy::class);
         Gate::policy(Page::class, PagePolicy::class);
+        Gate::policy(Role::class, RolePolicy::class);
 
         try {
             $this->app->make(GeneralSettings::class)->applyRuntimeConfiguration();

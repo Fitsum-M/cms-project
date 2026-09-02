@@ -26,7 +26,7 @@ class EditRole extends Page
 
     protected static ?string $title = 'Edit Role';
 
-    protected static ?string $slug = 'iam/roles/{record}/edit';
+    protected static ?string $slug = 'iam/roles-legacy/{record}/edit';
 
     protected string $view = 'filament.pages.iam.edit-role';
 
@@ -113,6 +113,6 @@ class EditRole extends Page
             ->body("Role '{$role->name}' has been updated successfully.")
             ->send();
 
-        $this->redirect(RolesAndPermissions::getUrl());
+        $this->redirect(\App\Filament\Resources\Roles\RoleResource::getUrl('index'));
     }
 }

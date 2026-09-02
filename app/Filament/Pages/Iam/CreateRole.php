@@ -21,7 +21,7 @@ class CreateRole extends Page
 
     protected static ?string $title = 'Create Role';
 
-    protected static ?string $slug = 'iam/roles/create';
+    protected static ?string $slug = 'iam/roles-legacy/create';
 
     protected string $view = 'filament.pages.iam.create-role';
 
@@ -93,6 +93,6 @@ class CreateRole extends Page
             ->body("Role '{$role->name}' has been created successfully.")
             ->send();
 
-        $this->redirect(RolesAndPermissions::getUrl());
+        $this->redirect(\App\Filament\Resources\Roles\RoleResource::getUrl('index'));
     }
 }

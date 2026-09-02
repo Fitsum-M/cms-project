@@ -91,7 +91,7 @@
         </x-filament::section>
 
         <div class="flex items-center gap-3 justify-end">
-            <x-filament::button color="gray" type="button" href="{{ \App\Filament\Pages\Iam\RolesAndPermissions::getUrl() }}" tag="a">
+            <x-filament::button color="gray" type="button" href="{{ \App\Filament\Resources\Roles\RoleResource::getUrl('index') }}" tag="a">
                 Cancel
             </x-filament::button>
             <x-filament::button type="submit">

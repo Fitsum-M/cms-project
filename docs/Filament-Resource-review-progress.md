@@ -57,7 +57,7 @@ app/Filament/Resources/Roles/
 | 1.4 | Port detail view → `RoleInfolist` | ✅ | Summary, coverage %, grouped permission IconEntry grid |
 | 1.5 | Add `UsersRelationManager` | ✅ | List, assign via RoleAssignmentService, reassign, link to UserResource |
 | 1.6 | **Separate** role CRUD from user create/update/password sync | ✅ | RoleResource + legacy EditRole are role-only; users via UserResource / relation manager |
-| 1.7 | Wire navigation, policies, global search | ⬜ | Remove per-role `getNavigationItems()` DB query |
+| 1.7 | Wire navigation, policies, global search | ✅ | RoleResource owns nav + `iam/roles`; RolePolicy; global search details; no per-role nav query |
 | 1.8 | Delete old IAM Pages + Blade templates (list below) | ⬜ | After feature parity |
 | 1.9 | Update routes / links that pointed at old pages | ⬜ | |
 | 1.10 | Run `IamAdminUiTest`; fix failures | ⬜ | |
@@ -218,6 +218,7 @@ Do not treat these as open refactor work:
 | 2026-09-02 | 1.4 | Ported role detail into `RoleInfolist` (summary, coverage, capability matrix) | — |
 | 2026-09-02 | 1.5 | Fleshed out `UsersRelationManager` (assign/reassign via RoleAssignmentService) | — |
 | 2026-09-02 | 1.6 | Separated role CRUD from user accounts (stripped EditRole email/password sync; updated IAM test); interim RoleResource slug `iam/roles-resource` to avoid clash with legacy pages | — |
+| 2026-09-02 | 1.7 | RoleResource owns nav/`iam/roles`; RolePolicy registered; global search details; legacy pages moved to `iam/roles-legacy*`; removed per-role nav query | — |
 
 ---
 

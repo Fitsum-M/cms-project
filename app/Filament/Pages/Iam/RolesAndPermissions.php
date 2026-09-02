@@ -28,7 +28,7 @@ class RolesAndPermissions extends Page
 
     protected static ?string $title = 'Roles & Permissions';
 
-    protected static ?string $slug = 'iam/roles';
+    protected static ?string $slug = 'iam/roles-legacy';
 
     protected string $view = 'filament.pages.iam.roles-matrix';
 
@@ -44,7 +44,7 @@ class RolesAndPermissions extends Page
                 ->label('Add Role')
                 ->icon('heroicon-o-plus')
                 ->visible(fn (): bool => auth()->user()?->can(Permission::UsersEditRole->value) ?? false)
-                ->url(fn (): string => CreateRole::getUrl()),
+                ->url(fn (): string => \App\Filament\Resources\Roles\RoleResource::getUrl('create')),
         ];
     }
 
@@ -62,7 +62,7 @@ class RolesAndPermissions extends Page
 
     public static function shouldRegisterNavigation(): bool
     {
-        return static::canAccess();
+        return false;
     }
 
     /**
