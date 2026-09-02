@@ -12,7 +12,7 @@
 
 | Phase | Focus | Status |
 | :---- | :---- | :----- |
-| Step 1 | `RoleResource` | ✅ Done (1.9–1.10 residual check optional) |
+| Step 1 | `RoleResource` | ✅ Done |
 | Step 2 | `FolderResource` | ⬜ Not started |
 | Step 3 | Delete IAM hub pages | ⬜ Not started |
 | Step 4 | Review Content hubs | ⬜ Not started |
@@ -59,8 +59,8 @@ app/Filament/Resources/Roles/
 | 1.6 | **Separate** role CRUD from user create/update/password sync | ✅ | RoleResource + legacy EditRole are role-only; users via UserResource / relation manager |
 | 1.7 | Wire navigation, policies, global search | ✅ | RoleResource owns nav + `iam/roles`; RolePolicy; global search details; no per-role nav query |
 | 1.8 | Delete old IAM Pages + Blade templates (list below) | ✅ | Legacy role Pages + Blade removed; tests use RoleResource |
-| 1.9 | Update routes / links that pointed at old pages | ⬜ | |
-| 1.10 | Run `IamAdminUiTest`; fix failures | ⬜ | |
+| 1.9 | Update routes / links that pointed at old pages | ✅ | No app/test refs remain; only RoleResource `iam/roles` routes; removed orphan `permission-status` partial |
+| 1.10 | Run `IamAdminUiTest`; fix failures | ✅ | Full suite green |
 
 ### Files to delete when Step 1 is done
 
@@ -220,6 +220,8 @@ Do not treat these as open refactor work:
 | 2026-09-02 | 1.6 | Separated role CRUD from user accounts (stripped EditRole email/password sync; updated IAM test); interim RoleResource slug `iam/roles-resource` to avoid clash with legacy pages | — |
 | 2026-09-02 | 1.7 | RoleResource owns nav/`iam/roles`; RolePolicy registered; global search details; legacy pages moved to `iam/roles-legacy*`; removed per-role nav query | — |
 | 2026-09-02 | 1.8 | Deleted legacy IAM role Pages + Blade; IamAdminUiTest / nav tests pointed at RoleResource | — |
+| 2026-09-02 | 1.9 | Link sweep clean; removed orphan `permission-status` partial; routes only RoleResource | — |
+| 2026-09-02 | 1.10 | Full `IamAdminUiTest` passed | — |
 
 ---
 
