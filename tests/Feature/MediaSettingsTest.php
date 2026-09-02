@@ -6,7 +6,7 @@ use App\Enums\Permission;
 use App\Enums\SettingGroup;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
-use App\Filament\Pages\System\MediaSettingsPage;
+use App\Filament\Pages\System\SettingsPage;
 use App\Models\User;
 use App\Services\SettingsStore;
 use App\Support\Settings\MediaSettings;
@@ -34,7 +34,7 @@ class MediaSettingsTest extends TestCase
         $admin = $this->makeUser(UserRole::Administrator);
 
         Livewire::actingAs($admin)
-            ->test(MediaSettingsPage::class)
+            ->test(SettingsPage::class)
             ->fillForm([
                 MediaSettings::THUMBNAIL_WIDTH => 200,
                 MediaSettings::THUMBNAIL_HEIGHT => 200,
@@ -65,12 +65,13 @@ class MediaSettingsTest extends TestCase
 
     public function test_non_administrator_cannot_access_media_settings(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
+        $author = $this->makeUser(UserRole::Author);
 
-        $this->assertFalse($editor->can(Permission::SettingsView->value));
+        $this->assertFalse($author->can(Permission::SettingsView->value));
+        $this->assertFalse($author->can(Permission::SeoDefaultsView->value));
 
-        Livewire::actingAs($editor)
-            ->test(MediaSettingsPage::class)
+        Livewire::actingAs($author)
+            ->test(SettingsPage::class)
             ->assertForbidden();
     }
 
@@ -79,7 +80,7 @@ class MediaSettingsTest extends TestCase
         $admin = $this->makeUser(UserRole::Administrator);
 
         Livewire::actingAs($admin)
-            ->test(MediaSettingsPage::class)
+            ->test(SettingsPage::class)
             ->fillForm([
                 MediaSettings::UPLOAD_MAX_FILE_SIZE_MB => 0,
             ])
@@ -92,7 +93,7 @@ class MediaSettingsTest extends TestCase
         $admin = $this->makeUser(UserRole::Administrator);
 
         Livewire::actingAs($admin)
-            ->test(MediaSettingsPage::class)
+            ->test(SettingsPage::class)
             ->fillForm([
                 MediaSettings::ALLOWED_FILE_TYPES => [],
             ])

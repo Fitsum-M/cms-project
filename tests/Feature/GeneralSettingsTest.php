@@ -6,7 +6,7 @@ use App\Enums\Permission;
 use App\Enums\SettingGroup;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
-use App\Filament\Pages\System\GeneralSettingsPage;
+use App\Filament\Pages\System\SettingsPage;
 use App\Models\User;
 use App\Services\SettingsStore;
 use App\Support\Settings\GeneralSettings;
@@ -34,7 +34,7 @@ class GeneralSettingsTest extends TestCase
         $admin = $this->makeUser(UserRole::Administrator);
 
         Livewire::actingAs($admin)
-            ->test(GeneralSettingsPage::class)
+            ->test(SettingsPage::class)
             ->fillForm([
                 GeneralSettings::SITE_TITLE => 'Acme CMS',
                 GeneralSettings::TAGLINE => 'Editorial first',
@@ -58,12 +58,13 @@ class GeneralSettingsTest extends TestCase
 
     public function test_non_administrator_cannot_access_general_settings(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
+        $author = $this->makeUser(UserRole::Author);
 
-        $this->assertFalse($editor->can(Permission::SettingsView->value));
+        $this->assertFalse($author->can(Permission::SettingsView->value));
+        $this->assertFalse($author->can(Permission::SeoDefaultsView->value));
 
-        Livewire::actingAs($editor)
-            ->test(GeneralSettingsPage::class)
+        Livewire::actingAs($author)
+            ->test(SettingsPage::class)
             ->assertForbidden();
     }
 
@@ -93,7 +94,7 @@ class GeneralSettingsTest extends TestCase
         $admin = $this->makeUser(UserRole::Administrator);
 
         Livewire::actingAs($admin)
-            ->test(GeneralSettingsPage::class)
+            ->test(SettingsPage::class)
             ->fillForm([
                 GeneralSettings::SITE_TITLE => str_repeat('a', 256),
                 GeneralSettings::TAGLINE => 'ok',

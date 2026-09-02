@@ -5,8 +5,8 @@ namespace Tests\Feature;
 use App\Enums\Permission;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
-use App\Filament\Pages\Dam\UploadMedia;
 use App\Filament\Pages\Dashboard;
+use App\Filament\Resources\MediaAssets\MediaAssetResource;
 use App\Filament\Resources\Pages\PageResource;
 use App\Filament\Resources\Posts\PostResource;
 use App\Filament\Widgets\QuickActionsWidget;
@@ -43,7 +43,7 @@ class DashboardQuickActionsTest extends TestCase
             ->assertSee('Upload Media')
             ->assertSee(PostResource::getUrl('create'), false)
             ->assertSee(PageResource::getUrl('create'), false)
-            ->assertSee(UploadMedia::getUrl(), false);
+            ->assertSee(MediaAssetResource::getUrl('create'), false);
 
         Livewire::test(Dashboard::class)
             ->assertSuccessful()

@@ -7,7 +7,7 @@ use App\Enums\SettingGroup;
 use App\Enums\SmtpEncryption;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
-use App\Filament\Pages\System\EmailSettingsPage;
+use App\Filament\Pages\System\SettingsPage;
 use App\Mail\SettingsTestMail;
 use App\Models\User;
 use App\Services\SettingsStore;
@@ -37,7 +37,7 @@ class EmailSettingsTest extends TestCase
         $admin = $this->makeUser(UserRole::Administrator);
 
         Livewire::actingAs($admin)
-            ->test(EmailSettingsPage::class)
+            ->test(SettingsPage::class)
             ->fillForm([
                 EmailSettings::SMTP_HOST => 'smtp.example.com',
                 EmailSettings::SMTP_PORT => 465,
@@ -79,7 +79,7 @@ class EmailSettingsTest extends TestCase
         $admin = $this->makeUser(UserRole::Administrator);
 
         Livewire::actingAs($admin)
-            ->test(EmailSettingsPage::class)
+            ->test(SettingsPage::class)
             ->fillForm([
                 EmailSettings::SMTP_HOST => 'smtp.example.com',
                 EmailSettings::SMTP_PORT => 587,
@@ -103,7 +103,7 @@ class EmailSettingsTest extends TestCase
         $admin = $this->makeUser(UserRole::Administrator);
 
         Livewire::actingAs($admin)
-            ->test(EmailSettingsPage::class)
+            ->test(SettingsPage::class)
             ->fillForm([
                 EmailSettings::SMTP_HOST => 'smtp.example.com',
                 EmailSettings::SMTP_PORT => 587,
@@ -131,7 +131,7 @@ class EmailSettingsTest extends TestCase
         $admin = $this->makeUser(UserRole::Administrator);
 
         Livewire::actingAs($admin)
-            ->test(EmailSettingsPage::class)
+            ->test(SettingsPage::class)
             ->fillForm([
                 EmailSettings::SMTP_HOST => 'smtp.example.com',
                 EmailSettings::SMTP_PORT => 587,
@@ -148,12 +148,13 @@ class EmailSettingsTest extends TestCase
 
     public function test_non_administrator_cannot_access_email_settings(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
+        $author = $this->makeUser(UserRole::Author);
 
-        $this->assertFalse($editor->can(Permission::SettingsView->value));
+        $this->assertFalse($author->can(Permission::SettingsView->value));
+        $this->assertFalse($author->can(Permission::SeoDefaultsView->value));
 
-        Livewire::actingAs($editor)
-            ->test(EmailSettingsPage::class)
+        Livewire::actingAs($author)
+            ->test(SettingsPage::class)
             ->assertForbidden();
     }
 

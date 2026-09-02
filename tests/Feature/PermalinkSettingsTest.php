@@ -7,7 +7,7 @@ use App\Enums\SettingGroup;
 use App\Enums\SlugConflictResolution;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
-use App\Filament\Pages\System\PermalinkSettingsPage;
+use App\Filament\Pages\System\SettingsPage;
 use App\Models\User;
 use App\Services\SettingsStore;
 use App\Support\Settings\PermalinkSettings;
@@ -35,7 +35,7 @@ class PermalinkSettingsTest extends TestCase
         $admin = $this->makeUser(UserRole::Administrator);
 
         Livewire::actingAs($admin)
-            ->test(PermalinkSettingsPage::class)
+            ->test(SettingsPage::class)
             ->fillForm([
                 PermalinkSettings::POST_URL_STRUCTURE => '/{year}/{month}/{slug}/',
                 PermalinkSettings::PAGE_URL_STRUCTURE => '/{slug}/',
@@ -56,12 +56,13 @@ class PermalinkSettingsTest extends TestCase
 
     public function test_non_administrator_cannot_access_permalink_settings(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
+        $author = $this->makeUser(UserRole::Author);
 
-        $this->assertFalse($editor->can(Permission::SettingsView->value));
+        $this->assertFalse($author->can(Permission::SettingsView->value));
+        $this->assertFalse($author->can(Permission::SeoDefaultsView->value));
 
-        Livewire::actingAs($editor)
-            ->test(PermalinkSettingsPage::class)
+        Livewire::actingAs($author)
+            ->test(SettingsPage::class)
             ->assertForbidden();
     }
 

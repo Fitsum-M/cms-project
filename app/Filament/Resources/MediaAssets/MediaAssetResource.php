@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\MediaAssets;
 
+use App\Enums\Permission;
+use App\Filament\Resources\MediaAssets\Pages\CreateMediaAsset;
 use App\Filament\Resources\MediaAssets\Pages\EditMediaAsset;
 use App\Filament\Resources\MediaAssets\Pages\ListMediaAssets;
 use App\Filament\Resources\MediaAssets\Pages\ViewMediaAsset;
@@ -10,6 +12,7 @@ use App\Filament\Resources\MediaAssets\Schemas\MediaAssetInfolist;
 use App\Filament\Resources\MediaAssets\Tables\MediaAssetsTable;
 use App\Models\MediaAsset;
 use BackedEnum;
+use Filament\Navigation\NavigationItem;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -17,6 +20,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
+
+use function Filament\Support\original_request;
 
 class MediaAssetResource extends Resource
 {
@@ -40,7 +45,44 @@ class MediaAssetResource extends Resource
 
     public static function canCreate(): bool
     {
-        return false;
+        return auth()->user()?->can(Permission::MediaUpload->value) ?? false;
+    }
+
+    /**
+     * Keep Library inactive on create so "Upload Media" owns that active state.
+     *
+     * @return string|array<string>
+     */
+    public static function getNavigationItemActiveRoutePattern(): string|array
+    {
+        $base = static::getRouteBaseName();
+
+        return [
+            $base.'.index',
+            $base.'.view',
+            $base.'.edit',
+        ];
+    }
+
+    /**
+     * @return list<NavigationItem>
+     */
+    public static function getNavigationItems(): array
+    {
+        $items = parent::getNavigationItems();
+
+        if (! static::canCreate()) {
+            return $items;
+        }
+
+        $items[] = NavigationItem::make('Upload Media')
+            ->group(static::getNavigationGroup())
+            ->icon(Heroicon::OutlinedArrowUpTray)
+            ->sort(2)
+            ->url(static::getUrl('create'))
+            ->isActiveWhen(fn (): bool => original_request()->routeIs(static::getRouteBaseName().'.create'));
+
+        return $items;
     }
 
     public static function form(Schema $schema): Schema
@@ -72,6 +114,7 @@ class MediaAssetResource extends Resource
     {
         return [
             'index' => ListMediaAssets::route('/'),
+            'create' => CreateMediaAsset::route('/upload'),
             'view' => ViewMediaAsset::route('/{record}'),
             'edit' => EditMediaAsset::route('/{record}/edit'),
         ];

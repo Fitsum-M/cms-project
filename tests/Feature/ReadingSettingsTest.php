@@ -6,7 +6,7 @@ use App\Enums\Permission;
 use App\Enums\SettingGroup;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
-use App\Filament\Pages\System\ReadingSettingsPage;
+use App\Filament\Pages\System\SettingsPage;
 use App\Models\User;
 use App\Services\SettingsStore;
 use App\Support\Settings\ReadingSettings;
@@ -34,7 +34,7 @@ class ReadingSettingsTest extends TestCase
         $admin = $this->makeUser(UserRole::Administrator);
 
         Livewire::actingAs($admin)
-            ->test(ReadingSettingsPage::class)
+            ->test(SettingsPage::class)
             ->fillForm([
                 ReadingSettings::HOMEPAGE_PAGE_ID => null,
                 ReadingSettings::POSTS_PAGE_ID => null,
@@ -53,12 +53,13 @@ class ReadingSettingsTest extends TestCase
 
     public function test_non_administrator_cannot_access_reading_settings(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
+        $author = $this->makeUser(UserRole::Author);
 
-        $this->assertFalse($editor->can(Permission::SettingsView->value));
+        $this->assertFalse($author->can(Permission::SettingsView->value));
+        $this->assertFalse($author->can(Permission::SeoDefaultsView->value));
 
-        Livewire::actingAs($editor)
-            ->test(ReadingSettingsPage::class)
+        Livewire::actingAs($author)
+            ->test(SettingsPage::class)
             ->assertForbidden();
     }
 
@@ -67,7 +68,7 @@ class ReadingSettingsTest extends TestCase
         $admin = $this->makeUser(UserRole::Administrator);
 
         Livewire::actingAs($admin)
-            ->test(ReadingSettingsPage::class)
+            ->test(SettingsPage::class)
             ->fillForm([
                 ReadingSettings::POSTS_PER_PAGE => 0,
             ])
@@ -75,7 +76,7 @@ class ReadingSettingsTest extends TestCase
             ->assertHasFormErrors([ReadingSettings::POSTS_PER_PAGE]);
 
         Livewire::actingAs($admin)
-            ->test(ReadingSettingsPage::class)
+            ->test(SettingsPage::class)
             ->fillForm([
                 ReadingSettings::POSTS_PER_PAGE => 101,
             ])
@@ -102,9 +103,9 @@ class ReadingSettingsTest extends TestCase
         ]);
     }
 
-    public function test_page_options_are_empty_until_pages_table_exists(): void
+    public function test_page_options_are_empty_when_no_pages_exist(): void
     {
-        $this->assertFalse(ReadingSettings::pagesTableReady());
+        $this->assertTrue(ReadingSettings::pagesTableReady());
         $this->assertSame([], ReadingSettings::pageOptions());
     }
 

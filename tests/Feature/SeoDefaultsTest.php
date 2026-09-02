@@ -6,7 +6,7 @@ use App\Enums\Permission;
 use App\Enums\SettingGroup;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
-use App\Filament\Pages\System\SeoDefaultsPage;
+use App\Filament\Pages\System\SettingsPage;
 use App\Models\User;
 use App\Services\SettingsStore;
 use App\Support\Settings\GeneralSettings;
@@ -35,7 +35,7 @@ class SeoDefaultsTest extends TestCase
         $admin = $this->makeUser(UserRole::Administrator);
 
         Livewire::actingAs($admin)
-            ->test(SeoDefaultsPage::class)
+            ->test(SettingsPage::class)
             ->fillForm([
                 SeoDefaultsSettings::META_TITLE_PATTERN => '{title} — {site_title}',
                 SeoDefaultsSettings::META_DESCRIPTION => 'Default site description',
@@ -63,10 +63,13 @@ class SeoDefaultsTest extends TestCase
 
         $this->assertTrue($editor->can(Permission::SeoDefaultsView->value));
         $this->assertFalse($editor->can(Permission::SeoDefaultsEdit->value));
+        $this->assertFalse($editor->can(Permission::SettingsView->value));
 
         Livewire::actingAs($editor)
-            ->test(SeoDefaultsPage::class)
+            ->test(SettingsPage::class)
             ->assertOk()
+            ->assertFormFieldExists(SeoDefaultsSettings::META_TITLE_PATTERN)
+            ->assertFormFieldDoesNotExist(GeneralSettings::SITE_TITLE)
             ->fillForm([
                 SeoDefaultsSettings::META_TITLE_PATTERN => 'Should not persist',
                 SeoDefaultsSettings::SCHEMA_TYPE => 'NewsArticle',
@@ -88,7 +91,7 @@ class SeoDefaultsTest extends TestCase
         $this->assertFalse($author->can(Permission::SeoDefaultsView->value));
 
         Livewire::actingAs($author)
-            ->test(SeoDefaultsPage::class)
+            ->test(SettingsPage::class)
             ->assertForbidden();
     }
 
@@ -114,7 +117,7 @@ class SeoDefaultsTest extends TestCase
         $admin = $this->makeUser(UserRole::Administrator);
 
         Livewire::actingAs($admin)
-            ->test(SeoDefaultsPage::class)
+            ->test(SettingsPage::class)
             ->fillForm([
                 SeoDefaultsSettings::META_TITLE_PATTERN => '{title} | {site_title}',
                 SeoDefaultsSettings::META_DESCRIPTION => '',

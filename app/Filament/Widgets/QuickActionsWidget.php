@@ -3,7 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\Permission;
-use App\Filament\Pages\Dam\UploadMedia;
+use App\Filament\Resources\MediaAssets\MediaAssetResource;
 use App\Filament\Resources\Pages\PageResource;
 use App\Filament\Resources\Posts\PostResource;
 use Filament\Widgets\Widget;
@@ -65,7 +65,7 @@ class QuickActionsWidget extends Widget
             $actions[] = [
                 'label' => __('cms.dashboard.quick_actions.upload_media'),
                 'description' => __('cms.dashboard.quick_actions.upload_media_description'),
-                'url' => UploadMedia::getUrl(),
+                'url' => MediaAssetResource::getUrl('create'),
                 'icon' => 'arrow-up-tray',
             ];
         }

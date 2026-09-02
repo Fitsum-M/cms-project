@@ -1,20 +1,18 @@
 <?php
 
-namespace App\Filament\Pages\Dam;
+namespace App\Filament\Resources\MediaAssets\Pages;
 
-use App\Enums\Permission;
 use App\Filament\Resources\MediaAssets\MediaAssetResource;
 use App\Models\MediaAsset;
 use App\Services\FolderService;
 use App\Services\MediaUploadService;
 use App\Support\Settings\MediaSettings;
-use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Pages\Concerns\CanUseDatabaseTransactions;
-use Filament\Pages\Page;
+use Filament\Resources\Pages\Page;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\EmbeddedSchema;
@@ -22,44 +20,37 @@ use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Exceptions\Halt;
-use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Validation\ValidationException;
 use Throwable;
-use UnitEnum;
 
 /**
- * M.01 — Upload workflow (drag-drop, file picker, bulk upload, progress).
+ * Bulk upload workflow as MediaAssetResource create (formerly Dam\UploadMedia).
  *
  * @property-read Schema $form
  */
-class UploadMedia extends Page
+class CreateMediaAsset extends Page
 {
     use CanUseDatabaseTransactions;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowUpTray;
-
-    protected static string|UnitEnum|null $navigationGroup = 'Digital Asset Management';
-
-    protected static ?string $navigationLabel = 'Upload Media';
-
-    protected static ?int $navigationSort = 2;
+    protected static string $resource = MediaAssetResource::class;
 
     protected static ?string $title = 'Upload Media';
-
-    protected static ?string $slug = 'dam/upload';
 
     /**
      * @var array<string, mixed>|null
      */
     public ?array $data = [];
 
-    public static function canAccess(): bool
+    public function getTitle(): string|Htmlable
     {
-        return auth()->user()?->can(Permission::MediaUpload->value) ?? false;
+        return 'Upload Media';
     }
 
     public function mount(): void
     {
+        abort_unless(static::getResource()::canCreate(), 403);
+
         $this->form->fill([
             'files' => [],
             'folder_id' => app(MediaSettings::class)->defaultUploadFolderId(),

@@ -16,7 +16,7 @@
 | Step 2 | `FolderResource` | ✅ Done |
 | Step 3 | Delete IAM hub pages | ✅ Done |
 | Step 4 | Review Content hubs | ✅ Done |
-| Later | Low-priority UX improvements | ⬜ Not started |
+| Later | L1 UploadMedia merge + L2 tabbed Settings | ✅ Done |
 
 ---
 
@@ -193,15 +193,15 @@ app/Filament/Resources/Folders/
 
 | # | Item | Priority | Status | Notes |
 | :- | :--- | :------- | :----- | :---- |
-| L1 | Merge `UploadMedia` into `MediaAssetResource` as `CreateMediaAsset` | 🟢 Low | ⬜ | Resource currently `canCreate(): false` |
-| L2 | Consolidate 6 settings pages into one tabbed `SettingsPage` | 🟢 Low | ⬜ | UX only; not a Resource conversion |
+| L1 | Merge `UploadMedia` into `MediaAssetResource` as `CreateMediaAsset` | 🟢 Low | ✅ | Create at `dam/library/upload`; DAM nav + Quick Actions updated |
+| L2 | Consolidate 6 settings pages into one tabbed `SettingsPage` | 🟢 Low | ✅ | `system/settings?tab=…`; legacy slugs redirect |
 
 ### Keep as Pages (do not convert)
 
 Do not treat these as open refactor work:
 
-- [x] Settings: General, Reading, Permalink, Media, SEO, Email
-- [x] `UploadMedia` (until L1)
+- [x] Settings: now single tabbed `SettingsPage` (legacy URLs redirect)
+- [x] `UploadMedia` → merged into `CreateMediaAsset` (L1)
 - [x] `PageHierarchy`
 - [x] `PageTemplates`
 
@@ -238,6 +238,8 @@ Do not treat these as open refactor work:
 | 2026-09-02 | 4.3 | Deleted PagesGroup hub; PagesNavigation + PageResource Add New Page | — |
 | 2026-09-02 | 4.4 | Deleted CustomPostTypes hub; CustomPostTypesNavigation + CPT nav on PostResource | — |
 | 2026-09-02 | 4.5–4.6 | Removed NavigationHubPage + Blade; hub-route regression test; Step 4 marked Done | — |
+| 2026-09-02 | L1 | Merged UploadMedia → MediaAssetResource CreateMediaAsset (`dam/library/upload`) | — |
+| 2026-09-02 | L2 | Tabbed SettingsPage; six legacy settings URLs redirect with `?tab=` | — |
 
 ---
 

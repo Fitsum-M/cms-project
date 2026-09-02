@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\Permission;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
-use App\Filament\Pages\Dam\UploadMedia;
+use App\Filament\Resources\MediaAssets\Pages\CreateMediaAsset;
 use App\Filament\Resources\MediaAssets\Pages\ListMediaAssets;
 use App\Models\MediaAsset;
 use App\Models\User;
@@ -109,11 +109,11 @@ class MediaUploadTest extends TestCase
         $this->assertFalse($contributor->can(Permission::MediaUpload->value));
 
         Livewire::actingAs($author)
-            ->test(UploadMedia::class)
+            ->test(CreateMediaAsset::class)
             ->assertSuccessful();
 
         Livewire::actingAs($contributor)
-            ->test(UploadMedia::class)
+            ->test(CreateMediaAsset::class)
             ->assertForbidden();
     }
 
@@ -123,7 +123,7 @@ class MediaUploadTest extends TestCase
         $file = UploadedFile::fake()->image('cover.webp', 320, 240);
 
         Livewire::actingAs($admin)
-            ->test(UploadMedia::class)
+            ->test(CreateMediaAsset::class)
             ->fillForm([
                 'files' => [$file],
             ])

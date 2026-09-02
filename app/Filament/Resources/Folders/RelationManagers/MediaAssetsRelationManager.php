@@ -28,7 +28,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Media assets inside a folder (Step 2.4).
- * Create/upload stays on Upload Media; this manager lists, opens, moves, and deletes.
+ * Create/upload stays on MediaAssetResource create (Upload Media); this manager lists, opens, moves, and deletes.
  */
 class MediaAssetsRelationManager extends RelationManager
 {
@@ -203,7 +203,7 @@ class MediaAssetsRelationManager extends RelationManager
                 ]),
             ])
             ->emptyStateHeading('No media in this folder')
-            ->emptyStateDescription('Upload new files from Upload Media, or add existing library items here.')
+            ->emptyStateDescription('Upload new files from Upload Media (Library → Upload), or add existing library items here.')
             ->recordUrl(fn (MediaAsset $record): ?string => auth()->user()?->can('view', $record)
                 ? MediaAssetResource::getUrl(
                     auth()->user()?->can('update', $record) ? 'edit' : 'view',

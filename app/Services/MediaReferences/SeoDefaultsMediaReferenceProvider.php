@@ -3,7 +3,7 @@
 namespace App\Services\MediaReferences;
 
 use App\Contracts\MediaReferenceProvider;
-use App\Filament\Pages\System\SeoDefaultsPage;
+use App\Filament\Pages\System\SettingsPage;
 use App\Models\MediaAsset;
 use App\Support\Media\MediaReference;
 use App\Support\Settings\SeoDefaultsSettings;
@@ -28,7 +28,7 @@ class SeoDefaultsMediaReferenceProvider implements MediaReferenceProvider
                 type: 'settings',
                 label: 'SEO Defaults',
                 detail: 'Default Open Graph image',
-                url: SeoDefaultsPage::getUrl(),
+                url: SettingsPage::getUrl().'?tab=seo',
             ),
         ];
     }
