@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\DraftSummaryWidget;
@@ -41,8 +40,8 @@ class DashboardPerformanceTest extends TestCase
 
     public function test_dashboard_aggregate_queries_stay_under_two_seconds(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
-        $author = $this->makeUser(UserRole::Author);
+        $admin = $this->makeUser('Administrator');
+        $author = $this->makeUser('Author');
 
         for ($i = 1; $i <= 40; $i++) {
             $post = app(PostService::class)->create(['title' => "Perf Post {$i}"], $i % 2 === 0 ? $admin : $author);
@@ -68,7 +67,7 @@ class DashboardPerformanceTest extends TestCase
 
     public function test_dashboard_page_renders_all_widgets_under_two_seconds(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         for ($i = 1; $i <= 25; $i++) {
@@ -97,7 +96,7 @@ class DashboardPerformanceTest extends TestCase
         );
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

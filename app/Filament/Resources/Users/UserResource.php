@@ -134,7 +134,7 @@ class UserResource extends Resource
     {
         /** @var User $record */
         return [
-            'Role' => $record->primaryRole()?->value ?? '—',
+            'Role' => $record->primaryRoleName() ?? '—',
             'Status' => $record->status?->label() ?? '—',
         ];
     }

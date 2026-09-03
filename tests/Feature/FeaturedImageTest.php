@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\ContentStatus;
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Pages\EditPost;
@@ -44,7 +43,7 @@ class FeaturedImageTest extends TestCase
 
     public function test_post_can_assign_featured_image_from_media_library(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $asset = $this->uploadImage($admin, 'hero.jpg');
 
         $post = app(PostService::class)->create([
@@ -62,7 +61,7 @@ class FeaturedImageTest extends TestCase
 
     public function test_non_image_media_cannot_be_featured(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $doc = app(MediaUploadService::class)->upload(
             UploadedFile::fake()->create('notes.pdf', 40, 'application/pdf'),
             $admin,
@@ -78,7 +77,7 @@ class FeaturedImageTest extends TestCase
 
     public function test_missing_media_id_is_rejected(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $this->expectException(ValidationException::class);
 
@@ -90,7 +89,7 @@ class FeaturedImageTest extends TestCase
 
     public function test_delete_media_blocked_while_used_as_featured_image(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $asset = $this->uploadImage($admin, 'used.jpg');
 
         app(PostService::class)->create([
@@ -116,7 +115,7 @@ class FeaturedImageTest extends TestCase
 
     public function test_force_delete_clears_featured_image_reference(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $asset = $this->uploadImage($admin, 'force-feat.jpg');
 
         $post = app(PostService::class)->create([
@@ -133,7 +132,7 @@ class FeaturedImageTest extends TestCase
 
     public function test_clearing_featured_image_on_update(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $asset = $this->uploadImage($admin, 'clear.jpg');
 
         $post = app(PostService::class)->create([
@@ -151,7 +150,7 @@ class FeaturedImageTest extends TestCase
 
     public function test_filament_create_and_edit_featured_image(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $asset = $this->uploadImage($admin, 'filament.jpg');
 
         Livewire::actingAs($admin)
@@ -188,7 +187,7 @@ class FeaturedImageTest extends TestCase
 
     public function test_duplicate_copies_featured_image(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $asset = $this->uploadImage($admin, 'dup.jpg');
 
         $source = app(PostService::class)->create([
@@ -209,7 +208,7 @@ class FeaturedImageTest extends TestCase
         );
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

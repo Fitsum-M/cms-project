@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\ContentStatus;
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Posts\Pages\ListPosts;
 use App\Models\Category;
@@ -38,7 +37,7 @@ class PostListingTest extends TestCase
 
     public function test_duplicate_creates_draft_copy_with_taxonomies_and_reset_publish_date(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $category = Category::factory()->create();
         $tag = Tag::factory()->create();
 
@@ -68,8 +67,8 @@ class PostListingTest extends TestCase
 
     public function test_bulk_change_status_and_author(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
-        $editor = $this->makeUser(UserRole::Editor);
+        $admin = $this->makeUser('Administrator');
+        $editor = $this->makeUser('Editor');
         $posts = Post::factory()->count(2)->create([
             'author_id' => $admin->id,
             'status' => ContentStatus::Draft,
@@ -92,7 +91,7 @@ class PostListingTest extends TestCase
 
     public function test_bulk_assign_categories_and_tags_merges_existing(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $existing = Category::factory()->create();
         $added = Category::factory()->create();
         $tag = Tag::factory()->create();
@@ -113,7 +112,7 @@ class PostListingTest extends TestCase
 
     public function test_restore_trashed_and_archived_posts(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $lifecycle = app(ContentLifecycleService::class);
         $service = app(PostService::class);
 
@@ -135,7 +134,7 @@ class PostListingTest extends TestCase
 
     public function test_list_excludes_trashed_by_default_and_supports_search(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $lifecycle = app(ContentLifecycleService::class);
 
         $visible = Post::factory()->create([
@@ -160,7 +159,7 @@ class PostListingTest extends TestCase
 
     public function test_list_filters_by_status_category_and_date_range(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $category = Category::factory()->create();
 
         $matched = app(PostService::class)->create([
@@ -191,8 +190,8 @@ class PostListingTest extends TestCase
 
     public function test_author_cannot_bulk_change_author(): void
     {
-        $author = $this->makeUser(UserRole::Author);
-        $other = $this->makeUser(UserRole::Editor);
+        $author = $this->makeUser('Author');
+        $other = $this->makeUser('Editor');
         $post = Post::factory()->create(['author_id' => $author->id]);
 
         $this->expectException(\Illuminate\Validation\ValidationException::class);
@@ -200,7 +199,7 @@ class PostListingTest extends TestCase
         app(PostService::class)->bulkChangeAuthor([$post], $other->id, $author);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\ContentStatus;
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Pages\Pages\CreatePage;
 use App\Filament\Resources\Pages\Pages\ListPages;
@@ -37,7 +36,7 @@ class PageHierarchyTest extends TestCase
 
     public function test_create_page_with_core_fields_and_defaults(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $page = app(PageService::class)->create([
             'title' => 'About Us',
@@ -56,7 +55,7 @@ class PageHierarchyTest extends TestCase
 
     public function test_nested_pages_and_public_path_with_parent_slug(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         app(PermalinkSettings::class)->save([
             ...app(PermalinkSettings::class)->all(),
             PermalinkSettings::PAGE_URL_STRUCTURE => '/{parent-slug}/{slug}/',
@@ -81,7 +80,7 @@ class PageHierarchyTest extends TestCase
 
     public function test_circular_parent_assignment_is_rejected(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $root = app(PageService::class)->create(['title' => 'Root'], $admin);
         $child = app(PageService::class)->create([
@@ -116,7 +115,7 @@ class PageHierarchyTest extends TestCase
 
     public function test_parent_options_exclude_self_and_descendants(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $root = app(PageService::class)->create(['title' => 'Root'], $admin);
         $child = app(PageService::class)->create([
             'title' => 'Child',
@@ -133,7 +132,7 @@ class PageHierarchyTest extends TestCase
 
     public function test_sibling_sort_order_auto_increments(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $parent = app(PageService::class)->create(['title' => 'Parent'], $admin);
 
         $first = app(PageService::class)->create([
@@ -151,8 +150,8 @@ class PageHierarchyTest extends TestCase
 
     public function test_author_cannot_reassign_page_authorship(): void
     {
-        $author = $this->makeUser(UserRole::Author);
-        $editor = $this->makeUser(UserRole::Editor);
+        $author = $this->makeUser('Author');
+        $editor = $this->makeUser('Editor');
 
         $page = app(PageService::class)->create([
             'title' => 'Mine',
@@ -170,14 +169,14 @@ class PageHierarchyTest extends TestCase
 
     public function test_contributor_cannot_create_pages(): void
     {
-        $contributor = $this->makeUser(UserRole::Contributor);
+        $contributor = $this->makeUser('Contributor');
 
         $this->assertFalse($contributor->can('create', Page::class));
     }
 
     public function test_filament_create_and_list_pages(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $parent = app(PageService::class)->create(['title' => 'Company'], $admin);
 
         Livewire::actingAs($admin)
@@ -207,8 +206,8 @@ class PageHierarchyTest extends TestCase
 
     public function test_author_sees_only_own_pages(): void
     {
-        $author = $this->makeUser(UserRole::Author);
-        $other = $this->makeUser(UserRole::Editor);
+        $author = $this->makeUser('Author');
+        $other = $this->makeUser('Editor');
 
         $own = Page::factory()->create(['author_id' => $author->id, 'title' => 'Own page']);
         $foreign = Page::factory()->create(['author_id' => $other->id, 'title' => 'Other page']);
@@ -219,7 +218,7 @@ class PageHierarchyTest extends TestCase
             ->assertCanNotSeeTableRecords([$foreign]);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

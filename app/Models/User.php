@@ -3,7 +3,6 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
@@ -104,24 +103,25 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasMedia
 
     /**
      * Assign exactly one role (SRS 11.2 / 15.6 — no multi-role, no per-user overrides).
+     * Role must already exist in the database.
      */
-    public function assignSingleRole(UserRole|string $role): void
+    public function assignSingleRole(string $role): void
     {
-        $roleName = $role instanceof UserRole ? $role->value : $role;
-
-        if (UserRole::tryFrom($roleName) === null && ! \Spatie\Permission\Models\Role::where('name', $roleName)->where('guard_name', 'web')->exists()) {
-            throw new InvalidArgumentException("Unknown role [{$roleName}].");
+        if (! Role::query()->where('name', $role)->where('guard_name', 'web')->exists()) {
+            throw new InvalidArgumentException("Unknown role [{$role}].");
         }
 
-        $this->syncRoles([$roleName]);
+        $this->syncRoles([$role]);
         $this->syncPermissions([]);
     }
 
-    public function primaryRole(): ?UserRole
+    public function primaryRole(): ?Role
     {
-        $name = $this->getRoleNames()->first();
+        $this->loadMissing('roles');
 
-        return is_string($name) ? UserRole::tryFrom($name) : null;
+        $role = $this->roles->first();
+
+        return $role instanceof Role ? $role : null;
     }
 
     public function primaryRoleName(): ?string

@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\ContentStatus;
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\User;
 use App\Services\ContentSeoService;
@@ -34,7 +33,7 @@ class SeoJsonLdTest extends TestCase
 
     public function test_post_renders_valid_article_json_ld_for_configured_schema_type(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $post = app(PostService::class)->create([
             'title' => 'JSON-LD Article Post',
@@ -61,7 +60,7 @@ class SeoJsonLdTest extends TestCase
 
     public function test_news_article_schema_type_is_emitted_in_json_ld(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $post = app(PostService::class)->create([
             'title' => 'Breaking News',
@@ -75,7 +74,7 @@ class SeoJsonLdTest extends TestCase
 
     public function test_page_renders_web_page_json_ld_from_inherited_defaults(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         app(SeoDefaultsSettings::class)->save([
             ...app(SeoDefaultsSettings::class)->all(),
@@ -95,7 +94,7 @@ class SeoJsonLdTest extends TestCase
 
     public function test_contact_page_schema_type_renders_matching_json_ld_type(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $page = app(PageService::class)->create([
             'title' => 'Contact',
@@ -110,7 +109,7 @@ class SeoJsonLdTest extends TestCase
 
     public function test_custom_schema_type_renders_as_json_ld_type(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $post = app(PostService::class)->create([
             'title' => 'Product Landing',
@@ -158,7 +157,7 @@ class SeoJsonLdTest extends TestCase
         return $decoded;
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             \Spatie\Permission\Models\Permission::findOrCreate($permission->value, 'web');

@@ -3,19 +3,19 @@
 namespace App\Filament\Resources\Roles\Schemas;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
+use App\Models\Role;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Unique;
-use Spatie\Permission\Models\Role;
 
 class RoleForm
 {
     /**
-     * Role fields only (name + permissions). Do not add user email/password here —
+     * Role fields only (name + description + permissions). Do not add user email/password here —
      * those belong on UserResource / UserForm.
      */
     public static function configure(Schema $schema): Schema
@@ -41,11 +41,16 @@ class RoleForm
                             ->validationMessages([
                                 'unique' => 'This role already exists.',
                             ])
-                            ->disabled(fn (?Role $record): bool => $record?->name === UserRole::Administrator->value)
+                            ->disabled(fn (?Role $record): bool => $record?->isAdministrator() ?? false)
                             ->dehydrated()
-                            ->helperText(fn (?Role $record): ?string => $record?->name === UserRole::Administrator->value
+                            ->helperText(fn (?Role $record): ?string => $record?->isAdministrator()
                                 ? 'Administrator name is system-protected and cannot be edited.'
                                 : null),
+                        Textarea::make('description')
+                            ->label('Description')
+                            ->rows(2)
+                            ->maxLength(1000)
+                            ->placeholder('Optional description shown in the admin UI.'),
                     ]),
                 Section::make('Role Capabilities Matrix')
                     ->description('Select capabilities permitted for this role. Expand a module to toggle its options.')

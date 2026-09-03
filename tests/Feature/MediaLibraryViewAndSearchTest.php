@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\MediaAssets\Pages\ListMediaAssets;
 use App\Models\Folder;
@@ -35,7 +34,7 @@ class MediaLibraryViewAndSearchTest extends TestCase
 
     public function test_search_is_scoped_to_current_folder_unless_search_all_folders_is_enabled(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $folderA = Folder::factory()->create(['name' => 'Folder A']);
         $folderB = Folder::factory()->create(['name' => 'Folder B']);
 
@@ -67,7 +66,7 @@ class MediaLibraryViewAndSearchTest extends TestCase
 
     public function test_search_all_folders_does_not_bypass_folder_when_not_searching(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $folder = Folder::factory()->create(['name' => 'Scoped']);
 
         $inFolder = MediaAsset::factory()->create([
@@ -89,7 +88,7 @@ class MediaLibraryViewAndSearchTest extends TestCase
             ->assertCanNotSeeTableRecords([$elsewhere]);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

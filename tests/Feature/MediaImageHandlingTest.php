@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\MediaAsset;
 use App\Models\User;
@@ -37,7 +36,7 @@ class MediaImageHandlingTest extends TestCase
 
     public function test_image_upload_generates_thumbnail_medium_and_large_conversions(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $settings = app(MediaSettings::class);
 
         $asset = app(MediaUploadService::class)->upload(
@@ -73,7 +72,7 @@ class MediaImageHandlingTest extends TestCase
 
     public function test_original_file_is_preserved_alongside_conversions(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $asset = app(MediaUploadService::class)->upload(
             UploadedFile::fake()->image('keep-me.png', 640, 480),
@@ -97,7 +96,7 @@ class MediaImageHandlingTest extends TestCase
 
     public function test_conversion_dimensions_follow_media_settings(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $settings = app(MediaSettings::class);
         $settings->save([
             ...$settings->all(),
@@ -130,7 +129,7 @@ class MediaImageHandlingTest extends TestCase
 
     public function test_non_image_upload_does_not_generate_conversions(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $asset = app(MediaUploadService::class)->upload(
             UploadedFile::fake()->create('brief.txt', 12, 'text/plain'),
@@ -150,7 +149,7 @@ class MediaImageHandlingTest extends TestCase
     {
         Queue::fake();
 
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $asset = app(MediaUploadService::class)->upload(
             UploadedFile::fake()->image('queued.jpg', 320, 240),
@@ -169,7 +168,7 @@ class MediaImageHandlingTest extends TestCase
 
     public function test_preview_url_prefers_thumbnail_conversion(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $asset = app(MediaUploadService::class)->upload(
             UploadedFile::fake()->image('preview.jpg', 400, 300),
@@ -184,7 +183,7 @@ class MediaImageHandlingTest extends TestCase
         $this->assertNotSame($asset->originalUrl(), $asset->previewUrl());
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

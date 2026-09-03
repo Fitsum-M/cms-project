@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Auth\Login;
 use App\Filament\Auth\RequestPasswordReset;
@@ -40,7 +39,7 @@ class AuthHardeningTest extends TestCase
     {
         Notification::fake();
 
-        $user = $this->makeUser(UserRole::Author, [
+        $user = $this->makeUser('Author', [
             'email' => 'resetme@example.com',
         ]);
 
@@ -56,7 +55,7 @@ class AuthHardeningTest extends TestCase
 
     public function test_password_reset_enforces_cms_complexity_rules(): void
     {
-        $user = $this->makeUser(UserRole::Author, [
+        $user = $this->makeUser('Author', [
             'email' => 'complex@example.com',
             'password' => Hash::make('OldPassword1!'),
         ]);
@@ -102,7 +101,7 @@ class AuthHardeningTest extends TestCase
     {
         Storage::fake('public');
 
-        $user = $this->makeUser(UserRole::Author);
+        $user = $this->makeUser('Author');
         $file = UploadedFile::fake()->image('avatar.jpg', 120, 120);
         $path = $file->store('avatars', 'public');
 
@@ -119,7 +118,7 @@ class AuthHardeningTest extends TestCase
 
     public function test_login_is_rate_limited_after_five_attempts_for_fifteen_minutes(): void
     {
-        $user = $this->makeUser(UserRole::Author, [
+        $user = $this->makeUser('Author', [
             'email' => 'throttle@example.com',
             'password' => Hash::make('ValidPassword1!'),
         ]);
@@ -159,7 +158,7 @@ class AuthHardeningTest extends TestCase
     /**
      * @param  array<string, mixed>  $attributes
      */
-    private function makeUser(UserRole $role, array $attributes = []): User
+    private function makeUser(string $role, array $attributes = []): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

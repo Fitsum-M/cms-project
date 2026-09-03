@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\ContentStatus;
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Posts\Pages\ListPosts;
 use App\Filament\Resources\Posts\Pages\ViewPost;
@@ -58,7 +57,7 @@ class SettingsDateTimeFormatTest extends TestCase
 
     public function test_posts_table_and_infolist_use_general_settings_datetime_format(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         app(GeneralSettings::class)->save([
             GeneralSettings::TIMEZONE => 'UTC',
@@ -87,7 +86,7 @@ class SettingsDateTimeFormatTest extends TestCase
 
     public function test_dashboard_recent_content_uses_general_settings_datetime_format(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         app(GeneralSettings::class)->save([
@@ -111,7 +110,7 @@ class SettingsDateTimeFormatTest extends TestCase
         Carbon::setTestNow();
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

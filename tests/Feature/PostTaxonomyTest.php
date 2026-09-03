@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\Permission;
 use App\Enums\TaxonomyStructure;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Pages\EditPost;
@@ -42,7 +41,7 @@ class PostTaxonomyTest extends TestCase
 
     public function test_create_post_assigns_categories_tags_and_custom_terms(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $category = Category::factory()->create(['name' => 'News', 'slug' => 'news']);
         $tag = Tag::factory()->create(['name' => 'Laravel', 'slug' => 'laravel']);
 
@@ -83,7 +82,7 @@ class PostTaxonomyTest extends TestCase
 
     public function test_tag_names_are_auto_created_on_assign(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $post = app(PostService::class)->create([
             'title' => 'Auto tag',
@@ -97,7 +96,7 @@ class PostTaxonomyTest extends TestCase
 
     public function test_update_replaces_taxonomy_assignments(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $first = Category::factory()->create(['name' => 'First', 'slug' => 'first']);
         $second = Category::factory()->create(['name' => 'Second', 'slug' => 'second']);
         $tag = Tag::factory()->create(['name' => 'Keep', 'slug' => 'keep']);
@@ -120,7 +119,7 @@ class PostTaxonomyTest extends TestCase
 
     public function test_custom_term_rejected_when_taxonomy_not_associated_with_post_type(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $taxonomy = app(CustomTaxonomyService::class)->create([
             'name' => 'Events Only',
@@ -147,7 +146,7 @@ class PostTaxonomyTest extends TestCase
 
     public function test_deleting_post_cascades_taxonomy_pivots(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $category = Category::factory()->create();
         $tag = Tag::factory()->create();
 
@@ -166,7 +165,7 @@ class PostTaxonomyTest extends TestCase
 
     public function test_filament_create_assigns_taxonomies(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $category = Category::factory()->create(['name' => 'Filament Cat', 'slug' => 'filament-cat']);
         $tag = Tag::factory()->create(['name' => 'Filament Tag', 'slug' => 'filament-tag']);
 
@@ -192,7 +191,7 @@ class PostTaxonomyTest extends TestCase
 
     public function test_filament_edit_loads_and_saves_taxonomies(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $category = Category::factory()->create();
         $next = Category::factory()->create();
 
@@ -218,7 +217,7 @@ class PostTaxonomyTest extends TestCase
 
     public function test_list_can_filter_by_category(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $category = Category::factory()->create();
 
         $matched = app(PostService::class)->create([
@@ -237,7 +236,7 @@ class PostTaxonomyTest extends TestCase
             ->assertCanNotSeeTableRecords([$other]);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

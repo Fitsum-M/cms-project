@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Enums\UserRole;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -48,7 +48,7 @@ class UserAdminService
             'bio' => ['nullable', 'string', 'max:1000'],
             'password' => ['nullable', 'string'],
             'role' => ['nullable', 'string', function ($attribute, $value, $fail) {
-                if (\App\Enums\UserRole::tryFrom($value) === null && ! \Spatie\Permission\Models\Role::where('name', $value)->where('guard_name', 'web')->exists()) {
+                if (! Role::query()->where('name', $value)->where('guard_name', 'web')->exists()) {
                     $fail('The selected role is invalid.');
                 }
             }],
@@ -78,6 +78,6 @@ class UserAdminService
             $this->roles->assign($actor, $target, $validated['role']);
         }
 
-        return $target->refresh();
+        return $target->fresh() ?? $target;
     }
 }

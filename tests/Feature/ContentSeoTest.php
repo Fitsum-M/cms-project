@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\ContentStatus;
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Pages\EditPost;
@@ -51,7 +50,7 @@ class ContentSeoTest extends TestCase
 
     public function test_post_seo_fields_persist_and_empty_strings_become_null(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $post = app(PostService::class)->create([
             'title' => 'SEO Post',
@@ -104,7 +103,7 @@ class ContentSeoTest extends TestCase
 
     public function test_inheritance_uses_defaults_then_dynamic_fallback(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         app(SeoDefaultsSettings::class)->save([
             ...app(SeoDefaultsSettings::class)->all(),
@@ -143,7 +142,7 @@ class ContentSeoTest extends TestCase
 
     public function test_og_image_falls_back_to_featured_then_defaults(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $featured = $this->uploadImage($admin, 'featured.png');
         $defaultOg = $this->uploadImage($admin, 'default-og.png');
         $customOg = $this->uploadImage($admin, 'custom-og.png');
@@ -181,7 +180,7 @@ class ContentSeoTest extends TestCase
 
     public function test_canonical_url_must_be_absolute(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $this->expectException(ValidationException::class);
 
@@ -195,7 +194,7 @@ class ContentSeoTest extends TestCase
 
     public function test_contributor_cannot_persist_seo_fields(): void
     {
-        $contributor = $this->makeUser(UserRole::Contributor);
+        $contributor = $this->makeUser('Contributor');
         $this->assertFalse($contributor->can(Permission::SeoConfigureContent->value));
 
         $post = app(PostService::class)->create([
@@ -213,7 +212,7 @@ class ContentSeoTest extends TestCase
 
     public function test_duplicate_copies_seo_metadata(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $source = app(PostService::class)->create([
             'title' => 'Original',
@@ -234,7 +233,7 @@ class ContentSeoTest extends TestCase
 
     public function test_force_delete_removes_seo_metadata(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $post = app(PostService::class)->create([
             'title' => 'Delete Me',
@@ -253,7 +252,7 @@ class ContentSeoTest extends TestCase
 
     public function test_page_seo_works_identically(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $page = app(PageService::class)->create([
             'title' => 'Contact',
@@ -272,7 +271,7 @@ class ContentSeoTest extends TestCase
 
     public function test_og_image_blocks_media_delete_and_force_clears(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $asset = $this->uploadImage($admin, 'seo-og.jpg');
 
         app(PostService::class)->create([
@@ -296,7 +295,7 @@ class ContentSeoTest extends TestCase
 
     public function test_filament_create_post_saves_seo_panel(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         Livewire::test(CreatePost::class)
@@ -322,7 +321,7 @@ class ContentSeoTest extends TestCase
 
     public function test_filament_edit_loads_and_updates_seo(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         $post = app(PostService::class)->create([
@@ -353,7 +352,7 @@ class ContentSeoTest extends TestCase
 
     public function test_get_dynamic_seo_data_uses_resolved_values(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $post = app(PostService::class)->create([
             'title' => 'Dynamic',
@@ -378,7 +377,7 @@ class ContentSeoTest extends TestCase
         );
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

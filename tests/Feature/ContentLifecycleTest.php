@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\ContentStatus;
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\Page;
 use App\Models\Post;
@@ -46,7 +45,7 @@ class ContentLifecycleTest extends TestCase
 
     public function test_author_without_publish_permission_is_moved_to_pending_review(): void
     {
-        $author = $this->makeUser(UserRole::Author);
+        $author = $this->makeUser('Author');
         $post = Post::factory()->create();
 
         $this->assertFalse($author->can(Permission::PostsPublish->value));
@@ -59,7 +58,7 @@ class ContentLifecycleTest extends TestCase
 
     public function test_editor_can_publish_from_draft_and_pending(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
+        $editor = $this->makeUser('Editor');
         $post = Post::factory()->create();
 
         $this->lifecycle->publish($post, $editor);
@@ -76,7 +75,7 @@ class ContentLifecycleTest extends TestCase
 
     public function test_unpublish_to_draft_or_archived(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
+        $editor = $this->makeUser('Editor');
         $post = Post::factory()->create();
         $this->lifecycle->publish($post, $editor);
 
@@ -119,7 +118,7 @@ class ContentLifecycleTest extends TestCase
 
     public function test_restore_from_trash_defaults_to_draft_and_resolves_slug_conflict(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $post = Post::factory()->create(['slug' => 'shared-slug']);
         $this->lifecycle->trash($post);
 
@@ -136,7 +135,7 @@ class ContentLifecycleTest extends TestCase
 
     public function test_restore_archived_to_draft_or_published(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
+        $editor = $this->makeUser('Editor');
         $archived = Post::factory()->archived()->create();
 
         $this->lifecycle->restore($archived, $editor, ContentStatus::Draft);
@@ -150,8 +149,8 @@ class ContentLifecycleTest extends TestCase
 
     public function test_hard_delete_only_from_trash_and_requires_force_delete_permission(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
-        $admin = $this->makeUser(UserRole::Administrator);
+        $editor = $this->makeUser('Editor');
+        $admin = $this->makeUser('Administrator');
         $post = Post::factory()->create();
 
         try {
@@ -178,7 +177,7 @@ class ContentLifecycleTest extends TestCase
 
     public function test_pages_share_the_same_lifecycle_transitions(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
+        $editor = $this->makeUser('Editor');
         $page = Page::factory()->create();
 
         $this->lifecycle->publish($page, $editor);
@@ -202,7 +201,7 @@ class ContentLifecycleTest extends TestCase
         $this->lifecycle->unpublish($post);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

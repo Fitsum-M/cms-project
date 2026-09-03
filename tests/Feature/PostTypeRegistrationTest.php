@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\PostTypes\Pages\CreatePostType;
 use App\Filament\Resources\PostTypes\Pages\EditPostType;
@@ -38,7 +37,7 @@ class PostTypeRegistrationTest extends TestCase
 
     public function test_administrator_can_register_post_type_with_labels_slug_and_icon(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $type = app(PostTypeService::class)->create([
             'plural_name' => 'Case Studies',
@@ -58,7 +57,7 @@ class PostTypeRegistrationTest extends TestCase
 
     public function test_slug_auto_generates_from_plural_name(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $type = app(PostTypeService::class)->create([
             'plural_name' => 'News Articles',
@@ -98,7 +97,7 @@ class PostTypeRegistrationTest extends TestCase
 
     public function test_slug_change_cascades_to_existing_posts(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $type = app(PostTypeService::class)->create([
             'plural_name' => 'Guides',
@@ -121,7 +120,7 @@ class PostTypeRegistrationTest extends TestCase
 
     public function test_cannot_delete_post_type_with_assigned_content(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $type = app(PostTypeService::class)->create([
             'plural_name' => 'Reports',
@@ -141,7 +140,7 @@ class PostTypeRegistrationTest extends TestCase
 
     public function test_author_cannot_access_post_type_management(): void
     {
-        $author = $this->makeUser(UserRole::Author);
+        $author = $this->makeUser('Author');
         $this->assertFalse($author->can(Permission::CustomPostTypesManage->value));
 
         $this->actingAs($author);
@@ -152,7 +151,7 @@ class PostTypeRegistrationTest extends TestCase
 
     public function test_editor_can_create_via_filament(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
+        $editor = $this->makeUser('Editor');
         $this->actingAs($editor);
 
         Livewire::test(CreatePostType::class)
@@ -175,7 +174,7 @@ class PostTypeRegistrationTest extends TestCase
 
     public function test_filament_edit_updates_labels(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         $type = app(PostTypeService::class)->create([
@@ -202,7 +201,7 @@ class PostTypeRegistrationTest extends TestCase
         $this->assertContains('post', PostTypeRegistry::keys());
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

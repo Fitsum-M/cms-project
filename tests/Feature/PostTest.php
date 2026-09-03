@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Enums\ContentStatus;
 use App\Enums\Permission;
 use App\Enums\PostVisibility;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Pages\ListPosts;
@@ -39,7 +38,7 @@ class PostTest extends TestCase
 
     public function test_create_post_assigns_author_slug_and_defaults(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $post = app(PostService::class)->create([
             'title' => 'Hello World',
@@ -59,8 +58,8 @@ class PostTest extends TestCase
 
     public function test_author_cannot_reassign_authorship(): void
     {
-        $author = $this->makeUser(UserRole::Author);
-        $other = $this->makeUser(UserRole::Editor);
+        $author = $this->makeUser('Author');
+        $other = $this->makeUser('Editor');
 
         $post = app(PostService::class)->create([
             'title' => 'Mine',
@@ -78,8 +77,8 @@ class PostTest extends TestCase
 
     public function test_editor_can_reassign_author(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
-        $author = $this->makeUser(UserRole::Author);
+        $editor = $this->makeUser('Editor');
+        $author = $this->makeUser('Author');
 
         $post = app(PostService::class)->create([
             'title' => 'Reassign me',
@@ -91,7 +90,7 @@ class PostTest extends TestCase
 
     public function test_password_required_for_password_protected_visibility(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $this->expectException(ValidationException::class);
 
@@ -103,7 +102,7 @@ class PostTest extends TestCase
 
     public function test_password_protected_post_stores_hashed_password(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $post = app(PostService::class)->create([
             'title' => 'Secret',
@@ -117,7 +116,7 @@ class PostTest extends TestCase
 
     public function test_future_dated_published_post_is_not_publicly_accessible(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $post = app(PostService::class)->create([
             'title' => 'Scheduled',
@@ -132,7 +131,7 @@ class PostTest extends TestCase
 
     public function test_private_and_password_posts_are_not_publicly_accessible(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $private = app(PostService::class)->create([
             'title' => 'Private',
@@ -155,7 +154,7 @@ class PostTest extends TestCase
 
     public function test_filament_create_and_list_posts(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(CreatePost::class)
@@ -185,8 +184,8 @@ class PostTest extends TestCase
 
     public function test_author_sees_only_own_posts_in_list(): void
     {
-        $author = $this->makeUser(UserRole::Author);
-        $other = $this->makeUser(UserRole::Editor);
+        $author = $this->makeUser('Author');
+        $other = $this->makeUser('Editor');
 
         $own = Post::factory()->create(['author_id' => $author->id, 'title' => 'Own post']);
         $foreign = Post::factory()->create(['author_id' => $other->id, 'title' => 'Other post']);
@@ -199,16 +198,16 @@ class PostTest extends TestCase
 
     public function test_author_cannot_edit_others_post(): void
     {
-        $author = $this->makeUser(UserRole::Author);
+        $author = $this->makeUser('Author');
         $foreign = Post::factory()->create([
-            'author_id' => $this->makeUser(UserRole::Administrator)->id,
+            'author_id' => $this->makeUser('Administrator')->id,
         ]);
 
         $this->assertFalse($author->can('update', $foreign));
         $this->assertFalse($author->can('view', $foreign));
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

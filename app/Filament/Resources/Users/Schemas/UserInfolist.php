@@ -28,7 +28,7 @@ class UserInfolist
                     ->schema([
                         TextEntry::make('role')
                             ->label('Role')
-                            ->state(fn ($record): string => $record->primaryRole()?->value ?? '—'),
+                            ->state(fn ($record): string => $record->primaryRoleName() ?? '—'),
                         TextEntry::make('status')
                             ->label('Status')
                             ->badge()

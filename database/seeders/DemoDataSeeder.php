@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\UserRole;
 use App\Models\Category;
 use App\Models\Page;
 use App\Models\Post;
@@ -29,14 +28,14 @@ class DemoDataSeeder extends Seeder
             'email' => 'editor@cms.local',
             'username' => 'demo_editor',
         ]);
-        $editor->assignSingleRole(UserRole::Editor);
+        $editor->assignSingleRole('Editor');
 
         $author = User::factory()->create([
             'name' => 'Demo Author',
             'email' => 'author@cms.local',
             'username' => 'demo_author',
         ]);
-        $author->assignSingleRole(UserRole::Author);
+        $author->assignSingleRole('Author');
 
         /** @var \Illuminate\Support\Collection<int, User> $authors */
         $authors = collect([$admin, $editor, $author])->filter()->values();

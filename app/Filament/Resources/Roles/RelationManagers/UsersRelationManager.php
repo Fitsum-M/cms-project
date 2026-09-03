@@ -18,7 +18,7 @@ use Filament\Tables\Table;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 
 /**
  * Users assigned to this role (exactly one role per user — SRS 11.2 / 15.6).

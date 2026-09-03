@@ -4,9 +4,9 @@ namespace App\Filament\Resources\Roles\Pages;
 
 use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\Roles\Schemas\RoleForm;
+use App\Models\Role;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
-use Spatie\Permission\Models\Role;
 
 class CreateRole extends CreateRecord
 {
@@ -27,6 +27,7 @@ class CreateRole extends CreateRecord
         unset($data['permissionGroups']);
 
         $data['guard_name'] = 'web';
+        $data['is_system'] = false;
 
         return $data;
     }

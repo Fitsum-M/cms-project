@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -43,7 +42,7 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
-        $admin->assignSingleRole(UserRole::Administrator);
+        $admin->assignSingleRole('Administrator');
 
         if (filter_var(env('SEED_DEMO_DATA', false), FILTER_VALIDATE_BOOLEAN)) {
             $this->call(DemoDataSeeder::class);

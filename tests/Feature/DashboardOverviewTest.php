@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\OverviewStatsWidget;
@@ -44,8 +43,8 @@ class DashboardOverviewTest extends TestCase
 
     public function test_overview_counts_posts_pages_media_and_users(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
-        $this->makeUser(UserRole::Editor);
+        $admin = $this->makeUser('Administrator');
+        $this->makeUser('Editor');
 
         app(PostService::class)->create(['title' => 'Post A'], $admin);
         app(PostService::class)->create(['title' => 'Post B'], $admin);
@@ -80,7 +79,7 @@ class DashboardOverviewTest extends TestCase
 
     public function test_overview_widget_renders_counts_on_dashboard(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         app(PostService::class)->create(['title' => 'Hello'], $admin);
@@ -103,7 +102,7 @@ class DashboardOverviewTest extends TestCase
 
     public function test_contributor_can_view_overview_widget(): void
     {
-        $contributor = $this->makeUser(UserRole::Contributor);
+        $contributor = $this->makeUser('Contributor');
         $this->assertTrue($contributor->can(Permission::DashboardView->value));
         $this->actingAs($contributor);
 
@@ -114,8 +113,8 @@ class DashboardOverviewTest extends TestCase
 
     public function test_soft_deleted_users_are_excluded_from_user_count(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
-        $gone = $this->makeUser(UserRole::Author);
+        $admin = $this->makeUser('Administrator');
+        $gone = $this->makeUser('Author');
         $gone->delete();
 
         $this->assertSame(1, app(DashboardOverviewService::class)->userCount());
@@ -123,7 +122,7 @@ class DashboardOverviewTest extends TestCase
         $this->assertSame(2, User::withTrashed()->count());
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

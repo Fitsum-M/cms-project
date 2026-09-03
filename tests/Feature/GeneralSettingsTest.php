@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\Permission;
 use App\Enums\SettingGroup;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Pages\System\SettingsPage;
 use App\Models\User;
@@ -31,7 +30,7 @@ class GeneralSettingsTest extends TestCase
 
     public function test_administrator_can_save_general_settings(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(SettingsPage::class)
@@ -58,7 +57,7 @@ class GeneralSettingsTest extends TestCase
 
     public function test_non_administrator_cannot_access_general_settings(): void
     {
-        $author = $this->makeUser(UserRole::Author);
+        $author = $this->makeUser('Author');
 
         $this->assertFalse($author->can(Permission::SettingsView->value));
         $this->assertFalse($author->can(Permission::SeoDefaultsView->value));
@@ -91,7 +90,7 @@ class GeneralSettingsTest extends TestCase
 
     public function test_site_title_validation_max_length(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(SettingsPage::class)
@@ -106,7 +105,7 @@ class GeneralSettingsTest extends TestCase
             ->assertHasFormErrors([GeneralSettings::SITE_TITLE]);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         // Ensure permission rows exist even if RoleSeeder order differs in future.
         foreach (Permission::cases() as $permission) {

@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\ContentStatus;
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Pages\EditPost;
@@ -43,7 +42,7 @@ class CustomPostTypeBehaviorTest extends TestCase
 
     public function test_custom_type_inherits_publishing_lifecycle(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         app(PostTypeService::class)->create([
             'plural_name' => 'News',
@@ -69,7 +68,7 @@ class CustomPostTypeBehaviorTest extends TestCase
 
     public function test_schema_inherits_from_post_type_then_seo_defaults(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         app(SeoDefaultsSettings::class)->save([
             ...app(SeoDefaultsSettings::class)->all(),
@@ -103,7 +102,7 @@ class CustomPostTypeBehaviorTest extends TestCase
 
     public function test_disabled_excerpt_and_featured_image_are_not_persisted(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         app(PostTypeService::class)->create([
             'plural_name' => 'Notices',
@@ -136,7 +135,7 @@ class CustomPostTypeBehaviorTest extends TestCase
 
     public function test_seo_panel_works_on_custom_type_content(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         app(PostTypeService::class)->create([
             'plural_name' => 'Guides',
@@ -164,7 +163,7 @@ class CustomPostTypeBehaviorTest extends TestCase
 
     public function test_list_and_edit_use_custom_type_labels(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         app(PostTypeService::class)->create([
@@ -188,7 +187,7 @@ class CustomPostTypeBehaviorTest extends TestCase
 
     public function test_author_can_create_and_submit_custom_type_for_review(): void
     {
-        $author = $this->makeUser(UserRole::Author);
+        $author = $this->makeUser('Author');
 
         app(PostTypeService::class)->create([
             'plural_name' => 'Reports',
@@ -208,7 +207,7 @@ class CustomPostTypeBehaviorTest extends TestCase
         $this->assertSame('reports', $post->post_type);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

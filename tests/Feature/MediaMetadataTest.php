@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\MediaAssets\Pages\EditMediaAsset;
 use App\Filament\Resources\MediaAssets\Pages\ListMediaAssets;
@@ -35,7 +34,7 @@ class MediaMetadataTest extends TestCase
 
     public function test_administrator_can_update_media_metadata(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $asset = MediaAsset::factory()->create([
             'uploaded_by' => $admin->id,
             'title' => 'Old title',
@@ -65,8 +64,8 @@ class MediaMetadataTest extends TestCase
 
     public function test_author_can_edit_own_media_but_not_others(): void
     {
-        $author = $this->makeUser(UserRole::Author);
-        $other = $this->makeUser(UserRole::Administrator);
+        $author = $this->makeUser('Author');
+        $other = $this->makeUser('Administrator');
 
         $own = MediaAsset::factory()->create(['uploaded_by' => $author->id]);
         $foreign = MediaAsset::factory()->create(['uploaded_by' => $other->id]);
@@ -89,9 +88,9 @@ class MediaMetadataTest extends TestCase
 
     public function test_contributor_cannot_edit_media_metadata(): void
     {
-        $contributor = $this->makeUser(UserRole::Contributor);
+        $contributor = $this->makeUser('Contributor');
         $asset = MediaAsset::factory()->create([
-            'uploaded_by' => $this->makeUser(UserRole::Administrator)->id,
+            'uploaded_by' => $this->makeUser('Administrator')->id,
         ]);
 
         Livewire::actingAs($contributor)
@@ -101,7 +100,7 @@ class MediaMetadataTest extends TestCase
 
     public function test_metadata_field_lengths_are_validated(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $asset = MediaAsset::factory()->create(['uploaded_by' => $admin->id]);
 
         Livewire::actingAs($admin)
@@ -123,7 +122,7 @@ class MediaMetadataTest extends TestCase
 
     public function test_library_search_matches_title_filename_alt_caption_and_description(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $byTitle = MediaAsset::factory()->create([
             'uploaded_by' => $admin->id,
@@ -176,8 +175,8 @@ class MediaMetadataTest extends TestCase
 
     public function test_library_filters_by_file_type_uploader_and_upload_date(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
-        $author = $this->makeUser(UserRole::Author);
+        $admin = $this->makeUser('Administrator');
+        $author = $this->makeUser('Author');
 
         $image = MediaAsset::factory()->create([
             'uploaded_by' => $admin->id,
@@ -239,7 +238,7 @@ class MediaMetadataTest extends TestCase
             ->assertCanNotSeeTableRecords([$document]);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

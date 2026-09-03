@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -18,7 +17,7 @@ class RoleAssignmentService
     /**
      * @throws AuthorizationException
      */
-    public function assign(User $actor, User $target, UserRole|string $role): void
+    public function assign(User $actor, User $target, string $role): void
     {
         $this->assertCanChangeRole($actor, $target);
 
@@ -27,7 +26,7 @@ class RoleAssignmentService
 
         $this->audit->userEvent('role_changed', $target->fresh() ?? $target, $actor, [
             'previous_role' => $previous,
-            'new_role' => $role instanceof UserRole ? $role->value : $role,
+            'new_role' => $role,
         ]);
     }
 

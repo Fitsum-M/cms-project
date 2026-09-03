@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Roles;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Filament\Resources\Roles\Pages\CreateRole;
 use App\Filament\Resources\Roles\Pages\EditRole;
 use App\Filament\Resources\Roles\Pages\ListRoles;
@@ -12,6 +11,7 @@ use App\Filament\Resources\Roles\RelationManagers\UsersRelationManager;
 use App\Filament\Resources\Roles\Schemas\RoleForm;
 use App\Filament\Resources\Roles\Schemas\RoleInfolist;
 use App\Filament\Resources\Roles\Tables\RolesTable;
+use App\Models\Role;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -19,7 +19,6 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Permission\Models\Role;
 use UnitEnum;
 
 /**
@@ -98,12 +97,11 @@ class RoleResource extends Resource
     public static function getGlobalSearchResultDetails(Model $record): array
     {
         /** @var Role $record */
-        $enum = UserRole::tryFrom($record->name);
         $usersCount = (int) ($record->users_count ?? $record->users()->count());
         $permissionsCount = (int) ($record->permissions_count ?? $record->permissions()->count());
 
         return [
-            'Type' => $enum !== null ? __('cms.iam.roles.system_role') : 'Custom Role',
+            'Type' => $record->is_system ? __('cms.iam.roles.system_role') : 'Custom Role',
             'Users' => (string) $usersCount,
             'Permissions' => (string) $permissionsCount,
         ];
@@ -151,7 +149,7 @@ class RoleResource extends Resource
     public static function canDelete(Model $record): bool
     {
         /** @var Role $record */
-        if ($record->name === UserRole::Administrator->value) {
+        if ($record->isAdministrator()) {
             return false;
         }
 

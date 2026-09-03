@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\ContentStatus;
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Pages\Pages\EditPage;
 use App\Filament\Resources\Posts\Pages\EditPost;
@@ -32,7 +31,7 @@ class DraftAutosaveTest extends TestCase
 
     public function test_draft_post_autosaves_after_form_changes(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $post = Post::factory()->create([
             'title' => 'Original Title',
             'slug' => 'original-title',
@@ -59,7 +58,7 @@ class DraftAutosaveTest extends TestCase
 
     public function test_draft_page_autosaves_after_form_changes(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $page = Page::factory()->create([
             'title' => 'Page Original',
             'slug' => 'page-original',
@@ -85,7 +84,7 @@ class DraftAutosaveTest extends TestCase
 
     public function test_published_post_does_not_autosave(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $post = Post::factory()->create([
             'title' => 'Published Title',
             'slug' => 'published-title',
@@ -112,7 +111,7 @@ class DraftAutosaveTest extends TestCase
 
     public function test_autosave_skips_when_form_is_unchanged(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $post = Post::factory()->create([
             'title' => 'Unchanged',
             'slug' => 'unchanged',
@@ -133,7 +132,7 @@ class DraftAutosaveTest extends TestCase
 
     public function test_autosave_skips_blank_title(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $post = Post::factory()->create([
             'title' => 'Keep Me',
             'slug' => 'keep-me',
@@ -157,7 +156,7 @@ class DraftAutosaveTest extends TestCase
     /**
      * @param  array<string, mixed>  $attributes
      */
-    private function makeUser(UserRole $role, array $attributes = []): User
+    private function makeUser(string $role, array $attributes = []): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

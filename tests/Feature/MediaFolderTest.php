@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Folders\Pages\CreateFolder;
 use App\Filament\Resources\Folders\Pages\ListFolders;
@@ -73,7 +72,7 @@ class MediaFolderTest extends TestCase
 
     public function test_media_can_be_moved_between_folders(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $folderA = Folder::factory()->create(['name' => 'A']);
         $folderB = Folder::factory()->create(['name' => 'B']);
 
@@ -92,7 +91,7 @@ class MediaFolderTest extends TestCase
 
     public function test_library_filters_by_folder_and_bulk_move_works(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $folder = Folder::factory()->create(['name' => 'Heroes']);
         $other = Folder::factory()->create(['name' => 'Other']);
 
@@ -131,7 +130,7 @@ class MediaFolderTest extends TestCase
 
     public function test_folders_page_create_and_drag_move(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $parent = Folder::factory()->create(['name' => 'Root']);
         $child = Folder::factory()->create(['name' => 'Nested', 'parent_id' => null]);
 
@@ -159,7 +158,7 @@ class MediaFolderTest extends TestCase
 
     public function test_recursive_delete_unfiles_media_and_removes_children(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $root = Folder::factory()->create(['name' => 'Root']);
         $child = Folder::factory()->create(['name' => 'Child', 'parent_id' => $root->id]);
         $asset = MediaAsset::factory()->create([
@@ -196,7 +195,7 @@ class MediaFolderTest extends TestCase
 
     public function test_contributor_can_view_folders_but_cannot_create(): void
     {
-        $contributor = $this->makeUser(UserRole::Contributor);
+        $contributor = $this->makeUser('Contributor');
 
         Livewire::actingAs($contributor)
             ->test(ListFolders::class)
@@ -204,7 +203,7 @@ class MediaFolderTest extends TestCase
             ->assertActionHidden('create');
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

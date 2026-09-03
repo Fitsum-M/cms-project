@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Categories\Pages\CreateCategory;
 use App\Filament\Resources\Categories\Pages\EditCategory;
@@ -33,7 +32,7 @@ class CategoryTest extends TestCase
 
     public function test_administrator_can_create_hierarchical_category(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $parent = Category::factory()->create(['name' => 'Parent', 'slug' => 'parent']);
 
         Livewire::actingAs($admin)
@@ -100,7 +99,7 @@ class CategoryTest extends TestCase
 
     public function test_contributor_cannot_manage_categories(): void
     {
-        $contributor = $this->makeUser(UserRole::Contributor);
+        $contributor = $this->makeUser('Contributor');
 
         $this->assertTrue($contributor->can(Permission::TaxonomiesView->value));
         $this->assertFalse($contributor->can(Permission::TaxonomiesCreate->value));
@@ -116,7 +115,7 @@ class CategoryTest extends TestCase
 
     public function test_author_can_list_but_not_create_categories(): void
     {
-        $author = $this->makeUser(UserRole::Author);
+        $author = $this->makeUser('Author');
 
         $this->assertTrue($author->can(Permission::TaxonomiesView->value));
         $this->assertFalse($author->can(Permission::TaxonomiesCreate->value));
@@ -128,7 +127,7 @@ class CategoryTest extends TestCase
 
     public function test_editor_can_edit_category(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
+        $editor = $this->makeUser('Editor');
         $category = Category::factory()->create(['name' => 'Old', 'slug' => 'old']);
 
         Livewire::actingAs($editor)
@@ -149,7 +148,7 @@ class CategoryTest extends TestCase
         ]);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

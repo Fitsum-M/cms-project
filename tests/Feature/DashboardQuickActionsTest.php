@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\MediaAssets\MediaAssetResource;
@@ -32,7 +31,7 @@ class DashboardQuickActionsTest extends TestCase
 
     public function test_admin_quick_actions_link_to_create_forms(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         Livewire::test(QuickActionsWidget::class)
@@ -52,7 +51,7 @@ class DashboardQuickActionsTest extends TestCase
 
     public function test_contributor_only_sees_add_post_action(): void
     {
-        $contributor = $this->makeUser(UserRole::Contributor);
+        $contributor = $this->makeUser('Contributor');
         $this->assertTrue($contributor->can(Permission::PostsCreate->value));
         $this->assertFalse($contributor->can(Permission::PagesCreate->value));
         $this->assertFalse($contributor->can(Permission::MediaUpload->value));
@@ -66,7 +65,7 @@ class DashboardQuickActionsTest extends TestCase
             ->assertDontSee('Upload Media');
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

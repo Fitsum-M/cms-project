@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\MediaAssets\Pages\EditMediaAsset;
 use App\Filament\Resources\MediaAssets\Pages\ListMediaAssets;
@@ -42,7 +41,7 @@ class MediaReuseDeleteTest extends TestCase
 
     public function test_unreferenced_media_can_be_deleted(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $asset = app(MediaUploadService::class)->upload(
             UploadedFile::fake()->image('free.jpg', 100, 80),
             $admin,
@@ -55,7 +54,7 @@ class MediaReuseDeleteTest extends TestCase
 
     public function test_delete_is_blocked_when_media_is_referenced_and_lists_references(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $asset = app(MediaUploadService::class)->upload(
             UploadedFile::fake()->image('og.jpg', 120, 90),
             $admin,
@@ -82,7 +81,7 @@ class MediaReuseDeleteTest extends TestCase
 
     public function test_administrator_force_delete_clears_references_and_removes_asset(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $asset = app(MediaUploadService::class)->upload(
             UploadedFile::fake()->image('force.jpg', 120, 90),
             $admin,
@@ -103,7 +102,7 @@ class MediaReuseDeleteTest extends TestCase
 
     public function test_editor_can_delete_unreferenced_but_cannot_force_delete(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
+        $editor = $this->makeUser('Editor');
         $asset = MediaAsset::factory()->create(['uploaded_by' => $editor->id]);
 
         $this->assertTrue($editor->can('delete', $asset));
@@ -117,8 +116,8 @@ class MediaReuseDeleteTest extends TestCase
 
     public function test_force_delete_action_visible_only_to_administrator(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
-        $editor = $this->makeUser(UserRole::Editor);
+        $admin = $this->makeUser('Administrator');
+        $editor = $this->makeUser('Editor');
         $asset = MediaAsset::factory()->create(['uploaded_by' => $admin->id]);
 
         Livewire::actingAs($admin)
@@ -134,7 +133,7 @@ class MediaReuseDeleteTest extends TestCase
 
     public function test_seo_defaults_og_image_options_use_media_asset_ids(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $asset = app(MediaUploadService::class)->upload(
             UploadedFile::fake()->image('banner.png', 200, 100),
             $admin,
@@ -146,7 +145,7 @@ class MediaReuseDeleteTest extends TestCase
         $this->assertTrue(SeoDefaultsSettings::mediaImageExists($asset->id));
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

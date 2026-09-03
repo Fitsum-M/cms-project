@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\Permission;
 use App\Enums\SettingGroup;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Pages\System\SettingsPage;
 use App\Models\User;
@@ -32,7 +31,7 @@ class SeoDefaultsTest extends TestCase
 
     public function test_administrator_can_save_seo_defaults(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(SettingsPage::class)
@@ -59,7 +58,7 @@ class SeoDefaultsTest extends TestCase
 
     public function test_editor_can_view_but_not_edit_seo_defaults(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
+        $editor = $this->makeUser('Editor');
 
         $this->assertTrue($editor->can(Permission::SeoDefaultsView->value));
         $this->assertFalse($editor->can(Permission::SeoDefaultsEdit->value));
@@ -86,7 +85,7 @@ class SeoDefaultsTest extends TestCase
 
     public function test_author_cannot_access_seo_defaults(): void
     {
-        $author = $this->makeUser(UserRole::Author);
+        $author = $this->makeUser('Author');
 
         $this->assertFalse($author->can(Permission::SeoDefaultsView->value));
 
@@ -114,7 +113,7 @@ class SeoDefaultsTest extends TestCase
 
     public function test_custom_schema_type_is_persisted(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(SettingsPage::class)
@@ -148,7 +147,7 @@ class SeoDefaultsTest extends TestCase
         ]);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

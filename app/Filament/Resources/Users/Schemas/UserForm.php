@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Users\Schemas;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
+use App\Models\Role;
 use App\Models\User;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -70,14 +70,15 @@ class UserForm
                     ->schema([
                         Select::make('role')
                             ->label('Role')
-                            ->options(fn (): array => \Spatie\Permission\Models\Role::query()
+                            ->options(fn (): array => Role::query()
                                 ->where('guard_name', 'web')
                                 ->pluck('name', 'name')
                                 ->all())
                             ->required()
                             ->native(false)
                             ->helperText(fn (?string $state): ?string => filled($state)
-                                ? (UserRole::tryFrom($state)?->description() ?? 'Custom user-defined role.')
+                                ? (Role::query()->where('name', $state)->where('guard_name', 'web')->value('description')
+                                    ?: 'Custom user-defined role.')
                                 : 'Assigned at creation; Administrators may change later.')
                             ->disabled(function (?User $record): bool {
                                 $actor = auth()->user();

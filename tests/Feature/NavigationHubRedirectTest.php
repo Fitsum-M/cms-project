@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Pages\Content\PageHierarchy;
 use App\Filament\Pages\Content\PageTemplates;
@@ -67,7 +66,7 @@ class NavigationHubRedirectTest extends TestCase
 
     public function test_posts_parent_nav_owned_without_hub(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         $this->assertFileDoesNotExist(app_path('Filament/Pages/Content/PostsGroup.php'));
@@ -94,7 +93,7 @@ class NavigationHubRedirectTest extends TestCase
 
     public function test_pages_parent_nav_owned_without_hub(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         $this->assertFileDoesNotExist(app_path('Filament/Pages/Content/PagesGroup.php'));
@@ -121,7 +120,7 @@ class NavigationHubRedirectTest extends TestCase
 
     public function test_taxonomies_parent_nav_owned_without_hub(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         $this->assertFileDoesNotExist(app_path('Filament/Pages/Content/TaxonomiesGroup.php'));
@@ -138,7 +137,7 @@ class NavigationHubRedirectTest extends TestCase
 
     public function test_custom_post_types_nav_owned_without_hub(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         app(PostTypeService::class)->create([
@@ -167,7 +166,7 @@ class NavigationHubRedirectTest extends TestCase
 
     public function test_user_resource_owns_all_users_and_add_new_user_navigation(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $this->actingAs($admin);
         $this->assertTrue(UserResource::shouldRegisterNavigation());
@@ -197,7 +196,7 @@ class NavigationHubRedirectTest extends TestCase
 
     public function test_user_resource_navigation_urls_and_active_patterns(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         $items = collect(UserResource::getNavigationItems())->keyBy(fn ($item) => $item->getLabel());
@@ -242,7 +241,7 @@ class NavigationHubRedirectTest extends TestCase
         $this->assertSame('All Users', UserResource::getNavigationLabel());
         $this->assertSame('Roles & Permissions', RoleResource::getNavigationLabel());
 
-        $this->actingAs($this->makeUser(UserRole::Administrator));
+        $this->actingAs($this->makeUser('Administrator'));
         $iamLabels = collect(UserResource::getNavigationItems())
             ->map(fn ($item) => $item->getLabel())
             ->all();
@@ -251,7 +250,7 @@ class NavigationHubRedirectTest extends TestCase
 
     public function test_role_resource_owns_iam_roles_navigation_without_per_role_items(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $this->actingAs($admin);
         $this->assertTrue(RoleResource::shouldRegisterNavigation());
@@ -275,7 +274,7 @@ class NavigationHubRedirectTest extends TestCase
 
     public function test_dashboard_exposes_srs_10_1_sections_as_widgets(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $widgets = Livewire::actingAs($admin)
             ->test(Dashboard::class)
@@ -302,7 +301,7 @@ class NavigationHubRedirectTest extends TestCase
         return (new ReflectionClass($class))->getStaticPropertyValue('navigationParentItem');
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\User;
 use App\Notifications\UserInvitationNotification;
@@ -28,14 +27,12 @@ class UserLifecycleService
      */
     public function createActive(
         array $attributes,
-        UserRole|string $role,
+        string $role,
         ?User $createdBy = null,
     ): User {
         if ($createdBy !== null) {
             Gate::forUser($createdBy)->authorize('create', User::class);
         }
-
-        $roleName = $role instanceof UserRole ? $role->value : $role;
 
         $user = User::query()->create([
             'name' => $attributes['name'],
@@ -52,10 +49,10 @@ class UserLifecycleService
             'suspended_at' => null,
         ]);
 
-        $user->assignSingleRole($roleName);
+        $user->assignSingleRole($role);
 
         $this->audit->userEvent('created', $user, $createdBy, [
-            'role' => $roleName,
+            'role' => $role,
             'status' => UserStatus::Active->value,
         ]);
 
@@ -69,7 +66,7 @@ class UserLifecycleService
      */
     public function invite(
         array $attributes,
-        UserRole|string $role,
+        string $role,
         ?User $invitedBy = null,
         bool $sendNotification = true,
     ): User {
@@ -77,7 +74,6 @@ class UserLifecycleService
             Gate::forUser($invitedBy)->authorize('create', User::class);
         }
 
-        $roleName = $role instanceof UserRole ? $role->value : $role;
         $plainToken = $this->generateInvitationToken();
 
         $user = User::query()->create([
@@ -94,14 +90,14 @@ class UserLifecycleService
             'suspended_at' => null,
         ]);
 
-        $user->assignSingleRole($roleName);
+        $user->assignSingleRole($role);
 
         if ($sendNotification) {
             $user->notify(new UserInvitationNotification($plainToken));
         }
 
         $this->audit->userEvent('invited', $user, $invitedBy, [
-            'role' => $roleName,
+            'role' => $role,
         ]);
 
         return $user;

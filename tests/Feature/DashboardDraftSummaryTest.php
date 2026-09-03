@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\DraftSummaryWidget;
@@ -35,8 +34,8 @@ class DashboardDraftSummaryTest extends TestCase
 
     public function test_author_sees_only_own_drafts_not_pending_section(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
-        $author = $this->makeUser(UserRole::Author);
+        $admin = $this->makeUser('Administrator');
+        $author = $this->makeUser('Author');
 
         app(PostService::class)->create(['title' => 'Author Draft'], $author);
         app(PostService::class)->create(['title' => 'Admin Draft'], $admin);
@@ -64,8 +63,8 @@ class DashboardDraftSummaryTest extends TestCase
 
     public function test_editor_sees_own_drafts_and_all_pending_review(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
-        $author = $this->makeUser(UserRole::Author);
+        $editor = $this->makeUser('Editor');
+        $author = $this->makeUser('Author');
 
         app(PostService::class)->create(['title' => 'Editor Draft'], $editor);
         app(PageService::class)->create(['title' => 'Editor Page Draft'], $editor);
@@ -104,7 +103,7 @@ class DashboardDraftSummaryTest extends TestCase
 
     public function test_published_content_is_excluded_from_draft_summary(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $draft = app(PostService::class)->create(['title' => 'Still Draft'], $admin);
         $published = app(PostService::class)->create(['title' => 'Live Post'], $admin);
         app(ContentLifecycleService::class)->publish($published, $admin);
@@ -116,7 +115,7 @@ class DashboardDraftSummaryTest extends TestCase
         $this->assertSame($draft->title, $summary['own_drafts']->first()->title);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

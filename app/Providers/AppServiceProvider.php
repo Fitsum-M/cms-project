@@ -48,7 +48,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 
 class AppServiceProvider extends ServiceProvider
 {

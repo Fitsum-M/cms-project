@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\MediaAssets\Pages\CreateMediaAsset;
 use App\Filament\Resources\MediaAssets\Pages\ListMediaAssets;
@@ -39,7 +38,7 @@ class MediaUploadTest extends TestCase
 
     public function test_administrator_can_upload_single_file_via_service(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $file = UploadedFile::fake()->image('hero-shot.jpg', 640, 480);
 
         $asset = app(MediaUploadService::class)->upload($file, $admin);
@@ -55,7 +54,7 @@ class MediaUploadTest extends TestCase
 
     public function test_bulk_upload_creates_multiple_assets(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $files = [
             UploadedFile::fake()->image('a.png'),
             UploadedFile::fake()->create('notes.txt', 10, 'text/plain'),
@@ -70,7 +69,7 @@ class MediaUploadTest extends TestCase
 
     public function test_disallowed_extension_is_rejected(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         app(MediaSettings::class)->save([
             ...app(MediaSettings::class)->all(),
             MediaSettings::ALLOWED_FILE_TYPES => ['png'],
@@ -86,7 +85,7 @@ class MediaUploadTest extends TestCase
 
     public function test_oversized_file_is_rejected(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         app(MediaSettings::class)->save([
             ...app(MediaSettings::class)->all(),
             MediaSettings::UPLOAD_MAX_FILE_SIZE_MB => 1,
@@ -102,8 +101,8 @@ class MediaUploadTest extends TestCase
 
     public function test_author_can_access_upload_page_contributor_cannot(): void
     {
-        $author = $this->makeUser(UserRole::Author);
-        $contributor = $this->makeUser(UserRole::Contributor);
+        $author = $this->makeUser('Author');
+        $contributor = $this->makeUser('Contributor');
 
         $this->assertTrue($author->can(Permission::MediaUpload->value));
         $this->assertFalse($contributor->can(Permission::MediaUpload->value));
@@ -119,7 +118,7 @@ class MediaUploadTest extends TestCase
 
     public function test_upload_page_persists_files_and_lists_them_in_library(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $file = UploadedFile::fake()->image('cover.webp', 320, 240);
 
         Livewire::actingAs($admin)
@@ -149,10 +148,10 @@ class MediaUploadTest extends TestCase
 
     public function test_contributor_can_view_library_but_not_upload_action_target(): void
     {
-        $contributor = $this->makeUser(UserRole::Contributor);
+        $contributor = $this->makeUser('Contributor');
 
         MediaAsset::factory()->create([
-            'uploaded_by' => $this->makeUser(UserRole::Administrator)->id,
+            'uploaded_by' => $this->makeUser('Administrator')->id,
             'title' => 'Shared image',
         ]);
 
@@ -162,7 +161,7 @@ class MediaUploadTest extends TestCase
             ->assertCanSeeTableRecords(MediaAsset::query()->get());
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

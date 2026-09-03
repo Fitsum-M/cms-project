@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Pages\Pages\ListPages;
 use App\Filament\Resources\Posts\Pages\ListPosts;
@@ -61,7 +60,7 @@ class ContentSearchTest extends TestCase
             $this->markTestSkipped('Posts table missing.');
         }
 
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $match = Post::factory()->create([
             'author_id' => $admin->id,
@@ -84,7 +83,7 @@ class ContentSearchTest extends TestCase
 
     public function test_short_search_terms_fall_back_to_like(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $match = Post::factory()->create([
             'author_id' => $admin->id,
@@ -104,7 +103,7 @@ class ContentSearchTest extends TestCase
 
     public function test_pages_table_search_finds_body_content(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $page = app(PageService::class)->create([
             'title' => 'About',
@@ -122,7 +121,7 @@ class ContentSearchTest extends TestCase
             ->assertCanSeeTableRecords([$page]);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

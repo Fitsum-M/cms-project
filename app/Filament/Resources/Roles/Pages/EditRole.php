@@ -3,15 +3,14 @@
 namespace App\Filament\Resources\Roles\Pages;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\Roles\Schemas\RoleForm;
+use App\Models\Role;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
-use Spatie\Permission\Models\Role;
 
 class EditRole extends EditRecord
 {
@@ -50,8 +49,8 @@ class EditRole extends EditRecord
         unset($data['permissionGroups']);
 
         if (
-            $record->name === UserRole::Administrator->value
-            && ($data['name'] ?? $record->name) !== UserRole::Administrator->value
+            $record->isAdministrator()
+            && ($data['name'] ?? $record->name) !== Role::ADMINISTRATOR
         ) {
             Notification::make()
                 ->danger()
@@ -59,7 +58,7 @@ class EditRole extends EditRecord
                 ->body('The Administrator role name is system-protected and cannot be renamed.')
                 ->send();
 
-            $data['name'] = UserRole::Administrator->value;
+            $data['name'] = Role::ADMINISTRATOR;
         }
 
         return $data;
@@ -84,13 +83,13 @@ class EditRole extends EditRecord
             ViewAction::make(),
             DeleteAction::make()
                 ->visible(fn (): bool => (auth()->user()?->can(Permission::UsersEditRole->value) ?? false)
-                    && $this->getRecord()->name !== UserRole::Administrator->value)
+                    && ! $this->getRecord()->isAdministrator())
                 ->requiresConfirmation()
                 ->modalHeading('Delete Role')
                 ->modalDescription('Are you sure you want to delete this role? Users assigned to this role will need to be re-assigned. This action cannot be undone.')
                 ->modalSubmitActionLabel('Delete Role')
                 ->action(function (Role $record): void {
-                    if ($record->name === UserRole::Administrator->value) {
+                    if ($record->isAdministrator()) {
                         Notification::make()
                             ->danger()
                             ->title('Deletion Blocked')

@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Roles\Pages\CreateRole;
 use App\Filament\Resources\Roles\Pages\EditRole;
@@ -20,7 +19,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission as PermissionModel;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
@@ -38,7 +37,7 @@ class IamAdminUiTest extends TestCase
 
     public function test_user_resource_owns_all_users_navigation(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $this->actingAs($admin);
         $this->assertTrue(UserResource::shouldRegisterNavigation());
@@ -51,7 +50,7 @@ class IamAdminUiTest extends TestCase
 
     public function test_user_resource_owns_add_new_user_navigation(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $this->actingAs($admin);
 
@@ -69,7 +68,7 @@ class IamAdminUiTest extends TestCase
 
     public function test_administrator_can_create_user_with_password_and_they_can_login(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $password = 'pass';
 
         Livewire::actingAs($admin)
@@ -85,7 +84,7 @@ class IamAdminUiTest extends TestCase
                 'password' => $password,
                 'passwordConfirmation' => $password,
                 'bio' => 'Hello',
-                'role' => UserRole::Editor->value,
+                'role' => 'Editor',
             ])
             ->call('create')
             ->assertHasNoFormErrors();
@@ -94,7 +93,7 @@ class IamAdminUiTest extends TestCase
 
         $this->assertNotNull($created);
         $this->assertSame(UserStatus::Active, $created->status);
-        $this->assertSame(UserRole::Editor, $created->primaryRole());
+        $this->assertSame('Editor', $created->primaryRoleName());
         $this->assertSame($admin->id, $created->invited_by);
         $this->assertTrue(Hash::check($password, $created->password));
         $this->assertTrue($created->canAccessPanel(filament()->getPanel('admin')));
@@ -107,8 +106,8 @@ class IamAdminUiTest extends TestCase
 
     public function test_administrator_can_update_existing_user_password(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
-        $author = $this->makeUser(UserRole::Author, [
+        $admin = $this->makeUser('Administrator');
+        $author = $this->makeUser('Author', [
             'username' => 'author_password',
             'email' => 'author_password@example.com',
         ]);
@@ -122,7 +121,7 @@ class IamAdminUiTest extends TestCase
                 'username' => $author->username,
                 'email' => $author->email,
                 'bio' => null,
-                'role' => UserRole::Author->value,
+                'role' => 'Author',
                 'password' => $newPassword,
                 'passwordConfirmation' => $newPassword,
             ])
@@ -134,8 +133,8 @@ class IamAdminUiTest extends TestCase
 
     public function test_administrator_can_change_role_and_cannot_change_own_role(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
-        $author = $this->makeUser(UserRole::Author, [
+        $admin = $this->makeUser('Administrator');
+        $author = $this->makeUser('Author', [
             'username' => 'author_one',
             'email' => 'author@example.com',
         ]);
@@ -147,12 +146,12 @@ class IamAdminUiTest extends TestCase
                 'username' => $author->username,
                 'email' => $author->email,
                 'bio' => null,
-                'role' => UserRole::Contributor->value,
+                'role' => 'Contributor',
             ])
             ->call('save')
             ->assertHasNoFormErrors();
 
-        $this->assertSame(UserRole::Contributor, $author->fresh()->primaryRole());
+        $this->assertSame('Contributor', $author->fresh()->primaryRoleName());
 
         Livewire::actingAs($admin)
             ->test(EditUser::class, ['record' => $admin->getRouteKey()])
@@ -161,8 +160,8 @@ class IamAdminUiTest extends TestCase
 
     public function test_administrator_can_suspend_and_soft_delete_user(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
-        $author = $this->makeUser(UserRole::Author, [
+        $admin = $this->makeUser('Administrator');
+        $author = $this->makeUser('Author', [
             'username' => 'author_two',
             'email' => 'author2@example.com',
         ]);
@@ -188,8 +187,8 @@ class IamAdminUiTest extends TestCase
 
     public function test_editor_can_view_users_but_cannot_create_or_edit_others(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
-        $author = $this->makeUser(UserRole::Author, [
+        $editor = $this->makeUser('Editor');
+        $author = $this->makeUser('Author', [
             'username' => 'author_three',
             'email' => 'author3@example.com',
         ]);
@@ -219,10 +218,10 @@ class IamAdminUiTest extends TestCase
 
     public function test_author_and_contributor_cannot_access_iam_ui(): void
     {
-        foreach ([UserRole::Author, UserRole::Contributor] as $role) {
+        foreach (['Author', 'Contributor'] as $role) {
             $user = $this->makeUser($role, [
-                'username' => strtolower($role->value).'_user',
-                'email' => strtolower($role->value).'@example.com',
+                'username' => strtolower($role).'_user',
+                'email' => strtolower($role).'@example.com',
             ]);
 
             Livewire::actingAs($user)
@@ -243,7 +242,7 @@ class IamAdminUiTest extends TestCase
 
     public function test_roles_list_and_role_view_pages_are_readable_by_admin(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(ListRoles::class)
@@ -261,7 +260,7 @@ class IamAdminUiTest extends TestCase
 
     public function test_administrator_can_crud_custom_roles_and_permissions(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         // 1. Create a role via RoleResource
         Livewire::actingAs($admin)
@@ -334,7 +333,7 @@ class IamAdminUiTest extends TestCase
     /**
      * @param  array<string, mixed>  $attributes
      */
-    private function makeUser(UserRole $role, array $attributes = []): User
+    private function makeUser(string $role, array $attributes = []): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

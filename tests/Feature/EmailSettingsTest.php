@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Enums\Permission;
 use App\Enums\SettingGroup;
 use App\Enums\SmtpEncryption;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Pages\System\SettingsPage;
 use App\Mail\SettingsTestMail;
@@ -34,7 +33,7 @@ class EmailSettingsTest extends TestCase
 
     public function test_administrator_can_save_email_settings(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(SettingsPage::class)
@@ -76,7 +75,7 @@ class EmailSettingsTest extends TestCase
             EmailSettings::SENDER_ADDRESS => 'mail@example.com',
         ]);
 
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(SettingsPage::class)
@@ -100,7 +99,7 @@ class EmailSettingsTest extends TestCase
     {
         Mail::fake();
 
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(SettingsPage::class)
@@ -128,7 +127,7 @@ class EmailSettingsTest extends TestCase
     {
         Mail::fake();
 
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(SettingsPage::class)
@@ -148,7 +147,7 @@ class EmailSettingsTest extends TestCase
 
     public function test_non_administrator_cannot_access_email_settings(): void
     {
-        $author = $this->makeUser(UserRole::Author);
+        $author = $this->makeUser('Author');
 
         $this->assertFalse($author->can(Permission::SettingsView->value));
         $this->assertFalse($author->can(Permission::SeoDefaultsView->value));
@@ -179,7 +178,7 @@ class EmailSettingsTest extends TestCase
         $this->assertNotSame('plain-secret', $row[EmailSettings::SMTP_PASSWORD] ?? null);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

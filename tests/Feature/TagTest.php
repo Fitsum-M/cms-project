@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Tags\Pages\CreateTag;
 use App\Filament\Resources\Tags\Pages\EditTag;
@@ -33,7 +32,7 @@ class TagTest extends TestCase
 
     public function test_administrator_can_create_tag(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(CreateTag::class)
@@ -95,7 +94,7 @@ class TagTest extends TestCase
 
     public function test_contributor_cannot_create_tags(): void
     {
-        $contributor = $this->makeUser(UserRole::Contributor);
+        $contributor = $this->makeUser('Contributor');
 
         $this->assertTrue($contributor->can(Permission::TaxonomiesView->value));
         $this->assertFalse($contributor->can(Permission::TaxonomiesCreate->value));
@@ -111,7 +110,7 @@ class TagTest extends TestCase
 
     public function test_editor_can_edit_tag(): void
     {
-        $editor = $this->makeUser(UserRole::Editor);
+        $editor = $this->makeUser('Editor');
         $tag = Tag::factory()->create(['name' => 'Old', 'slug' => 'old']);
 
         Livewire::actingAs($editor)
@@ -131,7 +130,7 @@ class TagTest extends TestCase
         ]);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

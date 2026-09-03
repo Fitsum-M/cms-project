@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Pages\Content\PageTemplates;
 use App\Filament\Resources\Pages\Pages\CreatePage;
@@ -36,7 +35,7 @@ class PageTemplateTest extends TestCase
 
     public function test_default_template_is_assumed_when_blank(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $page = app(PageService::class)->create([
             'title' => 'About',
@@ -51,7 +50,7 @@ class PageTemplateTest extends TestCase
 
     public function test_template_and_navigation_flag_persist(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $page = app(PageService::class)->create([
             'title' => 'Landing',
@@ -76,7 +75,7 @@ class PageTemplateTest extends TestCase
 
     public function test_unknown_template_is_rejected(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $this->expectException(ValidationException::class);
 
@@ -88,7 +87,7 @@ class PageTemplateTest extends TestCase
 
     public function test_navigation_tree_respects_flag_and_hierarchy_order(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $service = app(PageService::class);
 
         $parent = $service->create([
@@ -132,7 +131,7 @@ class PageTemplateTest extends TestCase
 
     public function test_tree_exposes_template_icon_and_nav_flag(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $page = app(PageService::class)->create([
             'title' => 'Contact',
@@ -150,7 +149,7 @@ class PageTemplateTest extends TestCase
 
     public function test_filament_create_and_edit_template_fields(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(CreatePage::class)
@@ -186,7 +185,7 @@ class PageTemplateTest extends TestCase
 
     public function test_page_templates_catalog_page_lists_registry(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(PageTemplates::class)
@@ -196,7 +195,7 @@ class PageTemplateTest extends TestCase
             ->assertSee(PageTemplateRegistry::defaultKey());
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

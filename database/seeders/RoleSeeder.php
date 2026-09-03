@@ -3,17 +3,17 @@
 namespace Database\Seeders;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
+use App\Models\Role;
 use App\Support\Auth\RolePermissionMatrix;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission as PermissionModel;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class RoleSeeder extends Seeder
 {
     /**
-     * Seed MVP roles (U.02) and wire the Section 11.4 permission matrix (U.03).
+     * Seed MVP default roles into the database and wire the Section 11.4 permission matrix.
+     * Roles remain editable in the admin UI after seeding.
      */
     public function run(): void
     {
@@ -23,12 +23,18 @@ class RoleSeeder extends Seeder
             PermissionModel::findOrCreate($permission->value, 'web');
         }
 
-        foreach (UserRole::cases() as $roleEnum) {
-            $role = Role::findOrCreate($roleEnum->value, 'web');
+        foreach (RolePermissionMatrix::definitions() as $roleName => $definition) {
+            $role = Role::findOrCreate($roleName, 'web');
+            $role->forceFill([
+                'description' => $definition['description'],
+                'color' => $definition['color'],
+                'icon' => $definition['icon'],
+                'is_system' => $definition['is_system'],
+            ])->save();
 
             $permissionNames = array_map(
                 static fn (Permission $permission): string => $permission->value,
-                RolePermissionMatrix::permissionsFor($roleEnum),
+                $definition['permissions'],
             );
 
             $role->syncPermissions($permissionNames);

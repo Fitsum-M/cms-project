@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\PostTypes\Pages\EditPostType;
@@ -42,7 +41,7 @@ class PostTypeTaxonomyAssociationTest extends TestCase
 
     public function test_post_type_can_associate_categories_tags_and_custom_taxonomies(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $taxonomy = app(CustomTaxonomyService::class)->create([
             'name' => 'Industries',
@@ -70,7 +69,7 @@ class PostTypeTaxonomyAssociationTest extends TestCase
 
     public function test_updating_associations_from_post_type_syncs_pivot(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $alpha = app(CustomTaxonomyService::class)->create([
             'name' => 'Alpha',
@@ -102,7 +101,7 @@ class PostTypeTaxonomyAssociationTest extends TestCase
 
     public function test_post_editor_hides_unsupported_taxonomies(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         app(PostTypeService::class)->create([
@@ -124,7 +123,7 @@ class PostTypeTaxonomyAssociationTest extends TestCase
 
     public function test_post_editor_shows_associated_custom_taxonomy_terms_only(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $associated = app(CustomTaxonomyService::class)->create([
             'name' => 'Sectors',
@@ -176,7 +175,7 @@ class PostTypeTaxonomyAssociationTest extends TestCase
 
     public function test_unsupported_categories_and_tags_are_cleared_on_save(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $category = Category::factory()->create();
         $tag = Tag::factory()->create();
@@ -208,7 +207,7 @@ class PostTypeTaxonomyAssociationTest extends TestCase
 
     public function test_filament_edit_persists_taxonomy_toggles(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         $taxonomy = app(CustomTaxonomyService::class)->create([
@@ -270,7 +269,7 @@ class PostTypeTaxonomyAssociationTest extends TestCase
         $this->assertContains('post', $taxonomy->fresh()->postTypeKeys());
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

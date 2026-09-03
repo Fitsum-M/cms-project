@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\ContentStatus;
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Pages\Content\PageHierarchy;
 use App\Models\Page;
@@ -34,7 +33,7 @@ class PageTreeTest extends TestCase
 
     public function test_tree_builds_nested_nodes_ordered_by_sort_order(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $service = app(PageService::class);
 
         $parent = $service->create(['title' => 'Parent', 'slug' => 'parent'], $admin);
@@ -63,7 +62,7 @@ class PageTreeTest extends TestCase
 
     public function test_reorder_relative_before_and_after(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $service = app(PageService::class);
 
         $a = $service->create(['title' => 'A', 'slug' => 'a'], $admin);
@@ -93,7 +92,7 @@ class PageTreeTest extends TestCase
 
     public function test_move_reparents_and_blocks_cycles(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $service = app(PageService::class);
 
         $parent = $service->create(['title' => 'Parent'], $admin);
@@ -111,7 +110,7 @@ class PageTreeTest extends TestCase
 
     public function test_tree_includes_status_color_and_edit_url(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $page = app(PageService::class)->create([
             'title' => 'Published Page',
             'status' => ContentStatus::Published->value,
@@ -129,8 +128,8 @@ class PageTreeTest extends TestCase
 
     public function test_author_tree_only_includes_own_pages(): void
     {
-        $author = $this->makeUser(UserRole::Author);
-        $editor = $this->makeUser(UserRole::Editor);
+        $author = $this->makeUser('Author');
+        $editor = $this->makeUser('Editor');
 
         $own = app(PageService::class)->create(['title' => 'Mine'], $author);
         app(PageService::class)->create(['title' => 'Theirs'], $editor);
@@ -143,7 +142,7 @@ class PageTreeTest extends TestCase
 
     public function test_filament_hierarchy_page_loads_and_reorders(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $service = app(PageService::class);
 
         $a = $service->create(['title' => 'Alpha', 'slug' => 'alpha'], $admin);
@@ -168,7 +167,7 @@ class PageTreeTest extends TestCase
 
     public function test_filament_move_page_nests_under_parent(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $service = app(PageService::class);
 
         $parent = $service->create(['title' => 'Parent Nest'], $admin);
@@ -182,7 +181,7 @@ class PageTreeTest extends TestCase
         $this->assertSame($parent->id, $child->fresh()->parent_id);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

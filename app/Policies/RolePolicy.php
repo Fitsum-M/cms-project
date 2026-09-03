@@ -3,9 +3,8 @@
 namespace App\Policies;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
+use App\Models\Role;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 
 class RolePolicy
 {
@@ -32,7 +31,7 @@ class RolePolicy
 
     public function delete(User $user, Role $role): bool
     {
-        if ($role->name === UserRole::Administrator->value) {
+        if ($role->isAdministrator()) {
             return false;
         }
 

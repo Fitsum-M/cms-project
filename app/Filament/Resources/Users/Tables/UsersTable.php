@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\Users\Tables;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Users\UserResource;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\UserLifecycleService;
 use Filament\Actions\Action;
@@ -46,13 +46,7 @@ class UsersTable
                     ->label('Role')
                     ->state(fn (User $record): string => $record->primaryRoleName() ?? '—')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        UserRole::Administrator->value => 'danger',
-                        UserRole::Editor->value => 'warning',
-                        UserRole::Author->value => 'info',
-                        UserRole::Contributor->value => 'gray',
-                        default => 'gray',
-                    }),
+                    ->color(fn (User $record): string => $record->primaryRole()?->displayColor() ?? 'gray'),
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
@@ -84,7 +78,7 @@ class UsersTable
                     )->all()),
                 SelectFilter::make('role')
                     ->label('Role')
-                    ->options(fn (): array => \Spatie\Permission\Models\Role::query()
+                    ->options(fn (): array => Role::query()
                         ->where('guard_name', 'web')
                         ->pluck('name', 'name')
                         ->all())

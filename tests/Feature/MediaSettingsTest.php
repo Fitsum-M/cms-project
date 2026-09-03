@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\Permission;
 use App\Enums\SettingGroup;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Pages\System\SettingsPage;
 use App\Models\User;
@@ -31,7 +30,7 @@ class MediaSettingsTest extends TestCase
 
     public function test_administrator_can_save_media_settings(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(SettingsPage::class)
@@ -65,7 +64,7 @@ class MediaSettingsTest extends TestCase
 
     public function test_non_administrator_cannot_access_media_settings(): void
     {
-        $author = $this->makeUser(UserRole::Author);
+        $author = $this->makeUser('Author');
 
         $this->assertFalse($author->can(Permission::SettingsView->value));
         $this->assertFalse($author->can(Permission::SeoDefaultsView->value));
@@ -77,7 +76,7 @@ class MediaSettingsTest extends TestCase
 
     public function test_upload_max_must_be_at_least_one_mb(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(SettingsPage::class)
@@ -90,7 +89,7 @@ class MediaSettingsTest extends TestCase
 
     public function test_allowed_file_types_required(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(SettingsPage::class)
@@ -130,7 +129,7 @@ class MediaSettingsTest extends TestCase
         $this->assertSame('Heroes', $options[$folder->id]);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

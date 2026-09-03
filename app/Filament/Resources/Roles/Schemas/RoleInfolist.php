@@ -3,12 +3,11 @@
 namespace App\Filament\Resources\Roles\Schemas;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
+use App\Models\Role;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Spatie\Permission\Models\Role;
 
 class RoleInfolist
 {
@@ -21,19 +20,18 @@ class RoleInfolist
                         TextEntry::make('name')
                             ->label('Role')
                             ->badge()
-                            ->color(fn (string $state): string => UserRole::tryFrom($state)?->color() ?? 'gray')
-                            ->icon(fn (string $state): string => UserRole::tryFrom($state)?->icon() ?? 'heroicon-o-shield-check'),
+                            ->color(fn (Role $record): string => $record->displayColor())
+                            ->icon(fn (Role $record): string => $record->displayIcon()),
                         TextEntry::make('role_type')
                             ->label('Type')
                             ->badge()
-                            ->state(fn (Role $record): string => UserRole::tryFrom($record->name) !== null
+                            ->state(fn (Role $record): string => $record->is_system
                                 ? __('cms.iam.roles.system_role')
                                 : 'Custom Role')
-                            ->color(fn (Role $record): string => UserRole::tryFrom($record->name)?->color() ?? 'gray'),
+                            ->color(fn (Role $record): string => $record->displayColor()),
                         TextEntry::make('description')
                             ->label('Description')
-                            ->state(fn (Role $record): string => UserRole::tryFrom($record->name)?->description()
-                                ?? 'Custom user-defined role.')
+                            ->state(fn (Role $record): string => $record->displayDescription())
                             ->columnSpanFull(),
                         TextEntry::make('users_count')
                             ->label('Assigned users')
@@ -47,7 +45,7 @@ class RoleInfolist
                                 return "{$granted}/{$total}";
                             })
                             ->badge()
-                            ->color(fn (Role $record): string => UserRole::tryFrom($record->name)?->color() ?? 'gray')
+                            ->color(fn (Role $record): string => $record->displayColor())
                             ->helperText(fn (Role $record): string => __('cms.iam.roles.coverage_detail', [
                                 'percent' => self::coveragePercent($record),
                             ])),

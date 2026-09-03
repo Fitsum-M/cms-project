@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\Permission;
 use App\Enums\TaxonomyStructure;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\Category;
 use App\Models\Post;
@@ -144,7 +143,7 @@ class TaxonomyDeletionGuardTest extends TestCase
             'status' => UserStatus::Active,
             'activated_at' => now(),
         ]);
-        $admin->assignSingleRole(UserRole::Administrator);
+        $admin->assignSingleRole('Administrator');
 
         $category = Category::factory()->create();
         $post = Post::factory()->create();

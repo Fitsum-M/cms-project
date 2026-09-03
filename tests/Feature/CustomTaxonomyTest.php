@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\Permission;
 use App\Enums\TaxonomyStructure;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\CustomTaxonomies\Pages\CreateCustomTaxonomy;
 use App\Filament\Resources\CustomTaxonomies\Pages\EditCustomTaxonomy;
@@ -35,7 +34,7 @@ class CustomTaxonomyTest extends TestCase
 
     public function test_administrator_can_create_custom_taxonomy(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         Livewire::actingAs($admin)
             ->test(CreateCustomTaxonomy::class)
@@ -175,7 +174,7 @@ class CustomTaxonomyTest extends TestCase
             'post_type_keys' => ['post'],
         ]);
 
-        $editor = $this->makeUser(UserRole::Editor);
+        $editor = $this->makeUser('Editor');
 
         Livewire::actingAs($editor)
             ->test(EditCustomTaxonomy::class, ['record' => $taxonomy->getRouteKey()])
@@ -196,7 +195,7 @@ class CustomTaxonomyTest extends TestCase
 
     public function test_author_cannot_create_custom_taxonomy(): void
     {
-        $author = $this->makeUser(UserRole::Author);
+        $author = $this->makeUser('Author');
 
         $this->assertFalse($author->can(Permission::TaxonomiesCreate->value));
 
@@ -205,7 +204,7 @@ class CustomTaxonomyTest extends TestCase
             ->assertForbidden();
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

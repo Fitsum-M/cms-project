@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Roles\Tables;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Filament\Resources\Roles\RoleResource;
+use App\Models\Role;
 use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -12,7 +12,6 @@ use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Spatie\Permission\Models\Role;
 
 class RolesTable
 {
@@ -27,16 +26,14 @@ class RolesTable
                     ->searchable()
                     ->sortable()
                     ->badge()
-                    ->color(fn (string $state): string => UserRole::tryFrom($state)?->color() ?? 'gray')
-                    ->icon(fn (string $state): string => UserRole::tryFrom($state)?->icon() ?? 'heroicon-o-shield-check'),
+                    ->color(fn (Role $record): string => $record->displayColor())
+                    ->icon(fn (Role $record): string => $record->displayIcon()),
                 TextColumn::make('description')
                     ->label('Description')
-                    ->state(fn (Role $record): string => UserRole::tryFrom($record->name)?->description()
-                        ?? 'Custom user-defined role.')
+                    ->state(fn (Role $record): string => $record->displayDescription())
                     ->wrap()
                     ->limit(80)
-                    ->tooltip(fn (Role $record): string => UserRole::tryFrom($record->name)?->description()
-                        ?? 'Custom user-defined role.'),
+                    ->tooltip(fn (Role $record): string => $record->displayDescription()),
                 TextColumn::make('users_count')
                     ->label('Users')
                     ->counts('users')
@@ -73,13 +70,13 @@ class RolesTable
                 DeleteAction::make()
                     ->label('Delete')
                     ->visible(fn (Role $record): bool => (auth()->user()?->can(Permission::UsersEditRole->value) ?? false)
-                        && $record->name !== UserRole::Administrator->value)
+                        && ! $record->isAdministrator())
                     ->requiresConfirmation()
                     ->modalHeading('Delete Role')
                     ->modalDescription('Are you sure you want to delete this role? Users assigned to this role will need to be re-assigned. This action cannot be undone.')
                     ->modalSubmitActionLabel('Delete Role')
                     ->action(function (Role $record): void {
-                        if ($record->name === UserRole::Administrator->value) {
+                        if ($record->isAdministrator()) {
                             Notification::make()
                                 ->danger()
                                 ->title('Deletion Blocked')

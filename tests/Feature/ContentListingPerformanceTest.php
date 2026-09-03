@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Resources\Posts\Pages\ListPosts;
 use App\Models\User;
@@ -39,7 +38,7 @@ class ContentListingPerformanceTest extends TestCase
 
     public function test_posts_listing_queries_stay_under_two_seconds_with_sample_dataset(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         for ($i = 1; $i <= 250; $i++) {
             app(PostService::class)->create([
@@ -58,7 +57,7 @@ class ContentListingPerformanceTest extends TestCase
 
     public function test_posts_list_livewire_render_stays_under_two_seconds(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         for ($i = 1; $i <= 25; $i++) {
@@ -81,7 +80,7 @@ class ContentListingPerformanceTest extends TestCase
 
     public function test_pages_listing_queries_stay_under_two_seconds_with_sample_dataset(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         for ($i = 1; $i <= 100; $i++) {
             app(PageService::class)->create([
@@ -98,7 +97,7 @@ class ContentListingPerformanceTest extends TestCase
         );
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

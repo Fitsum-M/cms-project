@@ -3,26 +3,64 @@
 namespace App\Support\Auth;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 
 /**
- * Maps each MVP role to its Spatie permissions per SRS Section 11.4.
- * Ownership enforcement ("own only") is applied later in U.05 policies;
- * this matrix only assigns the capability flags.
+ * Default role → permission matrix for seeding only (SRS Section 11.4).
+ * Runtime roles live in the database and are managed via the admin UI.
  */
 final class RolePermissionMatrix
 {
     /**
+     * Seed definitions for MVP default roles.
+     *
+     * @return array<string, array{
+     *     description: string,
+     *     color: string,
+     *     icon: string,
+     *     is_system: bool,
+     *     permissions: list<Permission>
+     * }>
+     */
+    public static function definitions(): array
+    {
+        return [
+            'Administrator' => [
+                'description' => 'Full system access including all modules, user management, role assignment, and system configuration.',
+                'color' => 'danger',
+                'icon' => 'heroicon-o-shield-check',
+                'is_system' => true,
+                'permissions' => self::administrator(),
+            ],
+            'Editor' => [
+                'description' => 'Full content and taxonomy management; can publish, edit others\' content, and manage media. Restricted from user role assignment, system settings, and SEO Defaults.',
+                'color' => 'warning',
+                'icon' => 'heroicon-o-pencil-square',
+                'is_system' => true,
+                'permissions' => self::editor(),
+            ],
+            'Author' => [
+                'description' => 'Can create and edit own posts and pages, assign taxonomies, upload media, and configure SEO on own content. Cannot publish; submits content for review.',
+                'color' => 'info',
+                'icon' => 'heroicon-o-document-text',
+                'is_system' => true,
+                'permissions' => self::author(),
+            ],
+            'Contributor' => [
+                'description' => 'Most restricted role. Can create own draft posts only. Cannot upload media directly; may select from existing library. Cannot manage pages.',
+                'color' => 'gray',
+                'icon' => 'heroicon-o-pencil',
+                'is_system' => true,
+                'permissions' => self::contributor(),
+            ],
+        ];
+    }
+
+    /**
      * @return list<Permission>
      */
-    public static function permissionsFor(UserRole $role): array
+    public static function permissionsFor(string $roleName): array
     {
-        return match ($role) {
-            UserRole::Administrator => self::administrator(),
-            UserRole::Editor => self::editor(),
-            UserRole::Author => self::author(),
-            UserRole::Contributor => self::contributor(),
-        };
+        return self::definitions()[$roleName]['permissions'] ?? [];
     }
 
     /**

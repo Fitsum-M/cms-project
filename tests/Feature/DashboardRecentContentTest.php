@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\RecentContentWidget;
@@ -36,7 +35,7 @@ class DashboardRecentContentTest extends TestCase
 
     public function test_recent_content_returns_last_ten_edited_posts_and_pages(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         Carbon::setTestNow('2026-08-01 10:00:00');
@@ -64,8 +63,8 @@ class DashboardRecentContentTest extends TestCase
 
     public function test_admin_sees_others_content_author_sees_only_own(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
-        $author = $this->makeUser(UserRole::Author);
+        $admin = $this->makeUser('Administrator');
+        $author = $this->makeUser('Author');
 
         Carbon::setTestNow('2026-08-02 12:00:00');
         app(PostService::class)->create(['title' => 'Admin Post'], $admin);
@@ -93,7 +92,7 @@ class DashboardRecentContentTest extends TestCase
 
     public function test_trashed_content_is_excluded(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
 
         $kept = app(PostService::class)->create(['title' => 'Kept'], $admin);
         $trashed = app(PostService::class)->create(['title' => 'Gone'], $admin);
@@ -108,8 +107,8 @@ class DashboardRecentContentTest extends TestCase
 
     public function test_contributor_does_not_see_pages_in_recent_content(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
-        $contributor = $this->makeUser(UserRole::Contributor);
+        $admin = $this->makeUser('Administrator');
+        $contributor = $this->makeUser('Contributor');
 
         app(PostService::class)->create(['title' => 'Contributor Post'], $contributor);
         app(PageService::class)->create(['title' => 'Someone Page'], $admin);
@@ -122,7 +121,7 @@ class DashboardRecentContentTest extends TestCase
 
     public function test_recent_content_widget_renders_on_dashboard(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $this->actingAs($admin);
 
         app(PostService::class)->create(['title' => 'Hello Recent'], $admin);
@@ -141,7 +140,7 @@ class DashboardRecentContentTest extends TestCase
             ->assertSeeLivewire(RecentContentWidget::class);
     }
 
-    private function makeUser(UserRole $role): User
+    private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');

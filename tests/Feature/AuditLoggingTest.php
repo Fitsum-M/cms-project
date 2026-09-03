@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\ContentStatus;
 use App\Enums\Permission;
-use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Listeners\Audit\LogAuthorizationEvents;
 use App\Models\User;
@@ -39,7 +38,7 @@ class AuditLoggingTest extends TestCase
 
     public function test_login_success_and_failure_are_logged_to_security_channel(): void
     {
-        $user = $this->makeUser(UserRole::Author, [
+        $user = $this->makeUser('Author', [
             'email' => 'logger@example.com',
             'password' => Hash::make('ValidPassword1!'),
         ]);
@@ -75,7 +74,7 @@ class AuditLoggingTest extends TestCase
 
     public function test_permission_denial_is_logged_without_secrets(): void
     {
-        $actor = $this->makeUser(UserRole::Author);
+        $actor = $this->makeUser('Author');
         $messages = [];
 
         Log::shouldReceive('channel')
@@ -101,8 +100,8 @@ class AuditLoggingTest extends TestCase
 
     public function test_user_role_and_status_changes_are_logged(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
-        $author = $this->makeUser(UserRole::Author, [
+        $admin = $this->makeUser('Administrator');
+        $author = $this->makeUser('Author', [
             'username' => 'role_target',
             'email' => 'role_target@example.com',
         ]);
@@ -118,7 +117,7 @@ class AuditLoggingTest extends TestCase
                 $messages[] = compact('level', 'message', 'context');
             });
 
-        app(RoleAssignmentService::class)->assign($admin, $author, UserRole::Contributor);
+        app(RoleAssignmentService::class)->assign($admin, $author, 'Contributor');
         app(UserLifecycleService::class)->suspendAs($admin, $author->fresh());
 
         $names = collect($messages)->pluck('message');
@@ -133,7 +132,7 @@ class AuditLoggingTest extends TestCase
 
     public function test_content_create_update_and_trash_are_logged_to_audit_channel(): void
     {
-        $admin = $this->makeUser(UserRole::Administrator);
+        $admin = $this->makeUser('Administrator');
         $messages = [];
 
         Log::shouldReceive('channel')
@@ -191,7 +190,7 @@ class AuditLoggingTest extends TestCase
     /**
      * @param  array<string, mixed>  $attributes
      */
-    private function makeUser(UserRole $role, array $attributes = []): User
+    private function makeUser(string $role, array $attributes = []): User
     {
         foreach (Permission::cases() as $permission) {
             PermissionModel::findOrCreate($permission->value, 'web');
