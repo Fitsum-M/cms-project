@@ -14,6 +14,7 @@ class MediaAssetForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(1)
             ->components([
                 Section::make('Metadata')
                     ->description('Editable identification fields. File name, type, size, and dimensions are set at upload and stay read-only.')

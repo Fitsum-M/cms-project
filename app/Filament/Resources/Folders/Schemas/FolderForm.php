@@ -17,6 +17,7 @@ class FolderForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(1)
             ->components([
                 Section::make('Folder details')
                     ->description('Folders organize the media library. Names must be unique among siblings under the same parent.')

@@ -21,6 +21,7 @@ class RoleForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(1)
             ->components([
                 Section::make('Role Details')
                     ->description('Enter a name for the role.')
