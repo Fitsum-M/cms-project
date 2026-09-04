@@ -78,7 +78,10 @@ class CreateMediaAsset extends Page
     public function form(Schema $schema): Schema
     {
         $settings = app(MediaSettings::class);
-        $allowed = $settings->allowedFileTypes();
+        $allowed = array_values(array_unique([
+            ...MediaSettings::imageExtensions(),
+            ...$settings->allowedFileTypes(),
+        ]));
         $maxMb = $settings->uploadMaxFileSizeMb();
 
         return $schema

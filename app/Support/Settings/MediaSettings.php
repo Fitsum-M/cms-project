@@ -103,7 +103,29 @@ class MediaSettings
     {
         $extension = strtolower(ltrim($extension, '.'));
 
+        // All catalogued image formats are always allowed (jpg, jfif, webp, avif, …).
+        if (in_array($extension, self::imageExtensions(), true)) {
+            return true;
+        }
+
         return in_array($extension, $this->allowedFileTypes(), true);
+    }
+
+    /**
+     * Image extensions supported by the media library.
+     *
+     * @return list<string>
+     */
+    public static function imageExtensions(): array
+    {
+        return array_values(array_filter(
+            array_keys(self::extensionMimeMap()),
+            function (string $extension): bool {
+                $mimes = self::extensionMimeMap()[$extension] ?? [];
+
+                return $mimes !== [] && str_starts_with($mimes[0], 'image/');
+            },
+        ));
     }
 
     /**
@@ -202,7 +224,7 @@ class MediaSettings
     }
 
     /**
-     * Extensions permitted by SRS 14.2 (admin may restrict via settings).
+     * Extensions permitted for uploads (admin may restrict non-image types via settings).
      *
      * @return array<string, string>
      */
@@ -211,10 +233,19 @@ class MediaSettings
         return [
             'jpg' => 'jpg (Images)',
             'jpeg' => 'jpeg (Images)',
+            'jpe' => 'jpe (Images)',
+            'jfif' => 'jfif (Images)',
             'png' => 'png (Images)',
             'gif' => 'gif (Images)',
             'webp' => 'webp (Images)',
             'svg' => 'svg (Images)',
+            'bmp' => 'bmp (Images)',
+            'ico' => 'ico (Images)',
+            'tif' => 'tif (Images)',
+            'tiff' => 'tiff (Images)',
+            'avif' => 'avif (Images)',
+            'heic' => 'heic (Images)',
+            'heif' => 'heif (Images)',
             'pdf' => 'pdf (Documents)',
             'doc' => 'doc (Documents)',
             'docx' => 'docx (Documents)',
@@ -234,7 +265,10 @@ class MediaSettings
      */
     public function acceptedMimeTypes(?array $extensions = null): array
     {
-        $extensions ??= $this->allowedFileTypes();
+        $extensions ??= array_values(array_unique([
+            ...$this->allowedFileTypes(),
+            ...self::imageExtensions(),
+        ]));
         $map = self::extensionMimeMap();
         $accepted = [];
         $hasImage = false;
@@ -281,10 +315,19 @@ class MediaSettings
         return [
             'jpg' => ['image/jpeg'],
             'jpeg' => ['image/jpeg'],
+            'jpe' => ['image/jpeg'],
+            'jfif' => ['image/jpeg'],
             'png' => ['image/png'],
             'gif' => ['image/gif'],
             'webp' => ['image/webp'],
             'svg' => ['image/svg+xml'],
+            'bmp' => ['image/bmp', 'image/x-ms-bmp'],
+            'ico' => ['image/x-icon', 'image/vnd.microsoft.icon'],
+            'tif' => ['image/tiff'],
+            'tiff' => ['image/tiff'],
+            'avif' => ['image/avif'],
+            'heic' => ['image/heic', 'image/heif'],
+            'heif' => ['image/heif', 'image/heic'],
             'pdf' => ['application/pdf'],
             'doc' => ['application/msword'],
             'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],

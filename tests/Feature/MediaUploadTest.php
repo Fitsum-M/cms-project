@@ -78,9 +78,24 @@ class MediaUploadTest extends TestCase
         $this->expectException(ValidationException::class);
 
         app(MediaUploadService::class)->upload(
-            UploadedFile::fake()->image('photo.jpg'),
+            UploadedFile::fake()->create('notes.txt', 10, 'text/plain'),
             $admin,
         );
+    }
+
+    public function test_jfif_and_other_image_formats_are_allowed(): void
+    {
+        $admin = $this->makeUser('Administrator');
+
+        $asset = app(MediaUploadService::class)->upload(
+            UploadedFile::fake()->image('photo.jfif', 320, 240),
+            $admin,
+        );
+
+        $this->assertSame('photo.jfif', $asset->original_file_name);
+        $this->assertTrue(app(MediaSettings::class)->allowsExtension('jfif'));
+        $this->assertTrue(app(MediaSettings::class)->allowsExtension('heic'));
+        $this->assertTrue(app(MediaSettings::class)->allowsExtension('avif'));
     }
 
     public function test_oversized_file_is_rejected(): void
