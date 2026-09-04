@@ -224,7 +224,10 @@ class MediaSettings
     }
 
     /**
-     * MIME types for the given extensions (Filament FileUpload acceptedFileTypes).
+     * MIME types / accept hints for Filament FileUpload acceptedFileTypes.
+     *
+     * Includes `image/*` and `.ext` entries so OS file pickers (especially Windows)
+     * filter to images instead of a vague "Custom Files" / all-files list.
      *
      * @param  list<string>|null  $extensions
      * @return list<string>
@@ -233,18 +236,33 @@ class MediaSettings
     {
         $extensions ??= $this->allowedFileTypes();
         $map = self::extensionMimeMap();
-        $mimes = [];
+        $accepted = [];
+        $hasImage = false;
 
         foreach ($extensions as $extension) {
             $extension = strtolower(ltrim($extension, '.'));
             $mapped = $map[$extension] ?? [];
 
             foreach ($mapped as $mime) {
-                $mimes[$mime] = true;
+                if (str_starts_with($mime, 'image/')) {
+                    $hasImage = true;
+                }
+
+                $accepted[$mime] = true;
+            }
+
+            if ($extension !== '') {
+                $accepted['.'.$extension] = true;
             }
         }
 
-        return array_keys($mimes);
+        $result = array_keys($accepted);
+
+        if ($hasImage) {
+            array_unshift($result, 'image/*');
+        }
+
+        return $result;
     }
 
     /**

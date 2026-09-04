@@ -60,6 +60,9 @@ class MediaSettingsTest extends TestCase
         $this->assertSame(['jpg', 'png', 'pdf'], $settings->allowedFileTypes());
         $this->assertTrue($settings->allowsExtension('PNG'));
         $this->assertFalse($settings->allowsExtension('zip'));
+        $this->assertContains('image/*', $settings->acceptedMimeTypes());
+        $this->assertContains('.jpg', $settings->acceptedMimeTypes());
+        $this->assertContains('application/pdf', $settings->acceptedMimeTypes());
     }
 
     public function test_non_administrator_cannot_access_media_settings(): void
