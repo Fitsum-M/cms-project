@@ -19,7 +19,7 @@ class MediaAssetInfolist
                         ImageEntry::make('preview')
                             ->label('Preview')
                             ->visible(fn (MediaAsset $record): bool => $record->isImage())
-                            ->getStateUsing(fn (MediaAsset $record): ?string => $record->previewUrl())
+                            ->getStateUsing(fn (MediaAsset $record): ?string => $record->conversionUrl(MediaAsset::CONVERSION_LARGE) ?? $record->conversionUrl(MediaAsset::CONVERSION_MEDIUM) ?? $record->previewUrl() ?? $record->originalUrl())
                             ->columnSpanFull(),
                         TextEntry::make('original_file_name')
                             ->label('File Name'),

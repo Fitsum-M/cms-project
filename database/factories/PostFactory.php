@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\ContentStatus;
 use App\Enums\PostVisibility;
+use App\Models\MediaAsset;
 use App\Models\Post;
 use App\Models\User;
 use App\Support\SlugGenerator;
@@ -59,4 +60,19 @@ class PostFactory extends Factory
             'status' => ContentStatus::Archived,
         ]);
     }
+
+    public function withFeaturedImage(?MediaAsset $asset = null): static
+    {
+        return $this->state(function () use ($asset): array {
+            $image = $asset ?? MediaAsset::query()
+                ->where('mime_type', 'like', 'image/%')
+                ->latest('id')
+                ->first();
+
+            return [
+                'featured_image_id' => $image?->id,
+            ];
+        });
+    }
 }
+

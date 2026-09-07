@@ -112,6 +112,10 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
+        if (! $this->app->runningInConsole() && request()->hasHeader('Host')) {
+            config(['filesystems.disks.public.url' => request()->getSchemeAndHttpHost().'/storage']);
+        }
+
         // GAP.S.01 — admin tables/infolists use General Settings date/time formats (§16.2, §18.10).
         FilamentTimezone::set(fn (): string => app(GeneralSettings::class)->timezone());
 

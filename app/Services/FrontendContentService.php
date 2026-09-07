@@ -18,7 +18,7 @@ class FrontendContentService
     public function publishedPostsQuery(): Builder
     {
         return Post::query()
-            ->with(['author', 'categories', 'tags'])
+            ->with(['author', 'categories', 'tags', 'featuredImage'])
             ->where('status', ContentStatus::Published)
             ->where('visibility', PostVisibility::Public)
             ->where(function (Builder $query): void {
