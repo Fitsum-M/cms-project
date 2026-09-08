@@ -65,15 +65,22 @@ class PagesTable
                 TextColumn::make('published_at')
                     ->label('Publish Date')
                     ->dateTime()
-                    ->sortable()
+                    ->sortable(query: fn (Builder $query, string $direction): Builder => $query->orderByRaw(
+                        'COALESCE(pages.published_at, pages.created_at) ' . (strtolower($direction) === 'asc' ? 'asc' : 'desc')
+                    ))
                     ->toggleable(),
+                TextColumn::make('created_at')
+                    ->label('Created')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
                     ->label('Updated')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->defaultSort('sort_order')
+            ->defaultSort('published_at', 'desc')
             ->filters([
                 TrashedFilter::make(),
                 SelectFilter::make('status')
