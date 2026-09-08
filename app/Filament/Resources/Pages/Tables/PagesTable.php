@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Services\ContentLifecycleService;
 use App\Support\Content\ContentSearch;
 use Illuminate\Database\Eloquent\Builder;
+use App\Services\FrontendContentService;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -33,9 +35,13 @@ class PagesTable
                     ->label(__('cms.tables.title'))
                     ->searchable(query: fn (Builder $query, string $search): Builder => ContentSearch::applyPagesSearch($query, $search))
                     ->sortable()
-                    ->description(fn (Page $record): string => $record->hierarchicalLabel() !== $record->title
-                        ? $record->hierarchicalLabel()
-                        : $record->slug),
+                    ->description(function (Page $record): string {
+                        $hierarchy = $record->hierarchicalLabel() !== $record->title
+                            ? $record->hierarchicalLabel().' · '
+                            : '';
+
+                        return $hierarchy.'/pages/'.$record->slug;
+                    }),
                 TextColumn::make('parent.title')
                     ->label('Parent')
                     ->placeholder('—')
@@ -143,6 +149,13 @@ class PagesTable
                     }),
             ])
             ->recordActions([
+                Action::make('openOnSite')
+                    ->label('Open')
+                    ->icon('heroicon-o-arrow-top-right-on-square')
+                    ->url(fn (Page $record): string => $record->publicUrl())
+                    ->openUrlInNewTab()
+                    ->visible(fn (Page $record): bool => ! $record->trashed()
+                        && app(FrontendContentService::class)->isPublicPage($record)),
                 ViewAction::make(),
                 EditAction::make()
                     ->visible(fn (Page $record): bool => ! $record->trashed()),

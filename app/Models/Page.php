@@ -163,6 +163,14 @@ class Page extends Model implements HasContentLifecycle, HasSeoMetadata, Ownable
         return app(ContentUrlGenerator::class)->pagePath($this);
     }
 
+    /**
+     * Working frontend URL for this page (served at /pages/{slug}).
+     */
+    public function publicUrl(): string
+    {
+        return route('frontend.pages.show', $this->slug);
+    }
+
     public function ownerKey(): ?int
     {
         return $this->author_id;

@@ -8,6 +8,7 @@ use App\Filament\Resources\Pages\PageResource;
 use App\Models\Page;
 use App\Services\ContentLifecycleService;
 use App\Services\ContentSeoService;
+use App\Services\FrontendContentService;
 use App\Services\PageService;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
@@ -27,6 +28,18 @@ class EditPage extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('openOnSite')
+                ->label('Open on site')
+                ->icon('heroicon-o-arrow-top-right-on-square')
+                ->url(fn (): string => $this->getRecord()->publicUrl())
+                ->openUrlInNewTab()
+                ->visible(function (): bool {
+                    /** @var Page $record */
+                    $record = $this->getRecord();
+
+                    return ! $record->trashed()
+                        && app(FrontendContentService::class)->isPublicPage($record);
+                }),
             ViewAction::make(),
             Action::make('restore')
                 ->label('Restore')

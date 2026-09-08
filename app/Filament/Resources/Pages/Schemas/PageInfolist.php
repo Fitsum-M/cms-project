@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Pages\Schemas;
 
 use App\Models\Page;
+use App\Services\FrontendContentService;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -18,8 +19,16 @@ class PageInfolist
                         TextEntry::make('title'),
                         TextEntry::make('slug')
                             ->copyable(),
+                        TextEntry::make('live_url')
+                            ->label('Live URL')
+                            ->state(fn (Page $record): string => $record->publicUrl())
+                            ->url(fn (Page $record): ?string => app(FrontendContentService::class)->isPublicPage($record)
+                                ? $record->publicUrl()
+                                : null)
+                            ->openUrlInNewTab()
+                            ->copyable(),
                         TextEntry::make('public_path')
-                            ->label('Public path')
+                            ->label('Permalink path')
                             ->state(fn (Page $record): string => $record->publicPath())
                             ->copyable(),
                         TextEntry::make('body')
