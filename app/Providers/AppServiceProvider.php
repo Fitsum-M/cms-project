@@ -75,6 +75,11 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(AuditLogger::class);
+
+        $this->app->bind(
+            \Filament\Auth\Http\Responses\Contracts\LogoutResponse::class,
+            \App\Filament\Auth\LogoutResponse::class,
+        );
     }
 
     /**
