@@ -58,6 +58,13 @@ class PageFactory extends Factory
         ]);
     }
 
+    public function withFeaturedImage(int $mediaAssetId): static
+    {
+        return $this->state(fn (): array => [
+            'featured_image_id' => $mediaAssetId,
+        ]);
+    }
+
     public function published(): static
     {
         return $this->state(fn (): array => [

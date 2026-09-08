@@ -199,7 +199,7 @@ class ContentSeoService
         $publicUrl = $this->absoluteUrl($path);
         $featuredImageId = isset($contentForm['featured_image_id']) && $contentForm['featured_image_id'] !== ''
             ? (int) $contentForm['featured_image_id']
-            : ($record instanceof Post ? $record->featured_image_id : null);
+            : ($record instanceof HasSeoMetadata ? $record->featuredImageIdForSeo() : null);
 
         $metaTitleValue = $this->blankToNull($seoForm['meta_title'] ?? null);
         $metaDescriptionValue = $this->blankToNull($seoForm['meta_description'] ?? null);

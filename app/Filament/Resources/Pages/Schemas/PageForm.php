@@ -7,6 +7,7 @@ use App\Enums\Permission;
 use App\Enums\UserStatus;
 use App\Models\Page;
 use App\Models\User;
+use App\Filament\Forms\Components\MediaLibraryImageSelect;
 use App\Services\PageService;
 use App\Support\Settings\PermalinkSettings;
 use App\Support\SlugGenerator;
@@ -92,6 +93,11 @@ class PageForm
                             ->label('Show in Navigation')
                             ->helperText('Signals inclusion intent for frontend menus. Does not affect URL accessibility.')
                             ->default(false),
+                        ...MediaLibraryImageSelect::make(
+                            name: 'featured_image_id',
+                            label: 'Featured Image',
+                            helperText: 'Primary image for this page. Selected from the media library. Used as Open Graph image when SEO OG image is empty.',
+                        ),
                     ])
                     ->columns(2),
                 Section::make('Settings')

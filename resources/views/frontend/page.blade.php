@@ -21,6 +21,16 @@
             </p>
         </header>
 
+        @if ($page->featuredImageUrl())
+            <figure class="my-8 overflow-hidden rounded-2xl border border-slate-200">
+                <img
+                    src="{{ $page->featuredImageUrl('large') ?? $page->featuredImageUrl() }}"
+                    alt="{{ $page->featuredImage?->alt_text ?? $page->title }}"
+                    class="h-auto w-full object-cover"
+                >
+            </figure>
+        @endif
+
         <div class="mt-8 max-w-none space-y-4 text-base leading-7 text-slate-700 [&_a]:text-blue-600 [&_a]:underline [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_p]:text-slate-700">
             {!! $page->body ?: '<p>No content yet.</p>' !!}
         </div>

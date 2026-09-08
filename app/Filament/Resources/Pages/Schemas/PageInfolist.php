@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Pages\Schemas;
 
 use App\Models\Page;
 use App\Services\FrontendContentService;
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -61,6 +62,18 @@ class PageInfolist
                         TextEntry::make('show_in_navigation')
                             ->label('Show in Navigation')
                             ->state(fn (Page $record): string => $record->isNavigationReady() ? 'Yes' : 'No'),
+                        ImageEntry::make('featured_image')
+                            ->label('Featured Image')
+                            ->visible(fn (Page $record): bool => $record->hasFeaturedImage())
+                            ->getStateUsing(fn (Page $record): ?string => $record->featuredImageUrl()),
+                        TextEntry::make('featured_image_broken')
+                            ->label('Featured Image')
+                            ->visible(fn (Page $record): bool => $record->hasBrokenFeaturedImage())
+                            ->state('Broken reference — reassign from the media library.'),
+                        TextEntry::make('featured_image_empty')
+                            ->label('Featured Image')
+                            ->visible(fn (Page $record): bool => ! $record->hasFeaturedImage() && ! $record->hasBrokenFeaturedImage())
+                            ->placeholder('—'),
                     ])
                     ->columns(2),
                 Section::make('Settings')

@@ -26,6 +26,7 @@ use App\Policies\RolePolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
 use App\Services\MediaReferences\ContentSeoOgImageMediaReferenceProvider;
+use App\Services\MediaReferences\PageFeaturedImageMediaReferenceProvider;
 use App\Services\MediaReferences\PostFeaturedImageMediaReferenceProvider;
 use App\Services\MediaReferences\SeoDefaultsMediaReferenceProvider;
 use App\Services\MediaReferenceService;
@@ -67,6 +68,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->tag([
             SeoDefaultsMediaReferenceProvider::class,
             PostFeaturedImageMediaReferenceProvider::class,
+            PageFeaturedImageMediaReferenceProvider::class,
             ContentSeoOgImageMediaReferenceProvider::class,
         ], 'media.reference_providers');
 

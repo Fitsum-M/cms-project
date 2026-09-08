@@ -18,6 +18,7 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -31,6 +32,12 @@ class PagesTable
     {
         return $table
             ->columns([
+                ImageColumn::make('featured_image_preview')
+                    ->label('')
+                    ->getStateUsing(fn (Page $record): ?string => $record->featuredImageUrl())
+                    ->square()
+                    ->extraImgAttributes(['alt' => ''])
+                    ->toggleable(),
                 TextColumn::make('title')
                     ->label(__('cms.tables.title'))
                     ->searchable(query: fn (Builder $query, string $search): Builder => ContentSearch::applyPagesSearch($query, $search))
@@ -225,7 +232,7 @@ class PagesTable
                 ]),
             ])
             ->modifyQueryUsing(function (Builder $query): Builder {
-                return $query->with(['author', 'parent']);
+                return $query->with(['author', 'parent', 'featuredImage']);
             });
     }
 }

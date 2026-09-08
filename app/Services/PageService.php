@@ -9,6 +9,7 @@ use App\Filament\Resources\Pages\PageResource;
 use App\Models\Page;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
+use App\Support\Media\MediaImageOptions;
 use App\Support\PageTemplateRegistry;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -57,6 +58,9 @@ class PageService
             $status = $this->resolveInitialStatus($data['status'] ?? ContentStatus::Draft, $actor);
             $template = $this->resolveTemplate($data['template'] ?? null);
             $showInNavigation = $this->resolveShowInNavigation($data['show_in_navigation'] ?? false);
+            $featuredImageId = array_key_exists('featured_image_id', $data)
+                ? $this->resolveFeaturedImageId($data['featured_image_id'])
+                : null;
 
             $slug = $this->slugs->resolve([
                 'title' => $title,
@@ -76,6 +80,7 @@ class PageService
                 'slug' => $slug,
                 'body' => $this->nullableString($data['body'] ?? null),
                 'author_id' => $authorId,
+                'featured_image_id' => $featuredImageId,
                 'parent_id' => $parentId,
                 'sort_order' => $sortOrder,
                 'template' => $template,
@@ -86,7 +91,7 @@ class PageService
 
             $this->seo->sync($page, isset($data['seo']) && is_array($data['seo']) ? $data['seo'] : null, $actor);
 
-            return $page->fresh(['author', 'parent', 'seo']) ?? $page;
+            return $page->fresh(['author', 'parent', 'featuredImage', 'seo']) ?? $page;
         });
 
         $this->audit->contentChanged('created', $page, $actor);
@@ -198,6 +203,9 @@ class PageService
                     ? $this->nullableString($data['body'])
                     : $page->body,
                 'author_id' => $authorId,
+                'featured_image_id' => array_key_exists('featured_image_id', $data)
+                    ? $this->resolveFeaturedImageId($data['featured_image_id'])
+                    : $page->featured_image_id,
                 'parent_id' => $parentId,
                 'sort_order' => $sortOrder,
                 'template' => array_key_exists('template', $data)
@@ -219,7 +227,7 @@ class PageService
                 $this->seo->sync($page, is_array($data['seo']) ? $data['seo'] : null, $actor);
             }
 
-            return $page->fresh(['author', 'parent', 'children', 'seo']) ?? $page;
+            return $page->fresh(['author', 'parent', 'children', 'featuredImage', 'seo']) ?? $page;
         });
 
         $this->audit->contentChanged('updated', $updated, $actor);
@@ -620,6 +628,15 @@ class PageService
         }
 
         return Carbon::parse($value);
+    }
+
+    private function resolveFeaturedImageId(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return MediaImageOptions::assertAssignableImage((int) $value);
     }
 
     private function resolveTemplate(mixed $template): ?string

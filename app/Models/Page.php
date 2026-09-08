@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'slug',
     'body',
     'author_id',
+    'featured_image_id',
     'parent_id',
     'sort_order',
     'template',
@@ -46,6 +47,7 @@ class Page extends Model implements HasContentLifecycle, HasSeoMetadata, Ownable
         return [
             'parent_id' => 'integer',
             'author_id' => 'integer',
+            'featured_image_id' => 'integer',
             'sort_order' => 'integer',
             'show_in_navigation' => 'boolean',
             'status' => ContentStatus::class,
@@ -56,6 +58,42 @@ class Page extends Model implements HasContentLifecycle, HasSeoMetadata, Ownable
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
+    }
+
+    public function featuredImage(): BelongsTo
+    {
+        return $this->belongsTo(MediaAsset::class, 'featured_image_id');
+    }
+
+    public function hasFeaturedImage(): bool
+    {
+        return $this->featured_image_id !== null && $this->featuredImage !== null;
+    }
+
+    /**
+     * True when an ID is stored but the media row is gone (broken reference).
+     */
+    public function hasBrokenFeaturedImage(): bool
+    {
+        return $this->featured_image_id !== null && $this->featuredImage === null;
+    }
+
+    /**
+     * Public URL for listings / page hero / OG fallback.
+     */
+    public function featuredImageUrl(?string $conversion = null): ?string
+    {
+        $image = $this->featuredImage;
+
+        if ($image === null || ! $image->isImage()) {
+            return null;
+        }
+
+        if ($conversion !== null) {
+            return $image->conversionUrl($conversion) ?? $image->originalUrl();
+        }
+
+        return $image->previewUrl() ?? $image->originalUrl();
     }
 
     public function parent(): BelongsTo

@@ -69,7 +69,7 @@ class FrontendContentService
     public function findPublicPage(string $slug): ?Page
     {
         $page = Page::query()
-            ->with(['author', 'parent'])
+            ->with(['author', 'parent', 'featuredImage'])
             ->where('slug', $slug)
             ->first();
 
