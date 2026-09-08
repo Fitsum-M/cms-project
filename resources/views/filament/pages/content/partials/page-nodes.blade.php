@@ -1,36 +1,43 @@
 @foreach ($nodes as $node)
     <li
-        class="rounded-lg border border-transparent"
-        style="margin-left: {{ $depth * 1.25 }}rem"
+        class="group/node relative bg-white dark:bg-transparent"
         role="treeitem"
         x-data="{ hasChildren: @js(! empty($node['children'])) }"
+        :class="{ 'opacity-50': draggingId === {{ $node['id'] }} }"
     >
         @if ($this->canManageTree())
             <div
-                class="mx-2 h-1 rounded bg-transparent transition hover:bg-primary-400/40"
-                @dragover="onDragOver($event)"
+                class="absolute inset-x-3 top-0 z-10 h-1.5 -translate-y-1/2 rounded-full transition"
+                :class="dropTarget === 'before-{{ $node['id'] }}' ? 'bg-primary-500' : 'bg-transparent'"
+                @dragover="onDragOver($event, 'before-{{ $node['id'] }}')"
+                @dragleave="onDragLeave('before-{{ $node['id'] }}')"
                 @drop="onDropBefore($event, {{ $node['id'] }})"
                 title="Drop to place before this page"
             ></div>
         @endif
 
         <div
-            class="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:border-gray-200 hover:bg-gray-50 dark:hover:bg-white/5"
+            class="flex items-center gap-2 px-3 py-2.5 transition"
+            style="padding-left: {{ 0.75 + ($depth * 1.5) }}rem"
             @class([
-                'cursor-grab' => $this->canManageTree(),
+                'cursor-grab active:cursor-grabbing' => $this->canManageTree(),
             ])
+            :class="dropTarget === 'nest-{{ $node['id'] }}' ? 'bg-primary-50 dark:bg-primary-400/10' : 'hover:bg-gray-50 dark:hover:bg-white/5'"
             draggable="{{ $this->canManageTree() ? 'true' : 'false' }}"
             @dragstart="onDragStart($event, {{ $node['id'] }})"
-            @dragover="onDragOver($event)"
+            @dragend="onDragEnd()"
+            @dragover="onDragOver($event, 'nest-{{ $node['id'] }}')"
+            @dragleave="onDragLeave('nest-{{ $node['id'] }}')"
             @drop="onDropNest($event, {{ $node['id'] }})"
         >
             <button
                 type="button"
-                class="inline-flex size-6 shrink-0 items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/10 dark:hover:text-gray-200"
+                class="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/10 dark:hover:text-gray-200"
                 x-show="hasChildren"
                 x-cloak
                 @click.stop="toggle({{ $node['id'] }})"
                 :aria-expanded="isExpanded({{ $node['id'] }})"
+                aria-label="Toggle child pages"
             >
                 <x-filament::icon
                     icon="heroicon-m-chevron-right"
@@ -39,18 +46,19 @@
                 />
             </button>
             <span
-                class="inline-flex size-6 shrink-0"
+                class="inline-flex size-7 shrink-0"
                 x-show="! hasChildren"
+                aria-hidden="true"
             ></span>
 
             <span
                 @class([
-                    'inline-flex size-8 shrink-0 items-center justify-center rounded-md',
+                    'inline-flex size-9 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset',
                     match ($node['status_color']) {
-                        'success' => 'bg-emerald-50 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-400',
-                        'warning' => 'bg-amber-50 text-amber-600 dark:bg-amber-400/10 dark:text-amber-400',
-                        'slate' => 'bg-slate-100 text-slate-600 dark:bg-slate-400/10 dark:text-slate-300',
-                        default => 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300',
+                        'success' => 'bg-emerald-50 text-emerald-600 ring-emerald-600/10 dark:bg-emerald-400/10 dark:text-emerald-400 dark:ring-emerald-400/20',
+                        'warning' => 'bg-amber-50 text-amber-600 ring-amber-600/10 dark:bg-amber-400/10 dark:text-amber-400 dark:ring-amber-400/20',
+                        'slate' => 'bg-slate-100 text-slate-600 ring-slate-500/10 dark:bg-slate-400/10 dark:text-slate-300 dark:ring-slate-400/20',
+                        default => 'bg-gray-50 text-gray-500 ring-gray-500/10 dark:bg-white/10 dark:text-gray-300 dark:ring-white/10',
                     },
                 ])
                 aria-hidden="true"
@@ -63,8 +71,10 @@
                 <div class="flex flex-wrap items-center gap-2">
                     <a
                         href="{{ $node['edit_url'] }}"
-                        class="truncate text-sm font-medium text-primary-600 hover:underline dark:text-primary-400"
+                        class="truncate text-sm font-semibold text-gray-950 hover:text-primary-600 dark:text-white dark:hover:text-primary-400"
                         wire:navigate
+                        @mousedown.stop
+                        @dragstart.stop.prevent
                     >
                         {{ $node['title'] }}
                     </a>
@@ -101,16 +111,27 @@
                         </span>
                     @endif
                 </div>
-                <div class="truncate text-xs text-gray-500 dark:text-gray-400">
-                    /{{ $node['slug'] }}
-                    · {{ $node['template_label'] ?? 'Default' }}
+                <div class="mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400">
+                    <span class="font-mono">/{{ $node['slug'] }}</span>
+                    <span class="mx-1 text-gray-300 dark:text-gray-600">·</span>
+                    {{ $node['template_label'] ?? 'Default' }}
                 </div>
             </div>
+
+            @if ($this->canManageTree())
+                <span
+                    class="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-gray-300 opacity-0 transition group-hover/node:opacity-100 dark:text-gray-600"
+                    aria-hidden="true"
+                    title="Drag to reorder"
+                >
+                    <x-filament::icon icon="heroicon-m-bars-2" class="size-4" />
+                </span>
+            @endif
         </div>
 
         @if (! empty($node['children']))
             <ul
-                class="space-y-0.5"
+                class="divide-y divide-gray-100 border-t border-gray-100 dark:divide-white/5 dark:border-white/5"
                 role="group"
                 x-show="isExpanded({{ $node['id'] }})"
                 x-cloak
