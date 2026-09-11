@@ -165,17 +165,6 @@ class MediaAssetsTable
                             throw $exception;
                         }
                     }),
-                Action::make('forceDelete')
-                    ->label('Force delete')
-                    ->color('danger')
-                    ->icon('heroicon-o-trash')
-                    ->visible(fn (MediaAsset $record): bool => auth()->user()?->can('forceDelete', $record) ?? false)
-                    ->requiresConfirmation()
-                    ->modalHeading('Force delete media')
-                    ->modalDescription('This breaks existing references and leaves empty placeholders. This cannot be undone.')
-                    ->action(function (MediaAsset $record): void {
-                        app(MediaDeletionService::class)->forceDelete($record);
-                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

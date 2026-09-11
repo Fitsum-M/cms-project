@@ -114,7 +114,7 @@ class MediaReuseDeleteTest extends TestCase
             ->assertActionHidden('forceDelete');
     }
 
-    public function test_force_delete_action_visible_only_to_administrator(): void
+    public function test_library_table_has_safe_delete_without_row_force_delete(): void
     {
         $admin = $this->makeUser('Administrator');
         $editor = $this->makeUser('Editor');
@@ -123,12 +123,14 @@ class MediaReuseDeleteTest extends TestCase
         Livewire::actingAs($admin)
             ->test(ListMediaAssets::class)
             ->assertSuccessful()
-            ->assertTableActionVisible('forceDelete', $asset);
+            ->assertTableActionVisible('delete', $asset)
+            ->assertTableActionDoesNotExist('forceDelete');
 
         Livewire::actingAs($editor)
             ->test(ListMediaAssets::class)
             ->assertSuccessful()
-            ->assertTableActionHidden('forceDelete', $asset);
+            ->assertTableActionVisible('delete', $asset)
+            ->assertTableActionDoesNotExist('forceDelete');
     }
 
     public function test_seo_defaults_og_image_options_use_media_asset_ids(): void
