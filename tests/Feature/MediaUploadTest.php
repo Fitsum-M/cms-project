@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\Permission;
 use App\Enums\UserStatus;
+use App\Filament\Resources\MediaAssets\MediaAssetResource;
 use App\Filament\Resources\MediaAssets\Pages\CreateMediaAsset;
 use App\Filament\Resources\MediaAssets\Pages\ListMediaAssets;
 use App\Models\MediaAsset;
@@ -144,7 +145,7 @@ class MediaUploadTest extends TestCase
             ->call('submitUpload')
             ->assertHasNoFormErrors()
             ->assertRedirect(
-                \App\Filament\Resources\MediaAssets\MediaAssetResource::getUrl('index', [
+                MediaAssetResource::getUrl('index', [
                     'filters' => [
                         'folder_scope' => [
                             'value' => 'unfiled',
@@ -174,6 +175,23 @@ class MediaUploadTest extends TestCase
             ->test(ListMediaAssets::class)
             ->assertSuccessful()
             ->assertCanSeeTableRecords(MediaAsset::query()->get());
+    }
+
+    public function test_dam_sidebar_has_library_without_separate_upload_media_item(): void
+    {
+        $admin = $this->makeUser('Administrator');
+        $this->actingAs($admin);
+
+        $labels = collect(MediaAssetResource::getNavigationItems())
+            ->map(fn ($item) => $item->getLabel())
+            ->all();
+
+        $this->assertSame(['Library'], $labels);
+
+        Livewire::actingAs($admin)
+            ->test(ListMediaAssets::class)
+            ->assertSuccessful()
+            ->assertActionVisible('upload');
     }
 
     private function makeUser(string $role): User
