@@ -141,11 +141,13 @@ class MediaAsset extends Model implements HasMedia, Ownable
 
         $settings = app(MediaSettings::class);
 
+        // Thumbnail is generated synchronously so Media Library previews work even when
+        // no queue worker is running (Review Comment #3 §2.3). Medium/large stay queued.
         $this->addMediaConversion(self::CONVERSION_THUMBNAIL)
             ->fit(Fit::Max, $settings->thumbnailWidth(), $settings->thumbnailHeight())
             ->keepOriginalImageFormat()
             ->nonOptimized()
-            ->queued()
+            ->nonQueued()
             ->performOnCollections(self::LIBRARY_COLLECTION);
 
         $this->addMediaConversion(self::CONVERSION_MEDIUM)
@@ -202,6 +204,10 @@ class MediaAsset extends Model implements HasMedia, Ownable
         return $media?->hasGeneratedConversion($conversion) ?? false;
     }
 
+    /**
+     * Prefer the thumbnail conversion; fall back to the original file URL when the
+     * conversion is missing (e.g. legacy assets uploaded before sync thumbnails).
+     */
     public function previewUrl(): ?string
     {
         return $this->conversionUrl(self::CONVERSION_THUMBNAIL) ?? $this->originalUrl();

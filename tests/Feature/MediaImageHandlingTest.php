@@ -145,7 +145,7 @@ class MediaImageHandlingTest extends TestCase
         $this->assertNotNull($asset->originalUrl());
     }
 
-    public function test_image_conversions_are_dispatched_asynchronously(): void
+    public function test_medium_and_large_conversions_are_dispatched_asynchronously(): void
     {
         Queue::fake();
 
@@ -158,12 +158,13 @@ class MediaImageHandlingTest extends TestCase
 
         Queue::assertPushed(PerformConversionsJob::class);
 
-        foreach (MediaAsset::imageConversions() as $conversion) {
-            $this->assertFalse($asset->hasGeneratedConversion($conversion));
-        }
+        $this->assertTrue($asset->hasGeneratedConversion(MediaAsset::CONVERSION_THUMBNAIL));
+        $this->assertFalse($asset->hasGeneratedConversion(MediaAsset::CONVERSION_MEDIUM));
+        $this->assertFalse($asset->hasGeneratedConversion(MediaAsset::CONVERSION_LARGE));
 
         $this->assertNotNull($asset->getFirstMedia(MediaAsset::LIBRARY_COLLECTION));
         $this->assertFileExists($asset->getFirstMedia(MediaAsset::LIBRARY_COLLECTION)->getPath());
+        $this->assertSame($asset->conversionUrl(MediaAsset::CONVERSION_THUMBNAIL), $asset->previewUrl());
     }
 
     public function test_preview_url_prefers_thumbnail_conversion(): void
@@ -181,6 +182,29 @@ class MediaImageHandlingTest extends TestCase
             $asset->previewUrl(),
         );
         $this->assertNotSame($asset->originalUrl(), $asset->previewUrl());
+    }
+
+    public function test_preview_url_falls_back_to_original_when_thumbnail_is_missing(): void
+    {
+        $admin = $this->makeUser('Administrator');
+
+        $asset = app(MediaUploadService::class)->upload(
+            UploadedFile::fake()->image('fallback.jpg', 200, 150),
+            $admin,
+        );
+
+        $media = $asset->getFirstMedia(MediaAsset::LIBRARY_COLLECTION);
+        $this->assertNotNull($media);
+
+        $media->markAsConversionNotGenerated(MediaAsset::CONVERSION_THUMBNAIL);
+
+        $asset->refresh();
+        $asset->unsetRelation('media');
+
+        $this->assertFalse($asset->hasGeneratedConversion(MediaAsset::CONVERSION_THUMBNAIL));
+        $this->assertNull($asset->conversionUrl(MediaAsset::CONVERSION_THUMBNAIL));
+        $this->assertNotNull($asset->originalUrl());
+        $this->assertSame($asset->originalUrl(), $asset->previewUrl());
     }
 
     private function makeUser(string $role): User
