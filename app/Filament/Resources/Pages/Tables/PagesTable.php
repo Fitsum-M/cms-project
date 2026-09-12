@@ -10,6 +10,7 @@ use App\Support\Content\ContentSearch;
 use Illuminate\Database\Eloquent\Builder;
 use App\Services\FrontendContentService;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -156,47 +157,51 @@ class PagesTable
                     }),
             ])
             ->recordActions([
-                Action::make('openOnSite')
-                    ->label('Open')
-                    ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn (Page $record): string => $record->publicUrl())
-                    ->openUrlInNewTab()
-                    ->visible(fn (Page $record): bool => ! $record->trashed()
-                        && app(FrontendContentService::class)->isPublicPage($record)),
-                ViewAction::make(),
-                EditAction::make()
-                    ->visible(fn (Page $record): bool => ! $record->trashed()),
-                DeleteAction::make()
-                    ->visible(fn (Page $record): bool => ! $record->trashed())
-                    ->using(function (Page $record): void {
-                        try {
-                            app(ContentLifecycleService::class)->trash($record);
-                        } catch (ValidationException $exception) {
-                            Notification::make()
-                                ->danger()
-                                ->title('Cannot delete page')
-                                ->body(collect($exception->errors())->flatten()->first() ?? 'Delete blocked.')
-                                ->send();
+                ActionGroup::make([
+                    Action::make('openOnSite')
+                        ->label('Open')
+                        ->icon('heroicon-o-arrow-top-right-on-square')
+                        ->url(fn (Page $record): string => $record->publicUrl())
+                        ->openUrlInNewTab()
+                        ->visible(fn (Page $record): bool => ! $record->trashed()
+                            && app(FrontendContentService::class)->isPublicPage($record)),
+                    ViewAction::make(),
+                    EditAction::make()
+                        ->visible(fn (Page $record): bool => ! $record->trashed()),
+                    DeleteAction::make()
+                        ->visible(fn (Page $record): bool => ! $record->trashed())
+                        ->using(function (Page $record): void {
+                            try {
+                                app(ContentLifecycleService::class)->trash($record);
+                            } catch (ValidationException $exception) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Cannot delete page')
+                                    ->body(collect($exception->errors())->flatten()->first() ?? 'Delete blocked.')
+                                    ->send();
 
-                            throw $exception;
-                        }
-                    }),
-                ForceDeleteAction::make()
-                    ->visible(fn (Page $record): bool => $record->trashed()
-                        && (auth()->user()?->can('forceDelete', $record) ?? false))
-                    ->using(function (Page $record): void {
-                        try {
-                            app(ContentLifecycleService::class)->forceDelete($record, auth()->user());
-                        } catch (ValidationException $exception) {
-                            Notification::make()
-                                ->danger()
-                                ->title('Cannot permanently delete page')
-                                ->body(collect($exception->errors())->flatten()->first() ?? 'Delete blocked.')
-                                ->send();
+                                throw $exception;
+                            }
+                        }),
+                    ForceDeleteAction::make()
+                        ->visible(fn (Page $record): bool => $record->trashed()
+                            && (auth()->user()?->can('forceDelete', $record) ?? false))
+                        ->using(function (Page $record): void {
+                            try {
+                                app(ContentLifecycleService::class)->forceDelete($record, auth()->user());
+                            } catch (ValidationException $exception) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Cannot permanently delete page')
+                                    ->body(collect($exception->errors())->flatten()->first() ?? 'Delete blocked.')
+                                    ->send();
 
-                            throw $exception;
-                        }
-                    }),
+                                throw $exception;
+                            }
+                        }),
+                ])
+                    ->tooltip('Actions')
+                    ->icon('heroicon-m-ellipsis-vertical'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

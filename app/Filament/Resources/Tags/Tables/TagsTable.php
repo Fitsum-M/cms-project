@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Tags\Tables;
 
 use App\Models\Tag;
 use App\Services\TagService;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -42,22 +43,26 @@ class TagsTable
             ->defaultSort('name')
             ->filters([])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
-                DeleteAction::make()
-                    ->using(function (Tag $record): void {
-                        try {
-                            app(TagService::class)->delete($record);
-                        } catch (ValidationException $exception) {
-                            Notification::make()
-                                ->danger()
-                                ->title('Cannot delete tag')
-                                ->body(collect($exception->errors())->flatten()->first() ?? 'Delete blocked.')
-                                ->send();
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make()
+                        ->using(function (Tag $record): void {
+                            try {
+                                app(TagService::class)->delete($record);
+                            } catch (ValidationException $exception) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Cannot delete tag')
+                                    ->body(collect($exception->errors())->flatten()->first() ?? 'Delete blocked.')
+                                    ->send();
 
-                            throw $exception;
-                        }
-                    }),
+                                throw $exception;
+                            }
+                        }),
+                ])
+                    ->tooltip('Actions')
+                    ->icon('heroicon-m-ellipsis-vertical'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

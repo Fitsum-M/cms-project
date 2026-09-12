@@ -6,6 +6,7 @@ use App\Filament\Resources\Folders\FolderActions;
 use App\Filament\Resources\Folders\FolderResource;
 use App\Models\Folder;
 use App\Services\FolderService;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -49,10 +50,14 @@ class FoldersTable
             ])
             ->defaultSort('name')
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
-                FolderActions::moveAction(),
-                FolderActions::configureDeleteAction(DeleteAction::make()),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    FolderActions::moveAction(),
+                    FolderActions::configureDeleteAction(DeleteAction::make()),
+                ])
+                    ->tooltip('Actions')
+                    ->icon('heroicon-m-ellipsis-vertical'),
             ])
             ->recordUrl(fn (Folder $record): string => FolderResource::getUrl(
                 auth()->user()?->can('update', $record) ? 'edit' : 'view',

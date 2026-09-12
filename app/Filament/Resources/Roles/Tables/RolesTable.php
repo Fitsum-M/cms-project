@@ -6,6 +6,7 @@ use App\Enums\Permission;
 use App\Filament\Resources\Roles\RoleResource;
 use App\Models\Role;
 use App\Models\User;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -61,54 +62,58 @@ class RolesTable
             ])
             ->defaultSort('name')
             ->recordActions([
-                ViewAction::make()
-                    ->visible(fn (): bool => auth()->user() !== null
-                        && (auth()->user()->can(Permission::UsersViewAll->value)
-                            || auth()->user()->can(Permission::UsersEditRole->value))),
-                EditAction::make()
-                    ->visible(fn (): bool => auth()->user()?->can(Permission::UsersEditRole->value) ?? false),
-                DeleteAction::make()
-                    ->label('Delete')
-                    ->visible(fn (Role $record): bool => (auth()->user()?->can(Permission::UsersEditRole->value) ?? false)
-                        && ! $record->isAdministrator())
-                    ->requiresConfirmation()
-                    ->modalHeading('Delete Role')
-                    ->modalDescription('Are you sure you want to delete this role? Users assigned to this role will need to be re-assigned. This action cannot be undone.')
-                    ->modalSubmitActionLabel('Delete Role')
-                    ->action(function (Role $record): void {
-                        if ($record->isAdministrator()) {
+                ActionGroup::make([
+                    ViewAction::make()
+                        ->visible(fn (): bool => auth()->user() !== null
+                            && (auth()->user()->can(Permission::UsersViewAll->value)
+                                || auth()->user()->can(Permission::UsersEditRole->value))),
+                    EditAction::make()
+                        ->visible(fn (): bool => auth()->user()?->can(Permission::UsersEditRole->value) ?? false),
+                    DeleteAction::make()
+                        ->label('Delete')
+                        ->visible(fn (Role $record): bool => (auth()->user()?->can(Permission::UsersEditRole->value) ?? false)
+                            && ! $record->isAdministrator())
+                        ->requiresConfirmation()
+                        ->modalHeading('Delete Role')
+                        ->modalDescription('Are you sure you want to delete this role? Users assigned to this role will need to be re-assigned. This action cannot be undone.')
+                        ->modalSubmitActionLabel('Delete Role')
+                        ->action(function (Role $record): void {
+                            if ($record->isAdministrator()) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Deletion Blocked')
+                                    ->body('The Administrator role is system-protected and cannot be deleted.')
+                                    ->send();
+
+                                return;
+                            }
+
+                            $hasUsers = User::query()
+                                ->whereHas('roles', fn ($query) => $query->where('name', $record->name))
+                                ->exists();
+
+                            if ($hasUsers) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Deletion Blocked')
+                                    ->body("The role '{$record->name}' is currently assigned to one or more users and cannot be deleted.")
+                                    ->send();
+
+                                return;
+                            }
+
+                            $roleName = $record->name;
+                            $record->delete();
+
                             Notification::make()
-                                ->danger()
-                                ->title('Deletion Blocked')
-                                ->body('The Administrator role is system-protected and cannot be deleted.')
+                                ->success()
+                                ->title('Role Deleted')
+                                ->body("Role '{$roleName}' has been deleted successfully.")
                                 ->send();
-
-                            return;
-                        }
-
-                        $hasUsers = User::query()
-                            ->whereHas('roles', fn ($query) => $query->where('name', $record->name))
-                            ->exists();
-
-                        if ($hasUsers) {
-                            Notification::make()
-                                ->danger()
-                                ->title('Deletion Blocked')
-                                ->body("The role '{$record->name}' is currently assigned to one or more users and cannot be deleted.")
-                                ->send();
-
-                            return;
-                        }
-
-                        $roleName = $record->name;
-                        $record->delete();
-
-                        Notification::make()
-                            ->success()
-                            ->title('Role Deleted')
-                            ->body("Role '{$roleName}' has been deleted successfully.")
-                            ->send();
-                    }),
+                        }),
+                ])
+                    ->tooltip('Actions')
+                    ->icon('heroicon-m-ellipsis-vertical'),
             ])
             ->recordUrl(fn (Role $record): string => RoleResource::getUrl(
                 auth()->user()?->can(Permission::UsersEditRole->value) ? 'edit' : 'view',

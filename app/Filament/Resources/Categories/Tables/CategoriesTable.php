@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Categories\Tables;
 
 use App\Models\Category;
 use App\Services\CategoryService;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -60,22 +61,26 @@ class CategoriesTable
                     ->placeholder('All'),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
-                DeleteAction::make()
-                    ->using(function (Category $record): void {
-                        try {
-                            app(CategoryService::class)->delete($record);
-                        } catch (ValidationException $exception) {
-                            Notification::make()
-                                ->danger()
-                                ->title('Cannot delete category')
-                                ->body(collect($exception->errors())->flatten()->first() ?? 'Delete blocked.')
-                                ->send();
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make()
+                        ->using(function (Category $record): void {
+                            try {
+                                app(CategoryService::class)->delete($record);
+                            } catch (ValidationException $exception) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Cannot delete category')
+                                    ->body(collect($exception->errors())->flatten()->first() ?? 'Delete blocked.')
+                                    ->send();
 
-                            throw $exception;
-                        }
-                    }),
+                                throw $exception;
+                            }
+                        }),
+                ])
+                    ->tooltip('Actions')
+                    ->icon('heroicon-m-ellipsis-vertical'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

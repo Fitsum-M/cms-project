@@ -6,6 +6,7 @@ use App\Filament\Resources\Posts\PostResource;
 use App\Models\PostType;
 use App\Services\PostTypeService;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -63,28 +64,32 @@ class PostTypesTable
             ->reorderable('sort_order')
             ->filters([])
             ->recordActions([
-                Action::make('viewContent')
-                    ->label('View content')
-                    ->icon(Heroicon::OutlinedNewspaper)
-                    ->url(fn (PostType $record): string => PostResource::getUrl('index', [
-                        'post_type' => $record->slug,
-                    ])),
-                ViewAction::make(),
-                EditAction::make(),
-                DeleteAction::make()
-                    ->using(function (PostType $record): void {
-                        try {
-                            app(PostTypeService::class)->delete($record);
-                        } catch (ValidationException $exception) {
-                            Notification::make()
-                                ->danger()
-                                ->title('Cannot delete post type')
-                                ->body(collect($exception->errors())->flatten()->first() ?? 'Delete blocked.')
-                                ->send();
+                ActionGroup::make([
+                    Action::make('viewContent')
+                        ->label('View content')
+                        ->icon(Heroicon::OutlinedNewspaper)
+                        ->url(fn (PostType $record): string => PostResource::getUrl('index', [
+                            'post_type' => $record->slug,
+                        ])),
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make()
+                        ->using(function (PostType $record): void {
+                            try {
+                                app(PostTypeService::class)->delete($record);
+                            } catch (ValidationException $exception) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Cannot delete post type')
+                                    ->body(collect($exception->errors())->flatten()->first() ?? 'Delete blocked.')
+                                    ->send();
 
-                            throw $exception;
-                        }
-                    }),
+                                throw $exception;
+                            }
+                        }),
+                ])
+                    ->tooltip('Actions')
+                    ->icon('heroicon-m-ellipsis-vertical'),
             ])
             ->toolbarActions([]);
     }

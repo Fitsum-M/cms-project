@@ -6,6 +6,7 @@ use App\Enums\TaxonomyStructure;
 use App\Models\CustomTaxonomy;
 use App\Services\CustomTaxonomyService;
 use App\Support\PostTypeRegistry;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -63,10 +64,14 @@ class CustomTaxonomiesTable
                     ->options(TaxonomyStructure::options()),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
-                DeleteAction::make()
-                    ->using(fn (CustomTaxonomy $record) => app(CustomTaxonomyService::class)->delete($record)),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make()
+                        ->using(fn (CustomTaxonomy $record) => app(CustomTaxonomyService::class)->delete($record)),
+                ])
+                    ->tooltip('Actions')
+                    ->icon('heroicon-m-ellipsis-vertical'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

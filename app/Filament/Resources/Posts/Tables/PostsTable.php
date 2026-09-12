@@ -16,6 +16,7 @@ use App\Services\PostService;
 use App\Support\Content\ContentSearch;
 use App\Support\PostTypeRegistry;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -159,90 +160,94 @@ class PostsTable
                     }),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make()
-                    ->visible(fn (Post $record): bool => ! $record->trashed()),
-                Action::make('duplicate')
-                    ->label('Duplicate')
-                    ->icon('heroicon-o-document-duplicate')
-                    ->visible(fn (Post $record): bool => auth()->user()?->can('duplicate', $record) ?? false)
-                    ->action(function (Post $record) {
-                        try {
-                            $copy = app(PostService::class)->duplicate($record, auth()->user());
-                        } catch (ValidationException $exception) {
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make()
+                        ->visible(fn (Post $record): bool => ! $record->trashed()),
+                    Action::make('duplicate')
+                        ->label('Duplicate')
+                        ->icon('heroicon-o-document-duplicate')
+                        ->visible(fn (Post $record): bool => auth()->user()?->can('duplicate', $record) ?? false)
+                        ->action(function (Post $record) {
+                            try {
+                                $copy = app(PostService::class)->duplicate($record, auth()->user());
+                            } catch (ValidationException $exception) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Cannot duplicate post')
+                                    ->body(collect($exception->errors())->flatten()->first() ?? 'Duplicate blocked.')
+                                    ->send();
+
+                                return;
+                            }
+
                             Notification::make()
-                                ->danger()
-                                ->title('Cannot duplicate post')
-                                ->body(collect($exception->errors())->flatten()->first() ?? 'Duplicate blocked.')
+                                ->success()
+                                ->title('Post duplicated')
+                                ->body('Opened the new draft copy.')
                                 ->send();
 
-                            return;
-                        }
+                            return redirect(PostResource::getUrl('edit', ['record' => $copy]));
+                        }),
+                    Action::make('restore')
+                        ->label('Restore')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->color('success')
+                        ->visible(fn (Post $record): bool => (auth()->user()?->can('restore', $record) ?? false)
+                            && app(ContentLifecycleService::class)->canRestore($record))
+                        ->requiresConfirmation()
+                        ->action(function (Post $record): void {
+                            try {
+                                app(ContentLifecycleService::class)->restore($record, auth()->user(), ContentStatus::Draft);
+                            } catch (ValidationException $exception) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Cannot restore post')
+                                    ->body(collect($exception->errors())->flatten()->first() ?? 'Restore blocked.')
+                                    ->send();
 
-                        Notification::make()
-                            ->success()
-                            ->title('Post duplicated')
-                            ->body('Opened the new draft copy.')
-                            ->send();
+                                throw $exception;
+                            }
 
-                        return redirect(PostResource::getUrl('edit', ['record' => $copy]));
-                    }),
-                Action::make('restore')
-                    ->label('Restore')
-                    ->icon('heroicon-o-arrow-uturn-left')
-                    ->color('success')
-                    ->visible(fn (Post $record): bool => (auth()->user()?->can('restore', $record) ?? false)
-                        && app(ContentLifecycleService::class)->canRestore($record))
-                    ->requiresConfirmation()
-                    ->action(function (Post $record): void {
-                        try {
-                            app(ContentLifecycleService::class)->restore($record, auth()->user(), ContentStatus::Draft);
-                        } catch (ValidationException $exception) {
                             Notification::make()
-                                ->danger()
-                                ->title('Cannot restore post')
-                                ->body(collect($exception->errors())->flatten()->first() ?? 'Restore blocked.')
+                                ->success()
+                                ->title('Post restored to Draft')
                                 ->send();
+                        }),
+                    DeleteAction::make()
+                        ->visible(fn (Post $record): bool => ! $record->trashed())
+                        ->using(function (Post $record): void {
+                            try {
+                                app(ContentLifecycleService::class)->trash($record);
+                            } catch (ValidationException $exception) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Cannot delete post')
+                                    ->body(collect($exception->errors())->flatten()->first() ?? 'Delete blocked.')
+                                    ->send();
 
-                            throw $exception;
-                        }
+                                throw $exception;
+                            }
+                        }),
+                    ForceDeleteAction::make()
+                        ->visible(fn (Post $record): bool => $record->trashed()
+                            && (auth()->user()?->can('forceDelete', $record) ?? false))
+                        ->using(function (Post $record): void {
+                            try {
+                                app(ContentLifecycleService::class)->forceDelete($record, auth()->user());
+                            } catch (ValidationException $exception) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Cannot permanently delete post')
+                                    ->body(collect($exception->errors())->flatten()->first() ?? 'Delete blocked.')
+                                    ->send();
 
-                        Notification::make()
-                            ->success()
-                            ->title('Post restored to Draft')
-                            ->send();
-                    }),
-                DeleteAction::make()
-                    ->visible(fn (Post $record): bool => ! $record->trashed())
-                    ->using(function (Post $record): void {
-                        try {
-                            app(ContentLifecycleService::class)->trash($record);
-                        } catch (ValidationException $exception) {
-                            Notification::make()
-                                ->danger()
-                                ->title('Cannot delete post')
-                                ->body(collect($exception->errors())->flatten()->first() ?? 'Delete blocked.')
-                                ->send();
-
-                            throw $exception;
-                        }
-                    }),
-                ForceDeleteAction::make()
-                    ->visible(fn (Post $record): bool => $record->trashed()
-                        && (auth()->user()?->can('forceDelete', $record) ?? false))
-                    ->using(function (Post $record): void {
-                        try {
-                            app(ContentLifecycleService::class)->forceDelete($record, auth()->user());
-                        } catch (ValidationException $exception) {
-                            Notification::make()
-                                ->danger()
-                                ->title('Cannot permanently delete post')
-                                ->body(collect($exception->errors())->flatten()->first() ?? 'Delete blocked.')
-                                ->send();
-
-                            throw $exception;
-                        }
-                    }),
+                                throw $exception;
+                            }
+                        }),
+                ])
+                    ->tooltip('Actions')
+                    ->icon('heroicon-m-ellipsis-vertical'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
