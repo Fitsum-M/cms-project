@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\FolderService;
 use App\Services\MediaDeletionService;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -16,7 +17,9 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
+use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\Filter;
@@ -31,7 +34,13 @@ class MediaAssetsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->columns(static::listColumns())
+            ->columns(static::gridColumns())
+            ->contentGrid([
+                'md' => 2,
+                'lg' => 3,
+                'xl' => 3,
+                '2xl' => 4,
+            ])
             ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('folder_scope')
@@ -112,59 +121,63 @@ class MediaAssetsTable
                     ->preload(),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
-                Action::make('moveToFolder')
-                    ->label('Move')
-                    ->icon('heroicon-o-folder')
-                    ->color('gray')
-                    ->form([
-                        Select::make('folder_id')
-                            ->label('Folder')
-                            ->options(fn (): array => app(FolderService::class)->options())
-                            ->searchable()
-                            ->nullable()
-                            ->placeholder('— Unfiled —')
-                            ->default(fn (MediaAsset $record): ?int => $record->folder_id),
-                    ])
-                    ->action(function (MediaAsset $record, array $data): void {
-                        try {
-                            app(FolderService::class)->moveMedia(
-                                [$record->getKey()],
-                                isset($data['folder_id']) && $data['folder_id'] !== ''
-                                    ? (int) $data['folder_id']
-                                    : null,
-                            );
-                        } catch (ValidationException $exception) {
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    Action::make('moveToFolder')
+                        ->label('Move')
+                        ->icon('heroicon-o-folder')
+                        ->color('gray')
+                        ->form([
+                            Select::make('folder_id')
+                                ->label('Folder')
+                                ->options(fn (): array => app(FolderService::class)->options())
+                                ->searchable()
+                                ->nullable()
+                                ->placeholder('— Unfiled —')
+                                ->default(fn (MediaAsset $record): ?int => $record->folder_id),
+                        ])
+                        ->action(function (MediaAsset $record, array $data): void {
+                            try {
+                                app(FolderService::class)->moveMedia(
+                                    [$record->getKey()],
+                                    isset($data['folder_id']) && $data['folder_id'] !== ''
+                                        ? (int) $data['folder_id']
+                                        : null,
+                                );
+                            } catch (ValidationException $exception) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Cannot move media')
+                                    ->body(collect($exception->errors())->flatten()->first() ?? 'Move blocked.')
+                                    ->send();
+
+                                throw $exception;
+                            }
+
                             Notification::make()
-                                ->danger()
-                                ->title('Cannot move media')
-                                ->body(collect($exception->errors())->flatten()->first() ?? 'Move blocked.')
+                                ->success()
+                                ->title('Media moved')
                                 ->send();
+                        }),
+                    DeleteAction::make()
+                        ->using(function (MediaAsset $record): void {
+                            try {
+                                app(MediaDeletionService::class)->delete($record);
+                            } catch (ValidationException $exception) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Cannot delete media')
+                                    ->body(collect($exception->errors())->flatten()->implode("\n"))
+                                    ->persistent()
+                                    ->send();
 
-                            throw $exception;
-                        }
-
-                        Notification::make()
-                            ->success()
-                            ->title('Media moved')
-                            ->send();
-                    }),
-                DeleteAction::make()
-                    ->using(function (MediaAsset $record): void {
-                        try {
-                            app(MediaDeletionService::class)->delete($record);
-                        } catch (ValidationException $exception) {
-                            Notification::make()
-                                ->danger()
-                                ->title('Cannot delete media')
-                                ->body(collect($exception->errors())->flatten()->implode("\n"))
-                                ->persistent()
-                                ->send();
-
-                            throw $exception;
-                        }
-                    }),
+                                throw $exception;
+                            }
+                        }),
+                ])
+                    ->tooltip('Actions')
+                    ->icon('heroicon-m-ellipsis-vertical'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -240,44 +253,75 @@ class MediaAssetsTable
     }
 
     /**
-     * @return array<int, ImageColumn|TextColumn>
+     * Default DAM card layout: prominent thumbnail + title/filename + size (and dimensions when known).
+     *
+     * @return array<int, Stack>
      */
-    protected static function listColumns(): array
+    protected static function gridColumns(): array
     {
         return [
-            ImageColumn::make('preview')
-                ->label('Preview')
-                ->getStateUsing(fn (MediaAsset $record): ?string => $record->isImage() ? $record->previewUrl() : null)
-                ->square()
-                ->extraImgAttributes(['alt' => '']),
-            TextColumn::make('title')
-                ->label('Title')
-                ->searchable(query: static::metadataSearchQuery())
-                ->sortable()
-                ->description(fn (MediaAsset $record): string => $record->original_file_name),
-            TextColumn::make('folder.name')
-                ->label('Folder')
-                ->placeholder('Unfiled')
-                ->sortable()
-                ->toggleable(),
-            TextColumn::make('mime_type')
-                ->label('Type')
-                ->badge()
-                ->sortable()
-                ->toggleable(),
-            TextColumn::make('size')
-                ->label('Size')
-                ->formatStateUsing(fn (MediaAsset $record): string => $record->humanSize())
-                ->sortable(),
-            TextColumn::make('uploader.name')
-                ->label('Uploader')
-                ->sortable()
-                ->toggleable(isToggledHiddenByDefault: true),
-            TextColumn::make('created_at')
-                ->label('Uploaded')
-                ->dateTime()
-                ->sortable(),
+            Stack::make([
+                ImageColumn::make('preview')
+                    ->label('Preview')
+                    ->getStateUsing(fn (MediaAsset $record): ?string => $record->isImage() ? $record->previewUrl() : null)
+                    ->imageHeight('11rem')
+                    ->imageWidth('100%')
+                    ->extraAttributes([
+                        'class' => 'w-full min-w-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-white/5',
+                    ])
+                    ->extraImgAttributes(fn (MediaAsset $record): array => [
+                        'class' => 'h-44 w-full rounded-lg object-cover',
+                        'alt' => $record->alt_text ?: $record->title,
+                    ])
+                    ->defaultImageUrl(fn (MediaAsset $record): ?string => $record->isImage()
+                        ? null
+                        : 'data:image/svg+xml,'.rawurlencode(static::documentPlaceholderSvg()))
+                    ->placeholder('No preview'),
+                TextColumn::make('title')
+                    ->label('Title')
+                    ->weight(FontWeight::SemiBold)
+                    ->searchable(query: static::metadataSearchQuery())
+                    ->sortable()
+                    ->limit(48)
+                    ->tooltip(fn (MediaAsset $record): string => $record->title)
+                    ->description(fn (MediaAsset $record): string => \Illuminate\Support\Str::limit($record->original_file_name, 40))
+                    ->wrap()
+                    ->extraAttributes([
+                        'class' => 'min-w-0',
+                    ]),
+                TextColumn::make('size')
+                    ->label('Size')
+                    ->getStateUsing(function (MediaAsset $record): string {
+                        $parts = [$record->humanSize()];
+
+                        if ($record->width && $record->height) {
+                            $parts[] = "{$record->width}×{$record->height}";
+                        }
+
+                        return implode(' · ', $parts);
+                    })
+                    ->sortable()
+                    ->color('gray')
+                    ->extraAttributes([
+                        'class' => 'min-w-0',
+                    ]),
+            ])
+                ->space(3)
+                ->extraAttributes([
+                    'class' => 'w-full min-w-0',
+                ]),
         ];
+    }
+
+    protected static function documentPlaceholderSvg(): string
+    {
+        return <<<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-label="Document">
+  <rect width="640" height="360" fill="#f3f4f6"/>
+  <rect x="250" y="90" width="140" height="180" rx="12" fill="#e5e7eb"/>
+  <path d="M280 130h80M280 160h80M280 190h56" stroke="#9ca3af" stroke-width="10" stroke-linecap="round"/>
+</svg>
+SVG;
     }
 
     protected static function metadataSearchQuery(): \Closure

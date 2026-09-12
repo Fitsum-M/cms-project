@@ -88,6 +88,41 @@ class MediaLibraryViewAndSearchTest extends TestCase
             ->assertCanNotSeeTableRecords([$elsewhere]);
     }
 
+    public function test_library_defaults_to_thumbnail_content_grid_with_action_group(): void
+    {
+        $admin = $this->makeUser('Administrator');
+        $asset = MediaAsset::factory()->create([
+            'uploaded_by' => $admin->id,
+            'title' => 'Grid card asset',
+            'original_file_name' => 'grid-card.jpg',
+            'size' => 2048,
+            'width' => 640,
+            'height' => 480,
+        ]);
+
+        $component = Livewire::actingAs($admin)
+            ->test(ListMediaAssets::class)
+            ->assertSuccessful()
+            ->assertCanSeeTableRecords([$asset])
+            ->assertSee('Grid card asset')
+            ->assertSee('2.0 KB')
+            ->assertSee('640')
+            ->assertTableActionExists('view')
+            ->assertTableActionExists('edit')
+            ->assertTableActionExists('delete')
+            ->assertTableActionDoesNotExist('forceDelete');
+
+        $this->assertSame(
+            [
+                'md' => 2,
+                'lg' => 3,
+                'xl' => 3,
+                '2xl' => 4,
+            ],
+            $component->instance()->getTable()->getContentGrid(),
+        );
+    }
+
     private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {
