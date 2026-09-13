@@ -24,6 +24,8 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -35,178 +37,184 @@ class PostForm
         return $schema
             ->columns(1)
             ->components([
-                Section::make('Content')
-                    ->schema([
-                        TextInput::make('title')
-                            ->label('Title')
-                            ->required()
-                            ->maxLength(255)
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(function (?string $state, Set $set, Get $get, ?Post $record): void {
-                                if (! app(PermalinkSettings::class)->autoGenerateSlugs()) {
-                                    return;
-                                }
+                Tabs::make('PostEditor')
+                    ->tabs([
+                        Tab::make('Post Details')
+                            ->icon('heroicon-o-document-text')
+                            ->schema([
+                                Section::make('Content')
+                                    ->schema([
+                                        TextInput::make('title')
+                                            ->label('Title')
+                                            ->required()
+                                            ->maxLength(255)
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(function (?string $state, Set $set, Get $get, ?Post $record): void {
+                                                if (! app(PermalinkSettings::class)->autoGenerateSlugs()) {
+                                                    return;
+                                                }
 
-                                if ($record?->hasBeenPublished()) {
-                                    return;
-                                }
+                                                if ($record?->hasBeenPublished()) {
+                                                    return;
+                                                }
 
-                                if (filled($get('slug'))) {
-                                    return;
-                                }
+                                                if (filled($get('slug'))) {
+                                                    return;
+                                                }
 
-                                if (blank($state)) {
-                                    return;
-                                }
+                                                if (blank($state)) {
+                                                    return;
+                                                }
 
-                                $set('slug', \App\Support\SlugGenerator::sanitize($state));
-                            }),
-                        TextInput::make('slug')
-                            ->label('Slug')
-                            ->maxLength(255)
-                            ->helperText('URL-friendly identifier. Auto-generated from title when enabled in Permalinks.')
-                            ->dehydrateStateUsing(fn (?string $state): ?string => filled($state)
-                                ? \App\Support\SlugGenerator::sanitize($state)
-                                : $state),
-                        Toggle::make('confirm_slug_change')
-                            ->label('Confirm slug change')
-                            ->helperText('Required when changing the slug of a post that has been published.')
-                            ->visible(fn (?Post $record): bool => (bool) $record?->hasBeenPublished())
-                            ->dehydrated(),
-                        RichEditor::make('body')
-                            ->label('Content')
-                            ->columnSpanFull(),
-                        Textarea::make('excerpt')
-                            ->label('Excerpt')
-                            ->rows(3)
-                            ->maxLength(500)
-                            ->helperText('Optional. If empty, the first 160 characters of the content body are used.')
-                            ->columnSpanFull()
-                            ->visible(fn (Get $get): bool => PostTypeRegistry::supportsExcerpt((string) ($get('post_type') ?: 'post'))),
-                        ...array_map(
-                            function ($component) {
-                                return $component->visible(
-                                    fn (Get $get): bool => PostTypeRegistry::supportsFeaturedImage((string) ($get('post_type') ?: 'post')),
-                                );
-                            },
-                            MediaLibraryImageSelect::make(
-                                name: 'featured_image_id',
-                                label: 'Featured Image',
-                                helperText: 'Primary image for this post. Selected from the media library. Used as Open Graph image when SEO OG image is empty.',
-                            ),
-                        ),
-                    ])
-                    ->columns(2),
-                Section::make('Settings')
-                    ->schema([
-                        Select::make('post_type')
-                            ->label('Post Type')
-                            ->options(fn (): array => PostTypeRegistry::options())
-                            ->required()
-                            ->default('post')
-                            ->live()
-                            ->disabled(fn (): bool => is_string(request()->query('post_type'))
-                                && PostTypeRegistry::isCustom((string) request()->query('post_type')))
-                            ->dehydrated()
-                            ->afterStateUpdated(function (?string $state, Set $set, Get $get): void {
-                                $postType = (string) ($state ?: 'post');
+                                                $set('slug', \App\Support\SlugGenerator::sanitize($state));
+                                            }),
+                                        TextInput::make('slug')
+                                            ->label('Slug')
+                                            ->maxLength(255)
+                                            ->helperText('URL-friendly identifier. Auto-generated from title when enabled in Permalinks.')
+                                            ->dehydrateStateUsing(fn (?string $state): ?string => filled($state)
+                                                ? \App\Support\SlugGenerator::sanitize($state)
+                                                : $state),
+                                        Toggle::make('confirm_slug_change')
+                                            ->label('Confirm slug change')
+                                            ->helperText('Required when changing the slug of a post that has been published.')
+                                            ->visible(fn (?Post $record): bool => (bool) $record?->hasBeenPublished())
+                                            ->dehydrated(),
+                                        RichEditor::make('body')
+                                            ->label('Content')
+                                            ->columnSpanFull(),
+                                        Textarea::make('excerpt')
+                                            ->label('Excerpt')
+                                            ->rows(3)
+                                            ->maxLength(500)
+                                            ->helperText('Optional. If empty, the first 160 characters of the content body are used.')
+                                            ->columnSpanFull()
+                                            ->visible(fn (Get $get): bool => PostTypeRegistry::supportsExcerpt((string) ($get('post_type') ?: 'post'))),
+                                        ...array_map(
+                                            function ($component) {
+                                                return $component->visible(
+                                                    fn (Get $get): bool => PostTypeRegistry::supportsFeaturedImage((string) ($get('post_type') ?: 'post')),
+                                                );
+                                            },
+                                            MediaLibraryImageSelect::make(
+                                                name: 'featured_image_id',
+                                                label: 'Featured Image',
+                                                helperText: 'Primary image for this post. Selected from the media library. Used as Open Graph image when SEO OG image is empty.',
+                                            ),
+                                        ),
+                                    ])
+                                    ->columns(2),
+                                Section::make('Settings & Taxonomies')
+                                    ->schema([
+                                        Select::make('post_type')
+                                            ->label('Post Type')
+                                            ->options(fn (): array => PostTypeRegistry::options())
+                                            ->required()
+                                            ->default('post')
+                                            ->live()
+                                            ->disabled(fn (): bool => is_string(request()->query('post_type'))
+                                                && PostTypeRegistry::isCustom((string) request()->query('post_type')))
+                                            ->dehydrated()
+                                            ->afterStateUpdated(function (?string $state, Set $set, Get $get): void {
+                                                $postType = (string) ($state ?: 'post');
 
-                                if (! PostTypeRegistry::supportsCategories($postType)) {
-                                    $set('category_ids', []);
-                                }
+                                                if (! PostTypeRegistry::supportsCategories($postType)) {
+                                                    $set('category_ids', []);
+                                                }
 
-                                if (! PostTypeRegistry::supportsTags($postType)) {
-                                    $set('tag_ids', []);
-                                }
+                                                if (! PostTypeRegistry::supportsTags($postType)) {
+                                                    $set('tag_ids', []);
+                                                }
 
-                                if (! PostTypeRegistry::supportsExcerpt($postType)) {
-                                    $set('excerpt', null);
-                                }
+                                                if (! PostTypeRegistry::supportsExcerpt($postType)) {
+                                                    $set('excerpt', null);
+                                                }
 
-                                if (! PostTypeRegistry::supportsFeaturedImage($postType)) {
-                                    $set('featured_image_id', null);
-                                }
+                                                if (! PostTypeRegistry::supportsFeaturedImage($postType)) {
+                                                    $set('featured_image_id', null);
+                                                }
 
-                                $allowed = array_map('intval', array_keys(self::customTermOptions($postType)));
-                                $selected = array_map('intval', (array) ($get('custom_term_ids') ?? []));
-                                $set('custom_term_ids', array_values(array_intersect($selected, $allowed)));
-                            }),
-                        Select::make('status')
-                            ->label('Status')
-                            ->options(ContentStatus::options())
-                            ->required()
-                            ->default(ContentStatus::Draft->value),
-                        Select::make('visibility')
-                            ->label('Visibility')
-                            ->options(PostVisibility::options())
-                            ->required()
-                            ->default(PostVisibility::Public->value)
-                            ->live(),
-                        TextInput::make('password')
-                            ->label('Password')
-                            ->password()
-                            ->revealable()
-                            ->maxLength(255)
-                            ->visible(fn (Get $get): bool => $get('visibility') === PostVisibility::PasswordProtected->value)
-                            ->helperText(fn (?Post $record): string => $record?->password
-                                ? 'Leave blank to keep the current password.'
-                                : 'Required for password-protected posts.')
-                            ->dehydrated(fn (?string $state): bool => filled($state)),
-                        Select::make('author_id')
-                            ->label('Author')
-                            ->options(fn (): array => User::query()
-                                ->where('status', UserStatus::Active)
-                                ->orderBy('name')
-                                ->pluck('name', 'id')
-                                ->all())
-                            ->searchable()
-                            ->required()
-                            ->default(fn (): ?int => auth()->id())
-                            ->disabled(fn (): bool => ! (auth()->user()?->can(Permission::PostsEditOthers->value) ?? false))
-                            ->dehydrated(),
-                        DateTimePicker::make('published_at')
-                            ->label('Publish Date')
-                            ->seconds(false)
-                            ->default(now())
-                            ->helperText('Future-dated published posts stay hidden until this date/time.'),
-                    ])
-                    ->columns(2),
-                Section::make('Taxonomies')
-                    ->schema([
-                        Select::make('category_ids')
-                            ->label('Categories')
-                            ->multiple()
-                            ->searchable()
-                            ->options(fn (): array => app(CategoryService::class)->parentOptions())
-                            ->helperText('Assign one or more hierarchical categories.')
-                            ->visible(fn (Get $get): bool => PostTypeRegistry::supportsCategories((string) ($get('post_type') ?: 'post'))),
-                        Select::make('tag_ids')
-                            ->label('Tags')
-                            ->multiple()
-                            ->searchable()
-                            ->options(fn (): array => Tag::query()->orderBy('name')->pluck('name', 'id')->all())
-                            ->createOptionForm([
-                                TextInput::make('name')
-                                    ->label('Tag name')
-                                    ->required()
-                                    ->maxLength(255),
-                            ])
-                            ->createOptionUsing(fn (array $data): int => app(TagService::class)
-                                ->findOrCreateByName((string) $data['name'])
-                                ->getKey())
-                            ->helperText('Type to search. Create a new tag when it does not exist.')
-                            ->visible(fn (Get $get): bool => PostTypeRegistry::supportsTags((string) ($get('post_type') ?: 'post'))),
-                        Select::make('custom_term_ids')
-                            ->label('Custom taxonomy terms')
-                            ->multiple()
-                            ->searchable()
-                            ->options(fn (Get $get): array => self::customTermOptions((string) ($get('post_type') ?: 'post')))
-                            ->helperText('Only taxonomies associated with the selected post type are listed.')
-                            ->visible(fn (Get $get): bool => self::customTermOptions((string) ($get('post_type') ?: 'post')) !== []),
-                    ])
-                    ->visible(fn (Get $get): bool => PostTypeRegistry::supportsAnyTaxonomy((string) ($get('post_type') ?: 'post')))
-                    ->columns(1),
-                ...\App\Filament\Forms\Components\SeoPanel::make('post'),
+                                                $allowed = array_map('intval', array_keys(self::customTermOptions($postType)));
+                                                $selected = array_map('intval', (array) ($get('custom_term_ids') ?? []));
+                                                $set('custom_term_ids', array_values(array_intersect($selected, $allowed)));
+                                            }),
+                                        Select::make('status')
+                                            ->label('Status')
+                                            ->options(ContentStatus::options())
+                                            ->required()
+                                            ->default(ContentStatus::Draft->value),
+                                        Select::make('visibility')
+                                            ->label('Visibility')
+                                            ->options(PostVisibility::options())
+                                            ->required()
+                                            ->default(PostVisibility::Public->value)
+                                            ->live(),
+                                        TextInput::make('password')
+                                            ->label('Password')
+                                            ->password()
+                                            ->revealable()
+                                            ->maxLength(255)
+                                            ->visible(fn (Get $get): bool => $get('visibility') === PostVisibility::PasswordProtected->value)
+                                            ->helperText(fn (?Post $record): string => $record?->password
+                                                ? 'Leave blank to keep the current password.'
+                                                : 'Required for password-protected posts.')
+                                            ->dehydrated(fn (?string $state): bool => filled($state)),
+                                        Select::make('author_id')
+                                            ->label('Author')
+                                            ->options(fn (): array => User::query()
+                                                ->where('status', UserStatus::Active)
+                                                ->orderBy('name')
+                                                ->pluck('name', 'id')
+                                                ->all())
+                                            ->searchable()
+                                            ->required()
+                                            ->default(fn (): ?int => auth()->id())
+                                            ->disabled(fn (): bool => ! (auth()->user()?->can(Permission::PostsEditOthers->value) ?? false))
+                                            ->dehydrated(),
+                                        DateTimePicker::make('published_at')
+                                            ->label('Publish Date')
+                                            ->seconds(false)
+                                            ->default(now())
+                                            ->helperText('Future-dated published posts stay hidden until this date/time.'),
+                                        Select::make('category_ids')
+                                            ->label('Categories')
+                                            ->multiple()
+                                            ->searchable()
+                                            ->options(fn (): array => app(CategoryService::class)->parentOptions())
+                                            ->helperText('Assign one or more hierarchical categories.')
+                                            ->visible(fn (Get $get): bool => PostTypeRegistry::supportsCategories((string) ($get('post_type') ?: 'post'))),
+                                        Select::make('tag_ids')
+                                            ->label('Tags')
+                                            ->multiple()
+                                            ->searchable()
+                                            ->options(fn (): array => Tag::query()->orderBy('name')->pluck('name', 'id')->all())
+                                            ->createOptionForm([
+                                                TextInput::make('name')
+                                                    ->label('Tag name')
+                                                    ->required()
+                                                    ->maxLength(255),
+                                            ])
+                                            ->createOptionUsing(fn (array $data): int => app(TagService::class)
+                                                ->findOrCreateByName((string) $data['name'])
+                                                ->getKey())
+                                            ->helperText('Type to search. Create a new tag when it does not exist.')
+                                            ->visible(fn (Get $get): bool => PostTypeRegistry::supportsTags((string) ($get('post_type') ?: 'post'))),
+                                        Select::make('custom_term_ids')
+                                            ->label('Custom taxonomy terms')
+                                            ->multiple()
+                                            ->searchable()
+                                            ->options(fn (Get $get): array => self::customTermOptions((string) ($get('post_type') ?: 'post')))
+                                            ->helperText('Only taxonomies associated with the selected post type are listed.')
+                                            ->visible(fn (Get $get): bool => self::customTermOptions((string) ($get('post_type') ?: 'post')) !== []),
+                                    ])
+                                    ->columns(2),
+                            ]),
+                        Tab::make('SEO & Social')
+                            ->icon('heroicon-o-globe-alt')
+                            ->schema([
+                                ...\App\Filament\Forms\Components\SeoPanel::make('post'),
+                            ]),
+                    ]),
             ]);
     }
 
