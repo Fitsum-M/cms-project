@@ -65,13 +65,14 @@
                                 x-transition.opacity
                                 class="absolute end-0 top-full z-50 pt-2"
                             >
-                                <div class="min-w-[12rem] rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+                                <div class="min-w-[14rem] whitespace-nowrap rounded-lg border border-slate-200 bg-white py-1 text-xs shadow-lg sm:min-w-[16rem] sm:text-sm">
                                     @foreach ($navPage->children as $childPage)
                                         <a
                                             href="{{ route('frontend.pages.show', $childPage->slug) }}"
-                                            class="block px-3 py-2 text-slate-700 hover:bg-slate-50 hover:text-blue-600"
+                                            class="block truncate px-3 py-2 text-slate-700 hover:bg-slate-50 hover:text-blue-600"
+                                            title="{{ $childPage->title }}"
                                         >
-                                            {{ $childPage->title }}
+                                            {{ \Illuminate\Support\Str::limit($childPage->title, 32) }}
                                         </a>
                                     @endforeach
                                 </div>
