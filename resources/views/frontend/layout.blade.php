@@ -12,9 +12,11 @@
     @else
         <script src="https://cdn.tailwindcss.com"></script>
     @endif
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+    <style>[x-cloak]{display:none!important}</style>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
-    <header class="border-b border-slate-200 bg-white/90 backdrop-blur">
+    <header class="relative z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
             <div>
                 <a href="{{ route('frontend.home') }}" class="text-lg font-semibold tracking-tight text-slate-900 hover:text-blue-600">
@@ -27,9 +29,59 @@
             <nav class="flex flex-wrap items-center justify-end gap-3 text-sm font-medium">
                 <a href="{{ route('frontend.home') }}" class="text-slate-600 hover:text-blue-600">Blog</a>
                 @foreach ($navPages as $navPage)
-                    <a href="{{ route('frontend.pages.show', $navPage->slug) }}" class="text-slate-600 hover:text-blue-600">
-                        {{ $navPage->title }}
-                    </a>
+                    @if ($navPage->children->isNotEmpty())
+                        <div
+                            class="relative"
+                            x-data="{ open: false }"
+                            @mouseenter="open = true"
+                            @mouseleave="open = false"
+                            @keydown.escape.window="open = false"
+                        >
+                            <div class="inline-flex items-center gap-1">
+                                <a
+                                    href="{{ route('frontend.pages.show', $navPage->slug) }}"
+                                    class="text-slate-600 hover:text-blue-600"
+                                >
+                                    {{ $navPage->title }}
+                                </a>
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center rounded p-0.5 text-slate-500 hover:bg-slate-100 hover:text-blue-600"
+                                    @click.prevent="open = !open"
+                                    :aria-expanded="open.toString()"
+                                    aria-haspopup="true"
+                                    aria-label="{{ $navPage->title }} submenu"
+                                >
+                                    <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.25a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {{-- top-full + padding keeps hover continuous (no dead gap) --}}
+                            <div
+                                x-cloak
+                                x-show="open"
+                                x-transition.opacity
+                                class="absolute end-0 top-full z-50 pt-2"
+                            >
+                                <div class="min-w-[12rem] rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+                                    @foreach ($navPage->children as $childPage)
+                                        <a
+                                            href="{{ route('frontend.pages.show', $childPage->slug) }}"
+                                            class="block px-3 py-2 text-slate-700 hover:bg-slate-50 hover:text-blue-600"
+                                        >
+                                            {{ $childPage->title }}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ route('frontend.pages.show', $navPage->slug) }}" class="text-slate-600 hover:text-blue-600">
+                            {{ $navPage->title }}
+                        </a>
+                    @endif
                 @endforeach
                 <a href="{{ url('/admin') }}" class="rounded-lg bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-700">
                     Admin

@@ -53,14 +53,24 @@ class FrontendContentService
      */
     public function navigationPages(): Collection
     {
+        $publishedVisibility = function (Builder $query): void {
+            $query->whereNull('published_at')
+                ->orWhere('published_at', '<=', now());
+        };
+
         return Page::query()
             ->where('status', ContentStatus::Published)
             ->where('show_in_navigation', true)
             ->whereNull('parent_id')
-            ->where(function (Builder $query): void {
-                $query->whereNull('published_at')
-                    ->orWhere('published_at', '<=', now());
-            })
+            ->where($publishedVisibility)
+            ->with(['children' => function ($query) use ($publishedVisibility): void {
+                $query
+                    ->where('status', ContentStatus::Published)
+                    ->where('show_in_navigation', true)
+                    ->where($publishedVisibility)
+                    ->orderBy('sort_order')
+                    ->orderBy('title');
+            }])
             ->orderBy('sort_order')
             ->orderBy('title')
             ->get();
