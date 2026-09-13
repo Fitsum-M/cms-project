@@ -155,6 +155,8 @@ class FeaturedImageTest extends TestCase
 
         Livewire::actingAs($admin)
             ->test(CreatePost::class)
+            ->assertFormComponentActionExists('featured_image_id', 'select')
+            ->assertFormComponentActionHasLabel('featured_image_id', 'select', 'Browse Media Library')
             ->fillForm([
                 'title' => 'Filament Featured',
                 'featured_image_id' => $asset->id,
@@ -183,6 +185,47 @@ class FeaturedImageTest extends TestCase
             ->assertHasNoFormErrors();
 
         $this->assertSame($other->id, $post->fresh()->featured_image_id);
+    }
+
+    public function test_featured_image_opens_browse_media_library_modal(): void
+    {
+        $admin = $this->makeUser('Administrator');
+        $this->uploadImage($admin, 'picker.jpg');
+
+        Livewire::actingAs($admin)
+            ->test(CreatePost::class)
+            ->assertFormComponentActionExists('featured_image_id', 'select')
+            ->assertFormComponentActionHasLabel('featured_image_id', 'select', 'Browse Media Library')
+            ->mountFormComponentAction('featured_image_id', 'select')
+            ->assertMountedActionModalSee('Select Featured Image')
+            ->unmountFormComponentAction();
+    }
+
+    public function test_featured_image_can_be_cleared_with_remove_action(): void
+    {
+        $admin = $this->makeUser('Administrator');
+        $asset = $this->uploadImage($admin, 'clear-ui.jpg');
+
+        $post = app(PostService::class)->create([
+            'title' => 'Has Image',
+            'featured_image_id' => $asset->id,
+            'status' => ContentStatus::Draft->value,
+        ], $admin);
+
+        Livewire::actingAs($admin)
+            ->test(EditPost::class, ['record' => $post->getRouteKey()])
+            ->assertFormSet([
+                'featured_image_id' => $asset->id,
+            ])
+            ->assertFormComponentActionExists('featured_image_id', 'clear_featured_image_id')
+            ->callFormComponentAction('featured_image_id', 'clear_featured_image_id')
+            ->assertFormSet([
+                'featured_image_id' => null,
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertNull($post->fresh()->featured_image_id);
     }
 
     public function test_duplicate_copies_featured_image(): void

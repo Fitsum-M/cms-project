@@ -34,3 +34,56 @@
     height: 11rem;
     object-fit: cover;
 }
+
+/* Featured/OG picker: hide inline filename label; keep Browse button clean */
+.fi-fo-media-library-picker .fi-fo-modal-table-select {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.fi-fo-media-library-picker .fi-fo-modal-table-select > div:first-child {
+    display: none;
+}
+
+/* Media picker modal: click anywhere on the card to select */
+.fi-media-image-picker .fi-ta-content-grid .fi-ta-record {
+    position: relative;
+    cursor: pointer;
+    transition: box-shadow 150ms ease;
+}
+
+.fi-media-image-picker .fi-ta-content-grid .fi-ta-record > .fi-ta-record-checkbox {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.fi-media-image-picker .fi-ta-content-grid .fi-ta-record.fi-selected {
+    box-shadow: 0 0 0 2px var(--primary-600, #4f46e5);
+}
+
+.fi-media-image-picker .fi-ta-content-grid .fi-ta-record.fi-selected::after {
+    content: '';
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    z-index: 6;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 9999px;
+    pointer-events: none;
+    background-color: var(--primary-600, #4f46e5);
+    box-shadow: 0 0 0 2px #fff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='white'%3E%3Cpath fill-rule='evenodd' d='M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 0.85rem;
+}
