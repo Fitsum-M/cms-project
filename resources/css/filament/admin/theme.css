@@ -1,7 +1,11 @@
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
+@import '../../../../vendor/solution-forest/filament-tree/resources/css/jquery.nestable.css';
+@import '../../../../vendor/solution-forest/filament-tree/resources/css/button.css';
+@import '../../../../vendor/solution-forest/filament-tree/resources/css/custom-nestable-item.css';
 
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
+@source '../../../../vendor/solution-forest/filament-tree/resources/**/*.blade.php';
 
 /* Media Library DAM cards: wider cards, real gaps, images stay inside the card */
 .fi-resource-dam-library .fi-ta-content.fi-ta-content-grid {

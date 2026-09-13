@@ -7,18 +7,29 @@ use App\Filament\Resources\Pages\PageResource;
 use App\Models\Page;
 use App\Services\PageService;
 use BackedEnum;
-use Filament\Actions\Action;
+use Filament\Actions\Action as FilamentAction;
 use Filament\Notifications\Notification;
-use Filament\Pages\Page as FilamentPage;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\HtmlString;
 use Illuminate\Validation\ValidationException;
+use SolutionForest\FilamentTree\Actions\Action as TreeAction;
+use SolutionForest\FilamentTree\Pages\TreePage;
 use UnitEnum;
 
 /**
- * P.07 — Page hierarchy tree with drag-drop sibling reorder (SRS 12.3.4, 12.3.6).
+ * Page hierarchy via solution-forest/filament-tree (Review Comment #3 §3.2 — Option A).
+ * Keeps CMS null-root parent_id / sort_order conventions; does not use ModelTree
+ * (avoids cascade-delete and sort_order=0 rewrite side effects).
  */
-class PageHierarchy extends FilamentPage
+class PageHierarchy extends TreePage
 {
+    protected static string $model = Page::class;
+
+    protected static int $maxDepth = 10;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedQueueList;
 
     protected static string|UnitEnum|null $navigationGroup = 'Content';
@@ -33,12 +44,9 @@ class PageHierarchy extends FilamentPage
 
     protected static ?string $slug = 'content/pages/hierarchy';
 
-    protected string $view = 'filament.pages.content.page-hierarchy';
+    protected ?string $heading = 'Page Hierarchy';
 
-    /**
-     * @var list<array<string, mixed>>
-     */
-    public array $tree = [];
+    protected ?string $subheading = 'Drag pages to nest or reorder. Changes save automatically.';
 
     public static function canAccess(): bool
     {
@@ -52,14 +60,89 @@ class PageHierarchy extends FilamentPage
             || $user->can(Permission::PagesViewAll->value);
     }
 
-    public function mount(): void
+    public function getModel(): string
     {
-        $this->refreshTree();
+        return Page::class;
     }
 
-    public function refreshTree(): void
+    protected function hasCreateAction(): bool
     {
-        $this->tree = app(PageService::class)->tree(auth()->user());
+        return false;
+    }
+
+    protected function hasDeleteAction(): bool
+    {
+        return false;
+    }
+
+    protected function hasEditAction(): bool
+    {
+        return false;
+    }
+
+    protected function hasViewAction(): bool
+    {
+        return false;
+    }
+
+    protected function getTreeActions(): array
+    {
+        return [
+            TreeAction::make('edit')
+                ->label('Edit')
+                ->icon('heroicon-m-pencil-square')
+                ->url(fn (?Model $record): ?string => $record instanceof Page
+                    ? PageResource::getUrl('edit', ['record' => $record])
+                    : null)
+                ->visible(fn (?Model $record): bool => $record instanceof Page
+                    && (auth()->user()?->can('update', $record) ?? false)),
+        ];
+    }
+
+    protected function getTreeQuery(): Builder
+    {
+        $query = Page::query()->orderBy('sort_order')->orderBy('title');
+
+        $user = auth()->user();
+
+        if ($user !== null && ! $user->can(Permission::PagesViewAll->value)) {
+            $query->where('author_id', $user->getKey());
+        }
+
+        return $query;
+    }
+
+    public function getTreeRecordTitle(?Model $record = null): string
+    {
+        return $record instanceof Page ? (string) $record->title : '';
+    }
+
+    public function getTreeRecordDescription(?Model $record = null): string|HtmlString|null
+    {
+        if (! $record instanceof Page) {
+            return null;
+        }
+
+        return implode(' · ', [
+            $record->contentStatus()->label(),
+            $record->isNavigationReady() ? 'In nav' : 'Hidden from nav',
+        ]);
+    }
+
+    public function getTreeRecordIcon(?Model $record = null): ?string
+    {
+        return $record instanceof Page ? $record->templateIcon() : null;
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            FilamentAction::make('addPage')
+                ->label('Add New Page')
+                ->icon('heroicon-o-plus')
+                ->url(fn (): string => PageResource::getUrl('create'))
+                ->visible(fn (): bool => auth()->user()?->can(Permission::PagesCreate->value) ?? false),
+        ];
     }
 
     public function canManageTree(): bool
@@ -75,108 +158,109 @@ class PageHierarchy extends FilamentPage
     }
 
     /**
-     * Reorder by placing dragged page before/after target (same or new parent).
+     * Persist nestable drag-and-drop via PageService rules (cycle checks, null roots).
      *
-     * @param  'before'|'after'  $placement
+     * @param  array<int, array<string, mixed>>|null  $list
+     * @return array{reload: bool}
      */
-    public function reorderRelative(int $draggedId, int $targetId, string $placement = 'before'): void
+    public function updateTree(?array $list = null): array
     {
         if (! $this->canManageTree()) {
             abort(403);
         }
 
-        $dragged = Page::query()->findOrFail($draggedId);
-        $target = Page::query()->findOrFail($targetId);
+        if ($list === null || $list === []) {
+            return ['reload' => false];
+        }
 
-        $this->authorize('update', $dragged);
+        $needReload = false;
+        $records = $this->getRecords()?->keyBy(fn (Page $record): int => (int) $record->getKey()) ?? collect();
+        $flat = [];
+        $this->flattenTreePayload($flat, $list, null);
+        $service = app(PageService::class);
 
         try {
-            app(PageService::class)->reorderRelative($dragged, $target, $placement);
+            DB::transaction(function () use ($flat, $records, $service, &$needReload): void {
+                foreach ($flat as $id => $data) {
+                    /** @var Page|null $page */
+                    $page = $records->get((int) $id);
+
+                    if (! $page instanceof Page) {
+                        continue;
+                    }
+
+                    $this->authorize('update', $page);
+
+                    $newParentId = $data['parent_id'];
+                    $newOrder = (int) $data['order'];
+
+                    if ($page->parent_id !== $newParentId) {
+                        $service->move($page, $newParentId);
+                        $page = $page->fresh() ?? $page;
+                        $needReload = true;
+                    }
+
+                    if ((int) $page->sort_order !== $newOrder) {
+                        $page->forceFill(['sort_order' => $newOrder])->save();
+                        $needReload = true;
+                    }
+                }
+            });
         } catch (ValidationException $exception) {
             Notification::make()
                 ->danger()
-                ->title('Cannot reorder page')
-                ->body(collect($exception->errors())->flatten()->first() ?? 'Reorder blocked.')
+                ->title('Cannot update page hierarchy')
+                ->body(collect($exception->errors())->flatten()->first() ?? 'Hierarchy update blocked.')
                 ->send();
 
-            $this->refreshTree();
+            $this->records = null;
+            $this->dispatch('refreshTree');
 
-            return;
+            return ['reload' => true];
         }
 
-        $this->refreshTree();
+        if ($needReload) {
+            Notification::make()
+                ->success()
+                ->title('Page hierarchy saved')
+                ->send();
+
+            $this->records = null;
+            $this->dispatch('refreshTree');
+        }
+
+        return ['reload' => $needReload];
     }
 
     /**
-     * Nest page under another page (or root when $newParentId is null).
+     * @param  array<int|string, array{parent_id: int|null, order: int}>  $result
+     * @param  array<int, array<string, mixed>>  $current
      */
-    public function movePage(int $pageId, ?int $newParentId = null): void
+    private function flattenTreePayload(array &$result, array $current, int|string|null $parent): void
     {
-        if (! $this->canManageTree()) {
-            abort(403);
+        foreach ($current as $index => $item) {
+            $key = data_get($item, 'id');
+
+            if ($key === null) {
+                continue;
+            }
+
+            $parentId = null;
+
+            if ($parent !== null && $parent !== '' && $parent !== false) {
+                $parentId = is_numeric($parent) ? (int) $parent : null;
+            }
+
+            $result[$key] = [
+                'parent_id' => $parentId,
+                'order' => (int) $index,
+            ];
+
+            $children = data_get($item, 'children', []);
+
+            if (is_array($children) && $children !== []) {
+                $this->flattenTreePayload($result, $children, $key);
+            }
         }
-
-        $page = Page::query()->findOrFail($pageId);
-        $this->authorize('update', $page);
-
-        try {
-            app(PageService::class)->move($page, $newParentId);
-        } catch (ValidationException $exception) {
-            Notification::make()
-                ->danger()
-                ->title('Cannot move page')
-                ->body(collect($exception->errors())->flatten()->first() ?? 'Move blocked.')
-                ->send();
-
-            $this->refreshTree();
-
-            return;
-        }
-
-        Notification::make()
-            ->success()
-            ->title('Page moved')
-            ->send();
-
-        $this->refreshTree();
-    }
-
-    /**
-     * Apply an explicit sibling order list for a parent.
-     *
-     * @param  list<int>  $orderedIds
-     */
-    public function reorderSiblings(?int $parentId, array $orderedIds): void
-    {
-        if (! $this->canManageTree()) {
-            abort(403);
-        }
-
-        try {
-            app(PageService::class)->reorderSiblings($parentId, $orderedIds);
-        } catch (ValidationException $exception) {
-            Notification::make()
-                ->danger()
-                ->title('Cannot reorder pages')
-                ->body(collect($exception->errors())->flatten()->first() ?? 'Reorder blocked.')
-                ->send();
-
-            $this->refreshTree();
-
-            return;
-        }
-
-        $this->refreshTree();
-    }
-
-    protected function getHeaderActions(): array
-    {
-        return [
-            Action::make('addPage')
-                ->label('Add New Page')
-                ->icon('heroicon-o-plus')
-                ->url(fn (): string => PageResource::getUrl('create'))
-                ->visible(fn (): bool => auth()->user()?->can(Permission::PagesCreate->value) ?? false),
-        ];
     }
 }

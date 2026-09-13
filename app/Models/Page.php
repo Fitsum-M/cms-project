@@ -109,6 +109,46 @@ class Page extends Model implements HasContentLifecycle, HasSeoMetadata, Ownable
     }
 
     /**
+     * Column helpers for solution-forest/filament-tree (without ModelTree trait).
+     */
+    public function determineOrderColumnName(): string
+    {
+        return 'sort_order';
+    }
+
+    public function determineParentColumnName(): string
+    {
+        return 'parent_id';
+    }
+
+    public function determineTitleColumnName(): string
+    {
+        return 'title';
+    }
+
+    public static function defaultParentKey(): mixed
+    {
+        return null;
+    }
+
+    public function isRoot(): bool
+    {
+        return $this->parent_id === null;
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder<self>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<self>
+     */
+    public function scopeOrdered($query)
+    {
+        return $query
+            ->orderBy($this->determineParentColumnName())
+            ->orderBy($this->determineOrderColumnName())
+            ->orderBy($this->determineTitleColumnName());
+    }
+
+    /**
      * Effective template key (null/unknown → Default).
      */
     public function resolvedTemplate(): string

@@ -153,7 +153,16 @@ class PageTreeTest extends TestCase
             ->assertSuccessful()
             ->assertSee('Alpha')
             ->assertSee('Beta')
-            ->call('reorderRelative', $b->id, $a->id, 'before')
+            ->call('updateTree', [
+                [
+                    'id' => $b->id,
+                    'children' => [],
+                ],
+                [
+                    'id' => $a->id,
+                    'children' => [],
+                ],
+            ])
             ->assertSuccessful();
 
         $roots = Page::query()
@@ -175,7 +184,17 @@ class PageTreeTest extends TestCase
 
         Livewire::actingAs($admin)
             ->test(PageHierarchy::class)
-            ->call('movePage', $child->id, $parent->id)
+            ->call('updateTree', [
+                [
+                    'id' => $parent->id,
+                    'children' => [
+                        [
+                            'id' => $child->id,
+                            'children' => [],
+                        ],
+                    ],
+                ],
+            ])
             ->assertSuccessful();
 
         $this->assertSame($parent->id, $child->fresh()->parent_id);
