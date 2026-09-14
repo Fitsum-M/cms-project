@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Pages\Pages;
 
 use App\Enums\ContentStatus;
 use App\Filament\Concerns\HasDraftAutosave;
+use App\Filament\Navigation\AdminBreadcrumbs;
 use App\Filament\Resources\Pages\PageResource;
 use App\Models\Page;
 use App\Services\ContentLifecycleService;
@@ -24,6 +25,22 @@ class EditPage extends EditRecord
     use HasDraftAutosave;
 
     protected static string $resource = PageResource::class;
+
+    /**
+     * @return array<int|string, string>
+     */
+    public function getBreadcrumbs(): array
+    {
+        /** @var Page $record */
+        $record = $this->getRecord();
+        $record->loadMissing('parent.parent.parent.parent');
+
+        return AdminBreadcrumbs::insertAfter(
+            parent::getBreadcrumbs(),
+            $this->getResourceUrl(),
+            AdminBreadcrumbs::pageAncestors($record),
+        );
+    }
 
     protected function getHeaderActions(): array
     {

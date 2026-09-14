@@ -43,6 +43,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('16rem')
+            ->breadcrumbs()
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login(Login::class)
             ->passwordReset(RequestPasswordReset::class, ResetPassword::class)

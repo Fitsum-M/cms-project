@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Folders\Pages;
 
+use App\Filament\Navigation\AdminBreadcrumbs;
 use App\Filament\Resources\Folders\FolderActions;
 use App\Filament\Resources\Folders\FolderResource;
 use App\Models\Folder;
@@ -16,6 +17,22 @@ use Illuminate\Validation\ValidationException;
 class EditFolder extends EditRecord
 {
     protected static string $resource = FolderResource::class;
+
+    /**
+     * @return array<int|string, string>
+     */
+    public function getBreadcrumbs(): array
+    {
+        /** @var Folder $record */
+        $record = $this->getRecord();
+        $record->loadMissing('parent.parent.parent.parent');
+
+        return AdminBreadcrumbs::insertAfter(
+            parent::getBreadcrumbs(),
+            $this->getResourceUrl(),
+            AdminBreadcrumbs::folderAncestors($record),
+        );
+    }
 
     /**
      * @param  array<string, mixed>  $data
