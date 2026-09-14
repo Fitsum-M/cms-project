@@ -53,6 +53,7 @@ class Post extends Model implements HasContentLifecycle, HasSeoMetadata, Ownable
             'status' => ContentStatus::class,
             'visibility' => PostVisibility::class,
             'published_at' => 'datetime',
+            'view_count' => 'integer',
             'author_id' => 'integer',
             'featured_image_id' => 'integer',
         ];
@@ -147,6 +148,11 @@ class Post extends Model implements HasContentLifecycle, HasSeoMetadata, Ownable
     public function resolvedExcerpt(): string
     {
         return app(PostService::class)->effectiveExcerpt($this);
+    }
+
+    public function recordPublicView(): void
+    {
+        $this->increment('view_count');
     }
 
     public function isPubliclyAccessible(): bool

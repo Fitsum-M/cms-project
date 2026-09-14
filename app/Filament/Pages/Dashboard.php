@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Enums\Permission;
 use App\Filament\Widgets\DraftSummaryWidget;
 use App\Filament\Widgets\OverviewStatsWidget;
+use App\Filament\Widgets\PostGridWidget;
 use App\Filament\Widgets\QuickActionsWidget;
 use App\Filament\Widgets\RecentContentWidget;
 use Filament\Pages\Dashboard as BaseDashboard;
@@ -20,6 +21,7 @@ use Filament\Widgets\AccountWidget;
  * |------------------|-----------------------------|
  * | Overview         | OverviewStatsWidget         |
  * | Recent Content   | RecentContentWidget         |
+ * | Post grid        | PostGridWidget               |
  * | Draft Summary    | DraftSummaryWidget          |
  * | Quick Actions    | QuickActionsWidget          |
  *
@@ -54,6 +56,7 @@ class Dashboard extends BaseDashboard
         return [
             AccountWidget::class,
             OverviewStatsWidget::class,
+            PostGridWidget::class,
             RecentContentWidget::class,
             DraftSummaryWidget::class,
             QuickActionsWidget::class,

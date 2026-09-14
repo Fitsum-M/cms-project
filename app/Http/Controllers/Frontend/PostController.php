@@ -15,6 +15,8 @@ class PostController extends Controller
 
         abort_if($post === null, 404);
 
+        $post->recordPublicView();
+
         return view('frontend.post', [
             'siteTitle' => $settings->siteTitle(),
             'tagline' => $settings->tagline(),

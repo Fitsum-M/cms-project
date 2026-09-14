@@ -12,6 +12,7 @@ use App\Filament\Navigation\TaxonomiesNavigation;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\DraftSummaryWidget;
 use App\Filament\Widgets\OverviewStatsWidget;
+use App\Filament\Widgets\PostGridWidget;
 use App\Filament\Widgets\QuickActionsWidget;
 use App\Filament\Widgets\RecentContentWidget;
 use App\Support\Auth\CmsPassword;
@@ -72,6 +73,7 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 AccountWidget::class,
                 OverviewStatsWidget::class,
+                PostGridWidget::class,
                 RecentContentWidget::class,
                 DraftSummaryWidget::class,
                 QuickActionsWidget::class,

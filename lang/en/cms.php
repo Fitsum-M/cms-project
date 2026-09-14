@@ -37,6 +37,14 @@ return [
                 'users_description' => 'Active, pending, and suspended accounts',
             ],
         ],
+        'post_grid' => [
+            'heading' => 'Published posts',
+            'description' => 'Recent published articles with thumbnails, badges, and view counts.',
+            'empty' => 'No published posts yet.',
+            'no_image' => 'No image',
+            'published' => 'Published',
+            'views' => '{0} 0 views|{1} 1 view|[2,*] :count views',
+        ],
         'recent_content' => [
             'heading' => 'Recent Content',
             'description' => 'Last :count edited posts and pages.',
