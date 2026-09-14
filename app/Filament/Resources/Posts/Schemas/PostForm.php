@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Services\CategoryService;
 use App\Services\CustomTaxonomyTermService;
 use App\Services\TagService;
+use App\Support\CustomFields\CustomFieldRegistry;
 use App\Support\PostTypeRegistry;
 use App\Support\Settings\PermalinkSettings;
 use Filament\Forms\Components\DateTimePicker;
@@ -208,6 +209,7 @@ class PostForm
                                             ->visible(fn (Get $get): bool => self::customTermOptions((string) ($get('post_type') ?: 'post')) !== []),
                                     ])
                                     ->columns(2),
+                                ...CustomFieldRegistry::formSections(),
                             ]),
                         Tab::make('SEO & Social')
                             ->icon('heroicon-o-globe-alt')

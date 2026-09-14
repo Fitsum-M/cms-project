@@ -80,6 +80,10 @@ class PostService
             $featuredImageId = PostTypeRegistry::supportsFeaturedImage($postType)
                 ? $this->resolveFeaturedImageId($data['featured_image_id'] ?? null)
                 : null;
+            $customFields = \App\Support\CustomFields\CustomFieldRegistry::sanitize(
+                $postType,
+                isset($data['custom_fields']) && is_array($data['custom_fields']) ? $data['custom_fields'] : null,
+            );
 
             $post = Post::query()->create([
                 'title' => mb_substr($title, 0, 255),
@@ -89,6 +93,7 @@ class PostService
                 'author_id' => $authorId,
                 'featured_image_id' => $featuredImageId,
                 'post_type' => $postType,
+                'custom_fields' => $customFields,
                 'status' => $status,
                 'visibility' => $visibility,
                 'password' => $password,
@@ -234,6 +239,20 @@ class PostService
                 $featuredImageId = $post->featured_image_id;
             }
 
+            if (array_key_exists('custom_fields', $data)) {
+                $customFields = \App\Support\CustomFields\CustomFieldRegistry::sanitize(
+                    $postType,
+                    is_array($data['custom_fields']) ? $data['custom_fields'] : null,
+                );
+            } elseif ($post->post_type !== $postType) {
+                $customFields = \App\Support\CustomFields\CustomFieldRegistry::sanitize(
+                    $postType,
+                    is_array($post->custom_fields) ? $post->custom_fields : null,
+                );
+            } else {
+                $customFields = $post->custom_fields;
+            }
+
             $post->fill([
                 'title' => mb_substr($title, 0, 255),
                 'slug' => $slug,
@@ -242,6 +261,7 @@ class PostService
                 'author_id' => $authorId,
                 'featured_image_id' => $featuredImageId,
                 'post_type' => $postType,
+                'custom_fields' => $customFields,
                 'visibility' => $visibility,
                 'password' => $password,
                 'published_at' => $publishedAt,
@@ -334,6 +354,7 @@ class PostService
                 'author_id' => $source->author_id,
                 'featured_image_id' => $source->featured_image_id,
                 'post_type' => $source->post_type,
+                'custom_fields' => $source->custom_fields,
                 'status' => ContentStatus::Draft->value,
                 'visibility' => $visibility->value,
                 'password' => $tempPassword,

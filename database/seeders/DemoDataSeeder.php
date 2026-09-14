@@ -107,6 +107,8 @@ class DemoDataSeeder extends Seeder
 
         Page::factory()->count(2)->create(['author_id' => $author->id]);
 
+        $this->call(CustomPostTypesDemoSeeder::class);
+
         $this->command?->info('Demo data seeded: '.Post::query()->count().' posts, '.Page::query()->count().' pages.');
     }
 }

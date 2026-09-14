@@ -15,9 +15,9 @@ class FrontendContentService
     /**
      * @return Builder<Post>
      */
-    public function publishedPostsQuery(): Builder
+    public function publishedPostsQuery(?string $postType = null): Builder
     {
-        return Post::query()
+        $query = Post::query()
             ->with(['author', 'categories', 'tags', 'featuredImage'])
             ->where('status', ContentStatus::Published)
             ->where('visibility', PostVisibility::Public)
@@ -27,11 +27,22 @@ class FrontendContentService
             })
             ->orderByDesc('published_at')
             ->orderByDesc('id');
+
+        if ($postType !== null) {
+            $query->where('post_type', $postType);
+        }
+
+        return $query;
     }
 
-    public function paginatedPosts(int $perPage = 10): LengthAwarePaginator
+    public function paginatedPosts(int $perPage = 10, ?string $postType = 'post'): LengthAwarePaginator
     {
-        return $this->publishedPostsQuery()->paginate($perPage);
+        return $this->publishedPostsQuery($postType)->paginate($perPage);
+    }
+
+    public function paginatedPostsByType(string $postType, int $perPage = 12): LengthAwarePaginator
+    {
+        return $this->publishedPostsQuery($postType)->paginate($perPage);
     }
 
     public function findPublicPost(string $slug): ?Post

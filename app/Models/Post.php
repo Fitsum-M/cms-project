@@ -30,6 +30,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
     'author_id',
     'featured_image_id',
     'post_type',
+    'custom_fields',
     'status',
     'visibility',
     'password',
@@ -56,7 +57,68 @@ class Post extends Model implements HasContentLifecycle, HasSeoMetadata, Ownable
             'view_count' => 'integer',
             'author_id' => 'integer',
             'featured_image_id' => 'integer',
+            'custom_fields' => 'array',
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function customFields(): array
+    {
+        return is_array($this->custom_fields) ? $this->custom_fields : [];
+    }
+
+    public function customField(string $key, mixed $default = null): mixed
+    {
+        return data_get($this->customFields(), $key, $default);
+    }
+
+    public function customFieldMedia(string $key): ?MediaAsset
+    {
+        $id = $this->customField($key);
+
+        if (! is_numeric($id)) {
+            return null;
+        }
+
+        return MediaAsset::query()->find((int) $id);
+    }
+
+    /**
+     * @return list<MediaAsset>
+     */
+    public function customFieldMediaMany(string $key): array
+    {
+        $ids = $this->customField($key, []);
+
+        if (! is_array($ids) || $ids === []) {
+            return [];
+        }
+
+        $normalized = array_values(array_filter(array_map(
+            static fn ($id): ?int => is_numeric($id) ? (int) $id : null,
+            $ids,
+        )));
+
+        if ($normalized === []) {
+            return [];
+        }
+
+        $assets = MediaAsset::query()
+            ->whereIn('id', $normalized)
+            ->get()
+            ->keyBy('id');
+
+        $ordered = [];
+        foreach ($normalized as $id) {
+            $asset = $assets->get($id);
+            if ($asset !== null) {
+                $ordered[] = $asset;
+            }
+        }
+
+        return $ordered;
     }
 
     public function author(): BelongsTo

@@ -84,6 +84,13 @@
                         </a>
                     @endif
                 @endforeach
+                @foreach (\App\Support\CustomFields\CustomFieldRegistry::demoTypeSlugs() as $cptSlug)
+                    @if (\App\Support\PostTypeRegistry::isCustom($cptSlug))
+                        <a href="{{ route('frontend.types.index', $cptSlug) }}" class="text-slate-600 hover:text-blue-600">
+                            {{ \App\Support\PostTypeRegistry::label($cptSlug) }}
+                        </a>
+                    @endif
+                @endforeach
                 <a href="{{ url('/admin') }}" class="rounded-lg bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-700">
                     Admin
                 </a>
