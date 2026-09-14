@@ -105,7 +105,7 @@ class PageResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])
-            ->with(['author', 'parent']);
+            ->with(['author', 'parent', 'featuredImage']);
 
         $user = auth()->user();
 

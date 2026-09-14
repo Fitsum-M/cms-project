@@ -205,6 +205,19 @@ class PageFeaturedImageTest extends TestCase
         $response->assertSee($page->featuredImageUrl('large') ?? $page->featuredImageUrl(), false);
     }
 
+    public function test_page_resource_query_eager_loads_featured_image_to_avoid_n_plus_one(): void
+    {
+        $admin = $this->makeUser('Administrator');
+        $this->actingAs($admin);
+
+        $eagerLoads = \App\Filament\Resources\Pages\PageResource::getEloquentQuery()
+            ->getEagerLoads();
+
+        $this->assertArrayHasKey('author', $eagerLoads);
+        $this->assertArrayHasKey('parent', $eagerLoads);
+        $this->assertArrayHasKey('featuredImage', $eagerLoads);
+    }
+
     private function uploadImage(User $user, string $name): MediaAsset
     {
         return app(MediaUploadService::class)->upload(
