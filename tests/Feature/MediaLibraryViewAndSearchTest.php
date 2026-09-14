@@ -123,6 +123,16 @@ class MediaLibraryViewAndSearchTest extends TestCase
         );
     }
 
+    public function test_media_library_query_eager_loads_media_to_avoid_n_plus_one(): void
+    {
+        $eagerLoads = \App\Filament\Resources\MediaAssets\MediaAssetResource::getEloquentQuery()
+            ->getEagerLoads();
+
+        $this->assertArrayHasKey('uploader', $eagerLoads);
+        $this->assertArrayHasKey('folder', $eagerLoads);
+        $this->assertArrayHasKey('media', $eagerLoads);
+    }
+
     private function makeUser(string $role): User
     {
         foreach (Permission::cases() as $permission) {

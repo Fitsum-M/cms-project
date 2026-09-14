@@ -62,7 +62,7 @@ class MediaAssetResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with(['uploader', 'folder']);
+        return parent::getEloquentQuery()->with(['uploader', 'folder', 'media']);
     }
 
     public static function getRelations(): array
