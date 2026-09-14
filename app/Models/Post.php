@@ -11,6 +11,7 @@ use App\Enums\Permission;
 use App\Enums\PostVisibility;
 use App\Models\Concerns\HasContentLifecycle as HasContentLifecycleTrait;
 use App\Models\Concerns\HasContentSeo;
+use App\Models\Concerns\HasSafeHtmlBody;
 use App\Services\ContentUrlGenerator;
 use App\Services\PostService;
 use Database\Factories\PostFactory;
@@ -41,6 +42,7 @@ class Post extends Model implements HasContentLifecycle, HasSeoMetadata, Ownable
     use HasContentLifecycleTrait;
     use HasContentSeo;
     use HasFactory;
+    use HasSafeHtmlBody;
 
     /**
      * @return array<string, string>

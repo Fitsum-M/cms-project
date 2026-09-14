@@ -10,6 +10,7 @@ use App\Enums\ContentStatus;
 use App\Enums\Permission;
 use App\Models\Concerns\HasContentLifecycle as HasContentLifecycleTrait;
 use App\Models\Concerns\HasContentSeo;
+use App\Models\Concerns\HasSafeHtmlBody;
 use App\Services\ContentUrlGenerator;
 use App\Support\PageTemplateRegistry;
 use Database\Factories\PageFactory;
@@ -38,6 +39,7 @@ class Page extends Model implements HasContentLifecycle, HasSeoMetadata, Ownable
     use HasContentLifecycleTrait;
     use HasContentSeo;
     use HasFactory;
+    use HasSafeHtmlBody;
 
     /**
      * @return array<string, string>

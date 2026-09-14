@@ -14,7 +14,8 @@
         "ralphjsmit/laravel-seo": "^1.7",
         "solution-forest/filament-tree": "4.0",
         "spatie/laravel-medialibrary": "^11.0",
-        "spatie/laravel-permission": "^6.0"
+        "spatie/laravel-permission": "^6.0",
+        "stevebauman/purify": "^6.3"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
