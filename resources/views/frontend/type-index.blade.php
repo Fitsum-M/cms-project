@@ -4,9 +4,16 @@
 
 @section('content')
     <section class="mb-12 space-y-4">
+        @php
+            $homeNavLabel = collect($navPages ?? [])
+                ->firstWhere('slug', \App\Support\CustomFields\HomepagePageFields::HOME_NAV_SLUG)
+                ?->title;
+        @endphp
         <p class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--ag-leaf)]">
-            <a href="{{ route('frontend.home') }}" class="hover:text-[var(--ag-forest)]">Home</a>
-            <span class="mx-2 text-slate-300">/</span>
+            @if (filled($homeNavLabel))
+                <a href="{{ route('frontend.home') }}" class="hover:text-[var(--ag-forest)]">{{ $homeNavLabel }}</a>
+                <span class="mx-2 text-slate-300">/</span>
+            @endif
             {{ $typeLabel }}
         </p>
         <h1 class="font-display text-3xl font-semibold tracking-tight text-[var(--ag-forest)] sm:text-4xl">{{ $typeLabel }}</h1>

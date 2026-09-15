@@ -347,9 +347,18 @@ class AbdiGudinaSiteSeeder extends Seeder
 
     private function seedPages(User $author): void
     {
-        $home = $this->ensurePage([
+        $this->ensurePage([
+            'title' => 'Home',
+            'slug' => \App\Support\CustomFields\HomepagePageFields::HOME_NAV_SLUG,
+            'body' => '<p>Public homepage. Linked from navigation to the site root.</p>',
+            'author_id' => $author->id,
+            'show_in_navigation' => true,
+            'sort_order' => 0,
+        ]);
+
+        $this->ensurePage([
             'title' => 'Empowering communities through Tailored cooperative finance.',
-            'slug' => 'home-hero',
+            'slug' => \App\Support\CustomFields\HomepagePageFields::HOME_HERO_SLUG,
             'body' => '<p>For over two decades, Abdi Gudina Financial Cooperatives Union Ltd. has helped member SACCOs grow through trusted financial services, strong governance, and shared prosperity. Serving 66 Primary SACCOs and 21,920+ members, we continue to build a more inclusive and resilient cooperative financial ecosystem in Oromia.</p>',
             'author_id' => $author->id,
             'show_in_navigation' => false,
@@ -357,6 +366,41 @@ class AbdiGudinaSiteSeeder extends Seeder
             'seo' => [
                 'meta_title' => 'Home - Abdi Gudina Financial Cooperatives Union Ltd',
                 'meta_description' => 'EST. 1999 E.C · ADAMA, ETHIOPIA',
+            ],
+            'custom_fields' => [
+                'primary_cta_label' => 'Explore services',
+                'primary_cta_url' => '/types/services',
+                'secondary_cta_label' => 'How to join',
+                'secondary_cta_url' => '/pages/membership',
+                'about_heading' => 'Growing together.',
+                'about_link_label' => 'Read full about page →',
+                'foundation_facts' => [
+                    ['label' => 'Founded', 'value' => '1999 E.C'],
+                    ['label' => 'Governance', 'value' => 'Member-Owned'],
+                    ['label' => 'Headquarters', 'value' => 'Adama, Ethiopia'],
+                ],
+                'services_eyebrow' => 'Core Services',
+                'services_heading' => 'Sustainable financial solutions',
+                'services_intro' => 'Providing sustainable financial solutions that strengthen member SACCOs, promote financial inclusion, and support long-term cooperative development.',
+                'services_all_label' => 'All services →',
+                'saccos_eyebrow' => 'Member network',
+                'saccos_heading' => ':count SACCOs. One Union.',
+                'saccos_intro' => 'Primary cooperatives federated into the Union — managed as Member SACCOs in the CMS.',
+                'saccos_all_label' => 'Full SACCO directory →',
+                'join_eyebrow' => 'Membership',
+                'join_heading' => 'How to join the Union',
+                'leadership_eyebrow' => 'Leadership',
+                'leadership_link_label' => 'Meet the team →',
+                'faqs_eyebrow' => 'FAQs',
+                'faqs_heading' => 'Questions members ask',
+                'impact_eyebrow' => 'Impact',
+                'impact_heading' => 'Recognition & stories',
+                'impact_all_label' => 'All impact stories →',
+                'resources_eyebrow' => 'Resources',
+                'resources_heading' => 'Guides & downloads',
+                'news_eyebrow' => 'News',
+                'news_heading' => 'Latest updates',
+                'news_all_label' => 'Visit news blog →',
             ],
         ]);
 
@@ -442,8 +486,6 @@ class AbdiGudinaSiteSeeder extends Seeder
             'show_in_navigation' => true,
             'sort_order' => 70,
         ]);
-
-        unset($home);
     }
 
     /**
@@ -475,9 +517,16 @@ class AbdiGudinaSiteSeeder extends Seeder
     private function ensurePage(array $data): Page
     {
         $existing = Page::query()->where('slug', $data['slug'])->first();
+        $customFields = isset($data['custom_fields']) && is_array($data['custom_fields'])
+            ? (
+                $data['slug'] === \App\Support\CustomFields\HomepagePageFields::HOME_HERO_SLUG
+                    ? \App\Support\CustomFields\HomepagePageFields::sanitize($data['custom_fields'])
+                    : $data['custom_fields']
+            )
+            : null;
 
         if ($existing !== null) {
-            $existing->fill([
+            $payload = [
                 'title' => $data['title'],
                 'body' => $data['body'],
                 'show_in_navigation' => $data['show_in_navigation'] ?? $existing->show_in_navigation,
@@ -485,13 +534,19 @@ class AbdiGudinaSiteSeeder extends Seeder
                 'sort_order' => $data['sort_order'] ?? $existing->sort_order,
                 'status' => ContentStatus::Published,
                 'published_at' => $existing->published_at ?? now()->subDay(),
-            ])->save();
+            ];
+
+            if ($customFields !== null) {
+                $payload['custom_fields'] = $customFields;
+            }
+
+            $existing->fill($payload)->save();
 
             if (isset($data['seo']) && is_array($data['seo'])) {
                 app(\App\Services\ContentSeoService::class)->sync(
                     $existing->fresh() ?? $existing,
                     $data['seo'],
-                    User::query()->find($data['author_id'] ?? $existing->author_id),
+                    User::query()->findOrFail($data['author_id'] ?? $existing->author_id),
                 );
             }
 
@@ -506,13 +561,14 @@ class AbdiGudinaSiteSeeder extends Seeder
             'parent_id' => $data['parent_id'] ?? null,
             'sort_order' => $data['sort_order'] ?? 0,
             'show_in_navigation' => $data['show_in_navigation'] ?? true,
+            'custom_fields' => $customFields,
         ]);
 
         if (isset($data['seo']) && is_array($data['seo'])) {
             app(\App\Services\ContentSeoService::class)->sync(
                 $page,
                 $data['seo'],
-                User::query()->find($data['author_id']),
+                User::query()->findOrFail($data['author_id']),
             );
         }
 

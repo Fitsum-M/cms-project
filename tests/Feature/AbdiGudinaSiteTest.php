@@ -93,4 +93,33 @@ class AbdiGudinaSiteTest extends TestCase
         $this->get(route('frontend.pages.show', 'contact'))->assertOk()->assertSee('contact@abdigudina.com');
         $this->get(route('frontend.blog'))->assertOk()->assertSee('AG Union expands capacity-building');
     }
+
+    public function test_homepage_copy_and_ctas_come_from_cms_not_blade_defaults(): void
+    {
+        $hero = \App\Models\Page::query()->where('slug', 'home-hero')->first();
+        $this->assertNotNull($hero);
+        $this->assertSame('Growing together.', $hero->customField('about_heading'));
+        $this->assertSame('Explore services', $hero->customField('primary_cta_label'));
+        $this->assertSame('How to join', $hero->customField('secondary_cta_label'));
+        $this->assertSame('/pages/membership', $hero->customField('secondary_cta_url'));
+        $this->assertSame('Core Services', $hero->customField('services_eyebrow'));
+        $this->assertSame('EST. 1999 E.C · ADAMA, ETHIOPIA', $hero->seo?->description);
+        $this->assertNotEmpty($hero->customField('foundation_facts'));
+
+        $homeNav = \App\Models\Page::query()->where('slug', 'home')->where('show_in_navigation', true)->first();
+        $this->assertNotNull($homeNav);
+        $this->assertSame('Home', $homeNav->title);
+
+        $this->get(route('frontend.home'))
+            ->assertOk()
+            ->assertSee('Growing together.')
+            ->assertSee('Explore services')
+            ->assertSee('How to join')
+            ->assertSee('1999 E.C')
+            ->assertSee('Member-Owned')
+            ->assertSee('Adama, Ethiopia')
+            ->assertSee('EST. 1999 E.C · ADAMA, ETHIOPIA')
+            ->assertSee('>Home<', false)
+            ->assertSee('href="'.route('frontend.home').'"', false);
+    }
 }

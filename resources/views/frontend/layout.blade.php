@@ -38,8 +38,12 @@
             </a>
 
             <nav class="flex flex-wrap items-center justify-end gap-x-3 gap-y-2 text-sm font-medium">
-                <a href="{{ route('frontend.home') }}" class="text-[var(--ag-forest)] hover:text-[var(--ag-leaf)]">Home</a>
                 @foreach ($navPages as $navPage)
+                    @php
+                        $navHref = $navPage->slug === \App\Support\CustomFields\HomepagePageFields::HOME_NAV_SLUG
+                            ? route('frontend.home')
+                            : route('frontend.pages.show', $navPage->slug);
+                    @endphp
                     @if ($navPage->children->isNotEmpty())
                         <div
                             class="relative"
@@ -49,7 +53,7 @@
                             @keydown.escape.window="open = false"
                         >
                             <div class="inline-flex items-center gap-1">
-                                <a href="{{ route('frontend.pages.show', $navPage->slug) }}" class="text-slate-700 hover:text-[var(--ag-leaf)]">
+                                <a href="{{ $navHref }}" class="text-slate-700 hover:text-[var(--ag-leaf)]">
                                     {{ $navPage->title }}
                                 </a>
                                 <button
@@ -80,7 +84,7 @@
                             </div>
                         </div>
                     @else
-                        <a href="{{ route('frontend.pages.show', $navPage->slug) }}" class="text-slate-700 hover:text-[var(--ag-leaf)]">
+                        <a href="{{ $navHref }}" class="text-slate-700 hover:text-[var(--ag-leaf)]">
                             {{ $navPage->title }}
                         </a>
                     @endif
@@ -104,7 +108,12 @@
                 <p class="text-sm font-semibold uppercase tracking-wider text-[var(--ag-gold)]">Explore</p>
                 <div class="mt-3 flex flex-col gap-2 text-sm">
                     @foreach ($navPages->take(6) as $footerPage)
-                        <a href="{{ route('frontend.pages.show', $footerPage->slug) }}" class="text-emerald-100 hover:text-white">{{ $footerPage->title }}</a>
+                        @php
+                            $footerHref = $footerPage->slug === \App\Support\CustomFields\HomepagePageFields::HOME_NAV_SLUG
+                                ? route('frontend.home')
+                                : route('frontend.pages.show', $footerPage->slug);
+                        @endphp
+                        <a href="{{ $footerHref }}" class="text-emerald-100 hover:text-white">{{ $footerPage->title }}</a>
                     @endforeach
                     <a href="{{ route('frontend.blog') }}" class="text-emerald-100 hover:text-white">News blog</a>
                 </div>

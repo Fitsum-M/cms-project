@@ -9,6 +9,7 @@ use App\Models\Page;
 use App\Models\User;
 use App\Filament\Forms\Components\MediaLibraryImageSelect;
 use App\Services\PageService;
+use App\Support\CustomFields\HomepagePageFields;
 use App\Support\Settings\PermalinkSettings;
 use App\Support\SlugGenerator;
 use Filament\Forms\Components\DateTimePicker;
@@ -71,6 +72,7 @@ class PageForm
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
+                ...HomepagePageFields::formSections(),
                 Section::make('Hierarchy')
                     ->schema([
                         Select::make('parent_id')

@@ -84,6 +84,11 @@ class PageService
                 'parent_id' => $parentId,
                 'sort_order' => $sortOrder,
                 'template' => $template,
+                'custom_fields' => $slug === \App\Support\CustomFields\HomepagePageFields::HOME_HERO_SLUG
+                    ? \App\Support\CustomFields\HomepagePageFields::sanitize(
+                        isset($data['custom_fields']) && is_array($data['custom_fields']) ? $data['custom_fields'] : null,
+                    )
+                    : (isset($data['custom_fields']) && is_array($data['custom_fields']) ? $data['custom_fields'] : null),
                 'show_in_navigation' => $showInNavigation,
                 'status' => $status,
                 'published_at' => $publishedAt,
@@ -196,6 +201,16 @@ class PageService
                 $sortOrder = $this->nextSortOrder($parentId);
             }
 
+            if (array_key_exists('custom_fields', $data)) {
+                $customFields = $slug === \App\Support\CustomFields\HomepagePageFields::HOME_HERO_SLUG
+                    ? \App\Support\CustomFields\HomepagePageFields::sanitize(
+                        is_array($data['custom_fields']) ? $data['custom_fields'] : null,
+                    )
+                    : (is_array($data['custom_fields']) ? $data['custom_fields'] : null);
+            } else {
+                $customFields = $page->custom_fields;
+            }
+
             $page->fill([
                 'title' => mb_substr($title, 0, 255),
                 'slug' => $slug,
@@ -211,6 +226,7 @@ class PageService
                 'template' => array_key_exists('template', $data)
                     ? $this->resolveTemplate($data['template'])
                     : $page->template,
+                'custom_fields' => $customFields,
                 'show_in_navigation' => array_key_exists('show_in_navigation', $data)
                     ? $this->resolveShowInNavigation($data['show_in_navigation'])
                     : $page->show_in_navigation,

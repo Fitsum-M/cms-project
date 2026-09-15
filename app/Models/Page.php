@@ -29,6 +29,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'parent_id',
     'sort_order',
     'template',
+    'custom_fields',
     'show_in_navigation',
     'status',
     'published_at',
@@ -54,7 +55,21 @@ class Page extends Model implements HasContentLifecycle, HasSeoMetadata, Ownable
             'show_in_navigation' => 'boolean',
             'status' => ContentStatus::class,
             'published_at' => 'datetime',
+            'custom_fields' => 'array',
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function customFields(): array
+    {
+        return is_array($this->custom_fields) ? $this->custom_fields : [];
+    }
+
+    public function customField(string $key, mixed $default = null): mixed
+    {
+        return data_get($this->customFields(), $key, $default);
     }
 
     public function author(): BelongsTo
