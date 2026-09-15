@@ -6,39 +6,39 @@
     <title>@yield('title', $siteTitle)</title>
     <meta name="description" content="@yield('meta_description', $tagline ?: 'Content powered by the CMS backend.')">
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet">
+    <link href="https://fonts.bunny.net/css?family=dm-sans:400,500,600,700|fraunces:600,700" rel="stylesheet">
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @else
         <script src="https://cdn.tailwindcss.com"></script>
     @endif
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
-    <style>[x-cloak]{display:none!important}</style>
+    <style>
+        [x-cloak]{display:none!important}
+        :root {
+            --ag-forest: #0f3d2e;
+            --ag-leaf: #1f6b4a;
+            --ag-gold: #c4a35a;
+            --ag-sand: #f3f6f4;
+        }
+        body { font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif; }
+        .font-display { font-family: 'Fraunces', Georgia, serif; }
+    </style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900 antialiased" style="font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;">
-    <header class="relative z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-            <div>
-                <a href="{{ route('frontend.home') }}" class="text-lg font-semibold tracking-tight text-slate-900 hover:text-blue-600">
-                    {{ $siteTitle }}
-                </a>
+<body class="min-h-screen bg-[var(--ag-sand)] text-slate-900 antialiased">
+    <header class="relative z-40 border-b border-emerald-900/10 bg-white/95 backdrop-blur">
+        <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+            <a href="{{ route('frontend.home') }}" class="min-w-0">
+                <span class="block truncate text-lg font-semibold tracking-tight text-[var(--ag-forest)] sm:text-xl">
+                    {{ \Illuminate\Support\Str::before($siteTitle, ' Financial') ?: $siteTitle }}
+                </span>
                 @if (filled($tagline))
-                    <p class="text-sm text-slate-500">{{ $tagline }}</p>
+                    <span class="mt-0.5 block truncate text-xs text-slate-500 sm:text-sm">{{ \Illuminate\Support\Str::limit($tagline, 64) }}</span>
                 @endif
-            </div>
-            <nav class="flex flex-wrap items-center justify-end gap-3 text-sm font-medium">
-                <a href="{{ route('frontend.home') }}" class="text-slate-600 hover:text-blue-600">Home</a>
-                @foreach ([
-                    'services' => 'Services',
-                    'team-members' => 'Team',
-                    'products' => 'Products',
-                    'testimonials' => 'Testimonials',
-                ] as $cptSlug => $cptLabel)
-                    @if (\App\Support\PostTypeRegistry::isCustom($cptSlug))
-                        <a href="{{ route('frontend.types.index', $cptSlug) }}" class="text-slate-600 hover:text-blue-600">{{ $cptLabel }}</a>
-                    @endif
-                @endforeach
-                <a href="{{ route('frontend.blog') }}" class="text-slate-600 hover:text-blue-600">Blog</a>
+            </a>
+
+            <nav class="flex flex-wrap items-center justify-end gap-x-3 gap-y-2 text-sm font-medium">
+                <a href="{{ route('frontend.home') }}" class="text-[var(--ag-forest)] hover:text-[var(--ag-leaf)]">Home</a>
                 @foreach ($navPages as $navPage)
                     @if ($navPage->children->isNotEmpty())
                         <div
@@ -49,15 +49,12 @@
                             @keydown.escape.window="open = false"
                         >
                             <div class="inline-flex items-center gap-1">
-                                <a
-                                    href="{{ route('frontend.pages.show', $navPage->slug) }}"
-                                    class="text-slate-600 hover:text-blue-600"
-                                >
+                                <a href="{{ route('frontend.pages.show', $navPage->slug) }}" class="text-slate-700 hover:text-[var(--ag-leaf)]">
                                     {{ $navPage->title }}
                                 </a>
                                 <button
                                     type="button"
-                                    class="inline-flex items-center rounded p-0.5 text-slate-500 hover:bg-slate-100 hover:text-blue-600"
+                                    class="inline-flex items-center rounded p-0.5 text-slate-500 hover:bg-emerald-50 hover:text-[var(--ag-leaf)]"
                                     @click.prevent="open = !open"
                                     :aria-expanded="open.toString()"
                                     aria-haspopup="true"
@@ -68,18 +65,12 @@
                                     </svg>
                                 </button>
                             </div>
-
-                            <div
-                                x-cloak
-                                x-show="open"
-                                x-transition.opacity
-                                class="absolute end-0 top-full z-50 pt-2"
-                            >
-                                <div class="min-w-[14rem] whitespace-nowrap rounded-lg border border-slate-200 bg-white py-1 text-xs shadow-lg sm:min-w-[16rem] sm:text-sm">
+                            <div x-cloak x-show="open" x-transition.opacity class="absolute end-0 top-full z-50 pt-2">
+                                <div class="min-w-[14rem] rounded-lg border border-emerald-900/10 bg-white py-1 text-xs shadow-lg sm:min-w-[16rem] sm:text-sm">
                                     @foreach ($navPage->children as $childPage)
                                         <a
                                             href="{{ route('frontend.pages.show', $childPage->slug) }}"
-                                            class="block truncate px-3 py-2 text-slate-700 hover:bg-slate-50 hover:text-blue-600"
+                                            class="block truncate px-3 py-2 text-slate-700 hover:bg-emerald-50 hover:text-[var(--ag-leaf)]"
                                             title="{{ $childPage->title }}"
                                         >
                                             {{ \Illuminate\Support\Str::limit($childPage->title, 32) }}
@@ -89,34 +80,53 @@
                             </div>
                         </div>
                     @else
-                        <a href="{{ route('frontend.pages.show', $navPage->slug) }}" class="text-slate-600 hover:text-blue-600">
+                        <a href="{{ route('frontend.pages.show', $navPage->slug) }}" class="text-slate-700 hover:text-[var(--ag-leaf)]">
                             {{ $navPage->title }}
                         </a>
                     @endif
                 @endforeach
-                <a href="{{ url('/admin') }}" class="rounded-lg bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-700">
-                    Admin
-                </a>
+                <a href="{{ url('/admin') }}" class="rounded-lg bg-[var(--ag-forest)] px-3 py-1.5 text-white hover:bg-[var(--ag-leaf)]">Admin</a>
             </nav>
         </div>
     </header>
 
-    <main class="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+    <main class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         @yield('content')
     </main>
 
-    <footer class="border-t border-slate-200 bg-white">
-        <div class="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8 text-sm text-slate-500 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+    <footer class="border-t border-emerald-900/10 bg-[var(--ag-forest)] text-emerald-50">
+        <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-3">
             <div>
-                <p class="font-semibold text-slate-700">{{ $siteTitle }}</p>
-                <p class="mt-1">&copy; {{ now()->year }}. Content managed via Filament CMS.</p>
+                <p class="font-display text-xl font-semibold text-white">{{ \Illuminate\Support\Str::before($siteTitle, ' Ltd') }}</p>
+                <p class="mt-3 text-sm leading-relaxed text-emerald-100/90">{{ $tagline }}</p>
             </div>
-            <div class="flex flex-wrap gap-4">
-                <a href="{{ route('frontend.types.index', 'services') }}" class="hover:text-blue-600">Services</a>
-                <a href="{{ route('frontend.types.index', 'team-members') }}" class="hover:text-blue-600">Team</a>
-                <a href="{{ route('frontend.types.index', 'products') }}" class="hover:text-blue-600">Products</a>
-                <a href="{{ route('frontend.blog') }}" class="hover:text-blue-600">Blog</a>
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-wider text-[var(--ag-gold)]">Explore</p>
+                <div class="mt-3 flex flex-col gap-2 text-sm">
+                    @foreach ($navPages->take(6) as $footerPage)
+                        <a href="{{ route('frontend.pages.show', $footerPage->slug) }}" class="text-emerald-100 hover:text-white">{{ $footerPage->title }}</a>
+                    @endforeach
+                    <a href="{{ route('frontend.blog') }}" class="text-emerald-100 hover:text-white">News blog</a>
+                </div>
             </div>
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-wider text-[var(--ag-gold)]">Contact</p>
+                @php
+                    $footerContact = $contactPage ?? app(\App\Services\FrontendContentService::class)->findPublicPage('contact');
+                @endphp
+                @if ($footerContact)
+                    <div class="mt-3 space-y-2 text-sm text-emerald-100 [&_a]:text-white [&_a]:underline">
+                        {!! \Illuminate\Support\Str::of(strip_tags($footerContact->body ?? '', '<a><br><strong><p>'))->limit(280) !!}
+                    </div>
+                @else
+                    <p class="mt-3 text-sm text-emerald-100">Update the Contact page in the CMS to show details here.</p>
+                @endif
+            </div>
+        </div>
+        <div class="border-t border-white/10">
+            <p class="mx-auto max-w-6xl px-4 py-4 text-xs text-emerald-200/80 sm:px-6">
+                &copy; {{ now()->year }} {{ $siteTitle }}. Content managed via Filament CMS — no hard-coded marketing grids.
+            </p>
         </div>
     </footer>
 </body>

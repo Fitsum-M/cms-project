@@ -11,16 +11,23 @@ class HomeController extends Controller
 {
     public function __invoke(FrontendContentService $content, GeneralSettings $settings): View
     {
-        $sections = $content->demoWebsiteSections();
+        $sections = $content->organizationWebsiteSections();
 
         return view('frontend.site-home', [
             'siteTitle' => $settings->siteTitle(),
             'tagline' => $settings->tagline(),
-            'team' => $sections['team'],
+            'heroPage' => $sections['heroPage'],
+            'aboutPage' => $sections['aboutPage'],
+            'stats' => $sections['stats'],
             'services' => $sections['services'],
-            'products' => $sections['products'],
-            'testimonials' => $sections['testimonials'],
+            'team' => $sections['team'],
+            'joinSteps' => $sections['joinSteps'],
+            'faqs' => $sections['faqs'],
+            'memberSaccos' => $sections['memberSaccos'],
+            'impactStories' => $sections['impactStories'],
+            'resources' => $sections['resources'],
             'news' => $sections['news'],
+            'contactPage' => $sections['contactPage'],
             'navPages' => $content->navigationPages(),
         ]);
     }

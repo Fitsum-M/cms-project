@@ -109,6 +109,7 @@ class DemoDataSeeder extends Seeder
 
         $this->call(CustomPostTypesDemoSeeder::class);
         $this->call(DemoWebsiteSeeder::class);
+        $this->call(AbdiGudinaSiteSeeder::class);
 
         $this->command?->info('Demo data seeded: '.Post::query()->count().' posts, '.Page::query()->count().' pages.');
     }

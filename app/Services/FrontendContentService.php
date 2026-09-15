@@ -56,6 +56,22 @@ class FrontendContentService
     }
 
     /**
+     * @return Collection<int, Post>
+     */
+    public function orderedByType(string $postType, int $limit = 50): Collection
+    {
+        return $this->publishedPostsQuery($postType)
+            ->get()
+            ->sortBy(function (Post $post): int {
+                $order = $post->customField('display_order') ?? $post->customField('step_number');
+
+                return is_numeric($order) ? (int) $order : PHP_INT_MAX;
+            })
+            ->values()
+            ->take($limit);
+    }
+
+    /**
      * @return array{
      *     team: Collection<int, Post>,
      *     services: Collection<int, Post>,
@@ -68,10 +84,35 @@ class FrontendContentService
     {
         return [
             'team' => $this->latestByType(\App\Support\CustomFields\CustomFieldRegistry::TEAM_MEMBERS, 6),
-            'services' => $this->latestByType(\App\Support\CustomFields\CustomFieldRegistry::SERVICES, 6),
+            'services' => $this->orderedByType(\App\Support\CustomFields\CustomFieldRegistry::SERVICES, 6),
             'products' => $this->latestByType(\App\Support\CustomFields\CustomFieldRegistry::PRODUCTS, 6),
             'testimonials' => $this->latestByType(\App\Support\CustomFields\CustomFieldRegistry::TESTIMONIALS, 6),
             'news' => $this->latestByType('post', 3),
+        ];
+    }
+
+    /**
+     * Capstone organization homepage sections (Abdi Gudina replica).
+     *
+     * @return array<string, mixed>
+     */
+    public function organizationWebsiteSections(): array
+    {
+        $registry = \App\Support\CustomFields\CustomFieldRegistry::class;
+
+        return [
+            'heroPage' => $this->findPublicPage('home-hero'),
+            'aboutPage' => $this->findPublicPage('about-us'),
+            'stats' => $this->orderedByType($registry::STATS, 8),
+            'services' => $this->orderedByType($registry::SERVICES, 8),
+            'team' => $this->latestByType($registry::TEAM_MEMBERS, 6),
+            'joinSteps' => $this->orderedByType($registry::JOIN_STEPS, 8),
+            'faqs' => $this->orderedByType($registry::FAQS, 12),
+            'memberSaccos' => $this->latestByType($registry::MEMBER_SACCOS, 64),
+            'impactStories' => $this->latestByType($registry::IMPACT_STORIES, 8),
+            'resources' => $this->latestByType($registry::RESOURCES, 8),
+            'news' => $this->latestByType('post', 3),
+            'contactPage' => $this->findPublicPage('contact'),
         ];
     }
 
@@ -120,7 +161,7 @@ class FrontendContentService
     public function findPublicPage(string $slug): ?Page
     {
         $page = Page::query()
-            ->with(['author', 'parent', 'featuredImage'])
+            ->with(['author', 'parent', 'featuredImage', 'seo'])
             ->where('slug', $slug)
             ->first();
 

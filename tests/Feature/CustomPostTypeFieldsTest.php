@@ -32,7 +32,12 @@ class CustomPostTypeFieldsTest extends TestCase
     {
         $this->seed(CustomPostTypesDemoSeeder::class);
 
-        foreach (CustomFieldRegistry::demoTypeSlugs() as $slug) {
+        foreach ([
+            CustomFieldRegistry::TEAM_MEMBERS,
+            CustomFieldRegistry::SERVICES,
+            CustomFieldRegistry::PRODUCTS,
+            CustomFieldRegistry::TESTIMONIALS,
+        ] as $slug) {
             $this->assertDatabaseHas('post_types', ['slug' => $slug]);
             $this->assertTrue(
                 Post::query()->where('post_type', $slug)->where('status', ContentStatus::Published)->exists(),

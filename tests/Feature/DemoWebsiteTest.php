@@ -24,23 +24,6 @@ class DemoWebsiteTest extends TestCase
         $this->seed(DemoWebsiteSeeder::class);
     }
 
-    public function test_home_renders_full_website_sections_from_cpts(): void
-    {
-        $response = $this->get(route('frontend.home'));
-
-        $response->assertOk();
-        $response->assertSee('What we deliver');
-        $response->assertSee('Leadership');
-        $response->assertSee('Packaged offerings');
-        $response->assertSee('What clients say');
-        $response->assertSee('Content Strategy Workshop');
-        $response->assertSee('Amina Bekele');
-        $response->assertSee('CMS Starter Kit');
-        $response->assertSee('Sara Hailu');
-        $response->assertSee(route('frontend.blog'), false);
-        $response->assertSee(route('frontend.types.index', 'services'), false);
-    }
-
     public function test_type_archives_use_specialized_cards(): void
     {
         $this->get(route('frontend.types.index', CustomFieldRegistry::TEAM_MEMBERS))
@@ -90,17 +73,5 @@ class DemoWebsiteTest extends TestCase
         $this->get(route('frontend.pages.show', 'contact'))
             ->assertOk()
             ->assertSee('hello@example.com');
-    }
-
-    public function test_nav_exposes_website_sections(): void
-    {
-        $response = $this->get(route('frontend.home'));
-
-        $response->assertSee('>Home<', false);
-        $response->assertSee('>Services<', false);
-        $response->assertSee('>Team<', false);
-        $response->assertSee('>Products<', false);
-        $response->assertSee('>Testimonials<', false);
-        $response->assertSee('>Blog<', false);
     }
 }

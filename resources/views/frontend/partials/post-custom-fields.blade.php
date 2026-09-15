@@ -158,6 +158,66 @@
                     <p class="text-sm font-medium text-amber-600">Rating: {{ $post->customField('rating') }}/5</p>
                 @endif
                 @break
+
+            @case(CustomFieldRegistry::STATS)
+                <dl class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Value</dt>
+                        <dd class="mt-1 text-2xl font-semibold text-slate-900">{{ $post->customField('value') ?: '—' }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Label</dt>
+                        <dd class="mt-1 text-slate-800">{{ $post->customField('label') ?: '—' }}</dd>
+                    </div>
+                </dl>
+                @break
+
+            @case(CustomFieldRegistry::IMPACT_STORIES)
+                <dl class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Issuer</dt>
+                        <dd class="mt-1 text-slate-800">{{ $post->customField('issuer') ?: '—' }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Year</dt>
+                        <dd class="mt-1 text-slate-800">{{ $post->customField('year') ?: '—' }}</dd>
+                    </div>
+                </dl>
+                @if (filled($post->customField('summary')))
+                    <p class="text-slate-700">{{ $post->customField('summary') }}</p>
+                @endif
+                @break
+
+            @case(CustomFieldRegistry::RESOURCES)
+                <p class="text-sm text-slate-600">{{ $post->customField('category') }} · {{ $post->customField('resource_type') }}</p>
+                @if (filled($post->customField('file_url')))
+                    <a href="{{ $post->customField('file_url') }}" class="inline-flex font-semibold text-blue-600" target="_blank" rel="noopener noreferrer">
+                        {{ $post->customField('cta_text') ?: 'Download' }}
+                    </a>
+                @endif
+                @break
+
+            @case(CustomFieldRegistry::FAQS)
+                <p class="whitespace-pre-line text-slate-700">{{ $post->customField('answer') }}</p>
+                @break
+
+            @case(CustomFieldRegistry::MEMBER_SACCOS)
+                <dl class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Location</dt>
+                        <dd class="mt-1 text-slate-800">{{ $post->customField('location') ?: '—' }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Membership</dt>
+                        <dd class="mt-1 text-slate-800">{{ $post->customField('membership_label') ?: '—' }}</dd>
+                    </div>
+                </dl>
+                @break
+
+            @case(CustomFieldRegistry::JOIN_STEPS)
+                <p class="text-sm font-semibold text-slate-500">Step {{ $post->customField('step_number') }}</p>
+                <p class="mt-2 whitespace-pre-line text-slate-700">{{ $post->customField('summary') }}</p>
+                @break
         @endswitch
     </section>
 @endif

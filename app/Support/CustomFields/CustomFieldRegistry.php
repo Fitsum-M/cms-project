@@ -12,7 +12,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 
 /**
- * Code-defined custom-field schemas per CPT slug (Review Comment #3 §9 / Step 8).
+ * Code-defined custom-field schemas per CPT slug (Review Comment #3 §§9–10).
  */
 final class CustomFieldRegistry
 {
@@ -24,6 +24,18 @@ final class CustomFieldRegistry
 
     public const TESTIMONIALS = 'testimonials';
 
+    public const STATS = 'stats';
+
+    public const IMPACT_STORIES = 'impact-stories';
+
+    public const RESOURCES = 'resources';
+
+    public const FAQS = 'faqs';
+
+    public const MEMBER_SACCOS = 'member-saccos';
+
+    public const JOIN_STEPS = 'join-steps';
+
     /**
      * @return list<string>
      */
@@ -34,6 +46,12 @@ final class CustomFieldRegistry
             self::SERVICES,
             self::PRODUCTS,
             self::TESTIMONIALS,
+            self::STATS,
+            self::IMPACT_STORIES,
+            self::RESOURCES,
+            self::FAQS,
+            self::MEMBER_SACCOS,
+            self::JOIN_STEPS,
         ];
     }
 
@@ -68,6 +86,36 @@ final class CustomFieldRegistry
                 ->visible(fn (Get $get): bool => (string) ($get('post_type') ?: 'post') === self::TESTIMONIALS)
                 ->schema(self::testimonialComponents())
                 ->columns(2),
+            Section::make('Stat / metric fields')
+                ->description('Homepage and about-page metrics.')
+                ->visible(fn (Get $get): bool => (string) ($get('post_type') ?: 'post') === self::STATS)
+                ->schema(self::statComponents())
+                ->columns(2),
+            Section::make('Impact story fields')
+                ->description('Awards, recognition, and impact highlights.')
+                ->visible(fn (Get $get): bool => (string) ($get('post_type') ?: 'post') === self::IMPACT_STORIES)
+                ->schema(self::impactStoryComponents())
+                ->columns(2),
+            Section::make('Resource fields')
+                ->description('Downloadable or linked resources.')
+                ->visible(fn (Get $get): bool => (string) ($get('post_type') ?: 'post') === self::RESOURCES)
+                ->schema(self::resourceComponents())
+                ->columns(2),
+            Section::make('FAQ fields')
+                ->description('Frequently asked questions.')
+                ->visible(fn (Get $get): bool => (string) ($get('post_type') ?: 'post') === self::FAQS)
+                ->schema(self::faqComponents())
+                ->columns(2),
+            Section::make('Member SACCO fields')
+                ->description('Primary cooperatives in the union.')
+                ->visible(fn (Get $get): bool => (string) ($get('post_type') ?: 'post') === self::MEMBER_SACCOS)
+                ->schema(self::memberSaccoComponents())
+                ->columns(2),
+            Section::make('Join step fields')
+                ->description('How-to-join process steps.')
+                ->visible(fn (Get $get): bool => (string) ($get('post_type') ?: 'post') === self::JOIN_STEPS)
+                ->schema(self::joinStepComponents())
+                ->columns(2),
         ];
     }
 
@@ -88,27 +136,23 @@ final class CustomFieldRegistry
             self::SERVICES => self::sanitizeService($input),
             self::PRODUCTS => self::sanitizeProduct($input),
             self::TESTIMONIALS => self::sanitizeTestimonial($input),
+            self::STATS => self::sanitizeStat($input),
+            self::IMPACT_STORIES => self::sanitizeImpact($input),
+            self::RESOURCES => self::sanitizeResource($input),
+            self::FAQS => self::sanitizeFaq($input),
+            self::MEMBER_SACCOS => self::sanitizeMemberSacco($input),
+            self::JOIN_STEPS => self::sanitizeJoinStep($input),
             default => null,
         };
     }
 
-    /**
-     * @return list<\Filament\Forms\Components\Field|\Filament\Schemas\Components\Component>
-     */
+    /** @return list<\Filament\Forms\Components\Field|\Filament\Schemas\Components\Component> */
     private static function teamMemberComponents(): array
     {
         return [
-            TextInput::make('custom_fields.job_title')
-                ->label('Job Title / Position')
-                ->maxLength(255)
-                ->required(),
-            TextInput::make('custom_fields.department')
-                ->label('Committee / Department')
-                ->maxLength(255),
-            Textarea::make('custom_fields.bio')
-                ->label('Bio')
-                ->rows(4)
-                ->columnSpanFull(),
+            TextInput::make('custom_fields.job_title')->label('Job Title / Position')->maxLength(255)->required(),
+            TextInput::make('custom_fields.department')->label('Committee / Department')->maxLength(255),
+            Textarea::make('custom_fields.bio')->label('Bio')->rows(4)->columnSpanFull(),
             Repeater::make('custom_fields.social_links')
                 ->label('Social Profile Links')
                 ->schema([
@@ -129,9 +173,7 @@ final class CustomFieldRegistry
         ];
     }
 
-    /**
-     * @return list<\Filament\Forms\Components\Field|\Filament\Schemas\Components\Component>
-     */
+    /** @return list<\Filament\Forms\Components\Field|\Filament\Schemas\Components\Component> */
     private static function serviceComponents(): array
     {
         return [
@@ -143,41 +185,21 @@ final class CustomFieldRegistry
                     helperText: 'Icon or illustrative image for this service.',
                 ),
             ),
-            TagsInput::make('custom_fields.key_benefits')
-                ->label('Key Benefits')
-                ->placeholder('Add a benefit')
-                ->columnSpanFull(),
-            TagsInput::make('custom_fields.feature_highlights')
-                ->label('Feature Highlights')
-                ->placeholder('Add a feature')
-                ->columnSpanFull(),
-            Textarea::make('custom_fields.eligibility')
-                ->label('Eligibility / Requirements')
-                ->rows(3)
-                ->columnSpanFull(),
-            TextInput::make('custom_fields.cta_text')
-                ->label('CTA button text')
-                ->maxLength(100),
-            TextInput::make('custom_fields.cta_url')
-                ->label('CTA button link')
-                ->url()
-                ->maxLength(500),
+            TextInput::make('custom_fields.display_order')->label('Display order')->numeric()->minValue(1)->maxValue(99),
+            TagsInput::make('custom_fields.key_benefits')->label('Key Benefits')->placeholder('Add a benefit')->columnSpanFull(),
+            TagsInput::make('custom_fields.feature_highlights')->label('Feature Highlights')->placeholder('Add a feature')->columnSpanFull(),
+            Textarea::make('custom_fields.eligibility')->label('Eligibility / Requirements')->rows(3)->columnSpanFull(),
+            TextInput::make('custom_fields.cta_text')->label('CTA button text')->maxLength(100),
+            TextInput::make('custom_fields.cta_url')->label('CTA button link')->url()->maxLength(500),
         ];
     }
 
-    /**
-     * @return list<\Filament\Forms\Components\Field|\Filament\Schemas\Components\Component>
-     */
+    /** @return list<\Filament\Forms\Components\Field|\Filament\Schemas\Components\Component> */
     private static function productComponents(): array
     {
         return [
-            TextInput::make('custom_fields.sku')
-                ->label('SKU')
-                ->maxLength(100),
-            TextInput::make('custom_fields.price')
-                ->label('Pricing')
-                ->maxLength(100)
-                ->helperText('Display price, e.g. $49 / year or Contact for quote.'),
+            TextInput::make('custom_fields.sku')->label('SKU')->maxLength(100),
+            TextInput::make('custom_fields.price')->label('Pricing')->maxLength(100),
             Repeater::make('custom_fields.specifications')
                 ->label('Specifications')
                 ->schema([
@@ -192,13 +214,8 @@ final class CustomFieldRegistry
                 ->multiple()
                 ->searchable()
                 ->options(fn (): array => self::imageMediaOptions())
-                ->helperText('Select one or more images from the media library.')
                 ->columnSpanFull(),
-            TextInput::make('custom_fields.brochure_url')
-                ->label('Downloadable Brochure / Datasheet URL')
-                ->url()
-                ->maxLength(500)
-                ->helperText('Public URL to a PDF or datasheet.'),
+            TextInput::make('custom_fields.brochure_url')->label('Downloadable Brochure / Datasheet URL')->url()->maxLength(500),
             Select::make('custom_fields.availability')
                 ->label('Availability status')
                 ->options([
@@ -211,43 +228,91 @@ final class CustomFieldRegistry
         ];
     }
 
-    /**
-     * @return list<\Filament\Forms\Components\Field|\Filament\Schemas\Components\Component>
-     */
+    /** @return list<\Filament\Forms\Components\Field|\Filament\Schemas\Components\Component> */
     private static function testimonialComponents(): array
     {
         return [
-            Textarea::make('custom_fields.quote')
-                ->label('Quote')
-                ->rows(4)
-                ->required()
-                ->columnSpanFull(),
-            TextInput::make('custom_fields.author_name')
-                ->label('Author name')
-                ->maxLength(255)
-                ->required(),
-            TextInput::make('custom_fields.author_role')
-                ->label('Author role / title')
-                ->maxLength(255),
-            TextInput::make('custom_fields.company')
-                ->label('Company / Organization')
-                ->maxLength(255),
+            Textarea::make('custom_fields.quote')->label('Quote')->rows(4)->required()->columnSpanFull(),
+            TextInput::make('custom_fields.author_name')->label('Author name')->maxLength(255)->required(),
+            TextInput::make('custom_fields.author_role')->label('Author role / title')->maxLength(255),
+            TextInput::make('custom_fields.company')->label('Company / Organization')->maxLength(255),
             Select::make('custom_fields.rating')
                 ->label('Rating')
-                ->options([
-                    5 => '5 stars',
-                    4 => '4 stars',
-                    3 => '3 stars',
-                    2 => '2 stars',
-                    1 => '1 star',
-                ])
+                ->options([5 => '5 stars', 4 => '4 stars', 3 => '3 stars', 2 => '2 stars', 1 => '1 star'])
                 ->native(false),
         ];
     }
 
-    /**
-     * @return array<int, string>
-     */
+    /** @return list<\Filament\Forms\Components\Field|\Filament\Schemas\Components\Component> */
+    private static function statComponents(): array
+    {
+        return [
+            TextInput::make('custom_fields.value')->label('Metric value')->required()->maxLength(100)->helperText('e.g. 21,920+'),
+            TextInput::make('custom_fields.label')->label('Metric label')->required()->maxLength(255),
+            TextInput::make('custom_fields.display_order')->label('Display order')->numeric()->minValue(1)->maxValue(99),
+            Textarea::make('custom_fields.helper_text')->label('Supporting text')->rows(2)->columnSpanFull(),
+        ];
+    }
+
+    /** @return list<\Filament\Forms\Components\Field|\Filament\Schemas\Components\Component> */
+    private static function impactStoryComponents(): array
+    {
+        return [
+            TextInput::make('custom_fields.issuer')->label('Issuer / Organization')->maxLength(255),
+            TextInput::make('custom_fields.year')->label('Year')->maxLength(50),
+            TextInput::make('custom_fields.location')->label('Location')->maxLength(255),
+            Textarea::make('custom_fields.summary')->label('Summary')->rows(3)->columnSpanFull(),
+        ];
+    }
+
+    /** @return list<\Filament\Forms\Components\Field|\Filament\Schemas\Components\Component> */
+    private static function resourceComponents(): array
+    {
+        return [
+            Select::make('custom_fields.resource_type')
+                ->label('Resource type')
+                ->options([
+                    'pdf' => 'PDF / Document',
+                    'link' => 'External link',
+                    'form' => 'Form',
+                    'guide' => 'Guide',
+                ])
+                ->native(false),
+            TextInput::make('custom_fields.category')->label('Category')->maxLength(100),
+            TextInput::make('custom_fields.file_url')->label('File / link URL')->url()->maxLength(500)->required(),
+            TextInput::make('custom_fields.cta_text')->label('CTA label')->maxLength(100)->default('Download'),
+        ];
+    }
+
+    /** @return list<\Filament\Forms\Components\Field|\Filament\Schemas\Components\Component> */
+    private static function faqComponents(): array
+    {
+        return [
+            Textarea::make('custom_fields.answer')->label('Answer')->rows(4)->required()->columnSpanFull(),
+            TextInput::make('custom_fields.display_order')->label('Display order')->numeric()->minValue(1)->maxValue(99),
+        ];
+    }
+
+    /** @return list<\Filament\Forms\Components\Field|\Filament\Schemas\Components\Component> */
+    private static function memberSaccoComponents(): array
+    {
+        return [
+            TextInput::make('custom_fields.location')->label('Woreda / Location')->maxLength(255),
+            TextInput::make('custom_fields.initials')->label('Initials')->maxLength(10),
+            TextInput::make('custom_fields.membership_label')->label('Membership label')->maxLength(100)->default('Member SACCO'),
+        ];
+    }
+
+    /** @return list<\Filament\Forms\Components\Field|\Filament\Schemas\Components\Component> */
+    private static function joinStepComponents(): array
+    {
+        return [
+            TextInput::make('custom_fields.step_number')->label('Step number')->numeric()->minValue(1)->maxValue(20)->required(),
+            Textarea::make('custom_fields.summary')->label('Step summary')->rows(3)->required()->columnSpanFull(),
+        ];
+    }
+
+    /** @return array<int, string> */
     private static function imageMediaOptions(): array
     {
         return \App\Models\MediaAsset::query()
@@ -262,10 +327,7 @@ final class CustomFieldRegistry
             ->all();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
+    /** @param  array<string, mixed>  $input @return array<string, mixed> */
     private static function sanitizeTeam(array $input): array
     {
         $social = [];
@@ -290,14 +352,12 @@ final class CustomFieldRegistry
         ];
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
+    /** @param  array<string, mixed>  $input @return array<string, mixed> */
     private static function sanitizeService(array $input): array
     {
         return [
             'icon_id' => self::nullableInt($input['icon_id'] ?? null),
+            'display_order' => self::nullableInt($input['display_order'] ?? null),
             'key_benefits' => self::stringList($input['key_benefits'] ?? []),
             'feature_highlights' => self::stringList($input['feature_highlights'] ?? []),
             'eligibility' => self::nullableTrim($input['eligibility'] ?? null),
@@ -306,10 +366,7 @@ final class CustomFieldRegistry
         ];
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
+    /** @param  array<string, mixed>  $input @return array<string, mixed> */
     private static function sanitizeProduct(array $input): array
     {
         $specs = [];
@@ -348,10 +405,7 @@ final class CustomFieldRegistry
         ];
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
+    /** @param  array<string, mixed>  $input @return array<string, mixed> */
     private static function sanitizeTestimonial(array $input): array
     {
         $rating = self::nullableInt($input['rating'] ?? null);
@@ -365,6 +419,72 @@ final class CustomFieldRegistry
             'author_role' => self::nullableTrim($input['author_role'] ?? null, 255),
             'company' => self::nullableTrim($input['company'] ?? null, 255),
             'rating' => $rating,
+        ];
+    }
+
+    /** @param  array<string, mixed>  $input @return array<string, mixed> */
+    private static function sanitizeStat(array $input): array
+    {
+        return [
+            'value' => self::nullableTrim($input['value'] ?? null, 100),
+            'label' => self::nullableTrim($input['label'] ?? null, 255),
+            'helper_text' => self::nullableTrim($input['helper_text'] ?? null),
+            'display_order' => self::nullableInt($input['display_order'] ?? null),
+        ];
+    }
+
+    /** @param  array<string, mixed>  $input @return array<string, mixed> */
+    private static function sanitizeImpact(array $input): array
+    {
+        return [
+            'issuer' => self::nullableTrim($input['issuer'] ?? null, 255),
+            'year' => self::nullableTrim($input['year'] ?? null, 50),
+            'location' => self::nullableTrim($input['location'] ?? null, 255),
+            'summary' => self::nullableTrim($input['summary'] ?? null),
+        ];
+    }
+
+    /** @param  array<string, mixed>  $input @return array<string, mixed> */
+    private static function sanitizeResource(array $input): array
+    {
+        $type = (string) ($input['resource_type'] ?? 'link');
+        if (! in_array($type, ['pdf', 'link', 'form', 'guide'], true)) {
+            $type = 'link';
+        }
+
+        return [
+            'resource_type' => $type,
+            'category' => self::nullableTrim($input['category'] ?? null, 100),
+            'file_url' => self::nullableTrim($input['file_url'] ?? null, 500),
+            'cta_text' => self::nullableTrim($input['cta_text'] ?? null, 100) ?? 'Download',
+        ];
+    }
+
+    /** @param  array<string, mixed>  $input @return array<string, mixed> */
+    private static function sanitizeFaq(array $input): array
+    {
+        return [
+            'answer' => self::nullableTrim($input['answer'] ?? null),
+            'display_order' => self::nullableInt($input['display_order'] ?? null),
+        ];
+    }
+
+    /** @param  array<string, mixed>  $input @return array<string, mixed> */
+    private static function sanitizeMemberSacco(array $input): array
+    {
+        return [
+            'location' => self::nullableTrim($input['location'] ?? null, 255),
+            'initials' => self::nullableTrim($input['initials'] ?? null, 10),
+            'membership_label' => self::nullableTrim($input['membership_label'] ?? null, 100) ?? 'Member SACCO',
+        ];
+    }
+
+    /** @param  array<string, mixed>  $input @return array<string, mixed> */
+    private static function sanitizeJoinStep(array $input): array
+    {
+        return [
+            'step_number' => self::nullableInt($input['step_number'] ?? null),
+            'summary' => self::nullableTrim($input['summary'] ?? null),
         ];
     }
 
@@ -395,10 +515,7 @@ final class CustomFieldRegistry
         return (int) $value;
     }
 
-    /**
-     * @param  mixed  $value
-     * @return list<string>
-     */
+    /** @return list<string> */
     private static function stringList(mixed $value): array
     {
         $items = [];
