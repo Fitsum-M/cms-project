@@ -5,7 +5,15 @@
 
 @section('content')
     <article>
-        <a href="{{ route('frontend.home') }}" class="text-sm font-medium text-blue-600 hover:text-blue-700">&larr; Back to blog</a>
+        <a href="{{ route('frontend.blog') }}" class="text-sm font-medium text-blue-600 hover:text-blue-700">&larr; Back to blog</a>
+
+        @if (\App\Support\CustomFields\CustomFieldRegistry::hasSchema($post->post_type))
+            <p class="mt-2 text-sm text-slate-500">
+                <a href="{{ route('frontend.types.index', $post->post_type) }}" class="font-medium text-blue-600 hover:text-blue-700">
+                    &larr; All {{ \App\Support\PostTypeRegistry::label($post->post_type) }}
+                </a>
+            </p>
+        @endif
 
         <header class="mt-4 border-b border-slate-200 pb-6">
             <div class="flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500">

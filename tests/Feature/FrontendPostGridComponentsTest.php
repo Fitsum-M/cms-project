@@ -36,20 +36,10 @@ class FrontendPostGridComponentsTest extends TestCase
             'post_type' => 'post',
         ]);
 
-        Post::factory()->published()->create([
-            'title' => 'Team Member Card',
-            'slug' => 'team-member-card',
-            'author_id' => $author->id,
-            'post_type' => 'team',
-            'excerpt' => 'CPT still uses the same card.',
-        ]);
-
-        $response = $this->get(route('frontend.home'));
+        $response = $this->get(route('frontend.blog'));
 
         $response->assertOk();
         $response->assertSee('Component Grid Post');
-        $response->assertSee('Team Member Card');
-        $response->assertSee('team', false);
         $response->assertSee('Read more');
         $response->assertSee('grid-cols-1 md:grid-cols-2 lg:grid-cols-3', false);
     }

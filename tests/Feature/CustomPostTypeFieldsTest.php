@@ -114,7 +114,8 @@ class CustomPostTypeFieldsTest extends TestCase
 
         $this->get(route('frontend.types.index', CustomFieldRegistry::TESTIMONIALS))
             ->assertOk()
-            ->assertSee('Trusted by our editors');
+            ->assertSee('Sara Hailu')
+            ->assertSee('The custom fields finally let us model services');
 
         $this->get(route('frontend.posts.show', 'amina-bekele'))
             ->assertOk()

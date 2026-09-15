@@ -15,7 +15,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
     <style>[x-cloak]{display:none!important}</style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+<body class="min-h-screen bg-slate-50 text-slate-900 antialiased" style="font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;">
     <header class="relative z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
             <div>
@@ -27,7 +27,18 @@
                 @endif
             </div>
             <nav class="flex flex-wrap items-center justify-end gap-3 text-sm font-medium">
-                <a href="{{ route('frontend.home') }}" class="text-slate-600 hover:text-blue-600">Blog</a>
+                <a href="{{ route('frontend.home') }}" class="text-slate-600 hover:text-blue-600">Home</a>
+                @foreach ([
+                    'services' => 'Services',
+                    'team-members' => 'Team',
+                    'products' => 'Products',
+                    'testimonials' => 'Testimonials',
+                ] as $cptSlug => $cptLabel)
+                    @if (\App\Support\PostTypeRegistry::isCustom($cptSlug))
+                        <a href="{{ route('frontend.types.index', $cptSlug) }}" class="text-slate-600 hover:text-blue-600">{{ $cptLabel }}</a>
+                    @endif
+                @endforeach
+                <a href="{{ route('frontend.blog') }}" class="text-slate-600 hover:text-blue-600">Blog</a>
                 @foreach ($navPages as $navPage)
                     @if ($navPage->children->isNotEmpty())
                         <div
@@ -58,7 +69,6 @@
                                 </button>
                             </div>
 
-                            {{-- top-full + padding keeps hover continuous (no dead gap) --}}
                             <div
                                 x-cloak
                                 x-show="open"
@@ -84,13 +94,6 @@
                         </a>
                     @endif
                 @endforeach
-                @foreach (\App\Support\CustomFields\CustomFieldRegistry::demoTypeSlugs() as $cptSlug)
-                    @if (\App\Support\PostTypeRegistry::isCustom($cptSlug))
-                        <a href="{{ route('frontend.types.index', $cptSlug) }}" class="text-slate-600 hover:text-blue-600">
-                            {{ \App\Support\PostTypeRegistry::label($cptSlug) }}
-                        </a>
-                    @endif
-                @endforeach
                 <a href="{{ url('/admin') }}" class="rounded-lg bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-700">
                     Admin
                 </a>
@@ -103,9 +106,17 @@
     </main>
 
     <footer class="border-t border-slate-200 bg-white">
-        <div class="mx-auto flex max-w-5xl flex-col gap-2 px-4 py-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <p>&copy; {{ now()->year }} {{ $siteTitle }}. Content managed via Filament CMS.</p>
-            <p class="text-xs uppercase tracking-wide text-slate-400">Demo frontend · backend operational</p>
+        <div class="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8 text-sm text-slate-500 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+            <div>
+                <p class="font-semibold text-slate-700">{{ $siteTitle }}</p>
+                <p class="mt-1">&copy; {{ now()->year }}. Content managed via Filament CMS.</p>
+            </div>
+            <div class="flex flex-wrap gap-4">
+                <a href="{{ route('frontend.types.index', 'services') }}" class="hover:text-blue-600">Services</a>
+                <a href="{{ route('frontend.types.index', 'team-members') }}" class="hover:text-blue-600">Team</a>
+                <a href="{{ route('frontend.types.index', 'products') }}" class="hover:text-blue-600">Products</a>
+                <a href="{{ route('frontend.blog') }}" class="hover:text-blue-600">Blog</a>
+            </div>
         </div>
     </footer>
 </body>

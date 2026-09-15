@@ -4,11 +4,12 @@
 
 @section('content')
     <section class="mb-10">
-        <p class="mb-2 text-sm font-semibold uppercase tracking-wider text-blue-600">Live from CMS</p>
-        <h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Published posts</h1>
+        <p class="mb-2 text-sm font-semibold uppercase tracking-wider text-blue-600">News &amp; updates</p>
+        <h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Blog</h1>
         <p class="mt-3 max-w-2xl text-base text-slate-600">
-            These posts are stored in the database and rendered by the sample frontend.
-            Create or edit content in the admin panel to see changes here.
+            Standard published posts from the CMS. Structured Team / Services / Products content lives on the
+            <a href="{{ route('frontend.home') }}" class="font-medium text-blue-600 hover:text-blue-700">demo website home</a>
+            and type archives.
         </p>
     </section>
 

@@ -43,7 +43,7 @@ class FrontendDemoTest extends TestCase
             'author_id' => $author->id,
         ]);
 
-        $response = $this->get(route('frontend.home'));
+        $response = $this->get(route('frontend.blog'));
 
         $response->assertOk();
         $response->assertSee('Public Demo Post');

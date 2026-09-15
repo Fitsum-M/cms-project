@@ -7,20 +7,14 @@ use App\Services\FrontendContentService;
 use App\Support\Settings\GeneralSettings;
 use Illuminate\View\View;
 
-class HomeController extends Controller
+class BlogController extends Controller
 {
     public function __invoke(FrontendContentService $content, GeneralSettings $settings): View
     {
-        $sections = $content->demoWebsiteSections();
-
-        return view('frontend.site-home', [
+        return view('frontend.blog', [
             'siteTitle' => $settings->siteTitle(),
             'tagline' => $settings->tagline(),
-            'team' => $sections['team'],
-            'services' => $sections['services'],
-            'products' => $sections['products'],
-            'testimonials' => $sections['testimonials'],
-            'news' => $sections['news'],
+            'posts' => $content->paginatedPosts(),
             'navPages' => $content->navigationPages(),
         ]);
     }

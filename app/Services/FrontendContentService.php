@@ -45,6 +45,36 @@ class FrontendContentService
         return $this->publishedPostsQuery($postType)->paginate($perPage);
     }
 
+    /**
+     * @return Collection<int, Post>
+     */
+    public function latestByType(string $postType, int $limit = 6): Collection
+    {
+        return $this->publishedPostsQuery($postType)
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * @return array{
+     *     team: Collection<int, Post>,
+     *     services: Collection<int, Post>,
+     *     products: Collection<int, Post>,
+     *     testimonials: Collection<int, Post>,
+     *     news: Collection<int, Post>
+     * }
+     */
+    public function demoWebsiteSections(): array
+    {
+        return [
+            'team' => $this->latestByType(\App\Support\CustomFields\CustomFieldRegistry::TEAM_MEMBERS, 6),
+            'services' => $this->latestByType(\App\Support\CustomFields\CustomFieldRegistry::SERVICES, 6),
+            'products' => $this->latestByType(\App\Support\CustomFields\CustomFieldRegistry::PRODUCTS, 6),
+            'testimonials' => $this->latestByType(\App\Support\CustomFields\CustomFieldRegistry::TESTIMONIALS, 6),
+            'news' => $this->latestByType('post', 3),
+        ];
+    }
+
     public function findPublicPost(string $slug): ?Post
     {
         $post = Post::query()
